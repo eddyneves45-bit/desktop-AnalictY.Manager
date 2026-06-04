@@ -46,3 +46,27 @@ Este projeto nao deve quebrar nem substituir o AnalictY existente. Ele e um novo
 - Sem WebView2.
 - Sem Electron.
 
+## Build e execucao
+
+Requisitos:
+
+- Windows.
+- .NET SDK 8 instalado.
+
+Restaurar e compilar:
+
+```powershell
+dotnet build AnalictY.Console.sln
+```
+
+Executar o cliente desktop:
+
+```powershell
+dotnet run --project src/AnalictY.Console/AnalictY.Console.csproj
+```
+
+O botao `Verificar servidor` consulta:
+
+```text
+GET http://127.0.0.1:5000/api/system/health
+```
