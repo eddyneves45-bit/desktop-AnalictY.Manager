@@ -25,7 +25,8 @@ public partial class MainWindow : Window
         var viewModel = new MainWindowViewModel(
             new AuthService(apiClient, cookieContainer),
             machineOverviewService,
-            new StatusOverviewService(apiClient, machineOverviewService));
+            new StatusOverviewService(apiClient, machineOverviewService),
+            new ProductionHistoryService(apiClient));
         viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
         DataContext = viewModel;
     }

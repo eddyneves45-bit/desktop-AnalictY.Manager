@@ -12,8 +12,10 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly AuthService _authService;
     private readonly MachineOverviewService _machineOverviewService;
     private readonly StatusOverviewService _statusOverviewService;
+    private readonly ProductionHistoryService _productionHistoryService;
     private bool _hasLoadedOverview;
     private bool _hasLoadedStatus;
+    private bool _hasLoadedProductionHistory;
     private string _currentPage = "Overview";
     private string _serverStatus = "Não verificado";
     private string _serverStatusDetail = "Clique em Atualizar Status para consultar o AnalictY Server local.";
@@ -23,6 +25,15 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _selectedLine = "Todas as linhas";
     private string _overviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
     private string _statusDataMessage = "Status ainda não atualizado.";
+    private string _productionHistoryMessage = "Histórico ainda não carregado.";
+    private string _selectedProductionMachineId = string.Empty;
+    private string _selectedProductionPeriod = "Hoje";
+    private string _productionHistoryButtonText = "Atualizar";
+    private string _productionMachineName = "Aguardando filtro";
+    private string _productionPeriodLabel = "Hoje";
+    private double _productionTotalProduced;
+    private double _productionTotalLost;
+    private double _productionTotalGood;
     private string _systemVersion = "-";
     private string _systemChannel = "-";
     private string _systemSource = "-";
@@ -40,21 +51,25 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isCheckingServer;
     private bool _isLoadingMachines;
     private bool _isLoadingStatus;
+    private bool _isLoadingProductionHistory;
     private bool _isLoggingIn;
 
     public MainWindowViewModel(
         AuthService authService,
         MachineOverviewService machineOverviewService,
-        StatusOverviewService statusOverviewService)
+        StatusOverviewService statusOverviewService,
+        ProductionHistoryService productionHistoryService)
     {
         _authService = authService;
         _machineOverviewService = machineOverviewService;
         _statusOverviewService = statusOverviewService;
+        _productionHistoryService = productionHistoryService;
 
         LoginCommand = new RelayCommand(LoginAsync);
         LogoutCommand = new RelayCommand(LogoutAsync);
         CheckServerCommand = new RelayCommand(RefreshStatusAsync);
         RefreshStatusCommand = new RelayCommand(RefreshStatusAsync);
+        RefreshProductionHistoryCommand = new RelayCommand(RefreshProductionHistoryAsync);
         NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is not string pageKey)
@@ -77,6 +92,10 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 await RefreshStatusAsync();
             }
+            else if (pageKey == "ProductionHistory")
+            {
+                await EnsureProductionHistoryAsync();
+            }
         });
 
         NavigationItems = new ObservableCollection<NavigationItem>
@@ -96,6 +115,9 @@ public sealed class MainWindowViewModel : ObservableObject
         Machines = new ObservableCollection<MachineCard>();
         StatusMetrics = new ObservableCollection<StatusMetricCard>();
         StatusMachines = new ObservableCollection<MachineCard>();
+        ProductionMachines = new ObservableCollection<ProductionMachineOption>();
+        ProductionPeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
+        ProductionHistoryRows = new ObservableCollection<ProductionHistoryRow>();
         ModuleCards = CreateModuleCards();
         HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
@@ -111,6 +133,9 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<MachineCard> Machines { get; }
     public ObservableCollection<StatusMetricCard> StatusMetrics { get; }
     public ObservableCollection<MachineCard> StatusMachines { get; }
+    public ObservableCollection<ProductionMachineOption> ProductionMachines { get; }
+    public ObservableCollection<string> ProductionPeriodOptions { get; }
+    public ObservableCollection<ProductionHistoryRow> ProductionHistoryRows { get; }
     public ObservableCollection<ModuleCard> ModuleCards { get; }
     public ObservableCollection<HelpTopic> HelpTopics { get; }
     public ObservableCollection<string> ShiftFilters { get; }
@@ -118,6 +143,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand NavigateCommand { get; }
     public ICommand CheckServerCommand { get; }
     public ICommand RefreshStatusCommand { get; }
+    public ICommand RefreshProductionHistoryCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LogoutCommand { get; }
     public bool IsAuthenticated => _session is not null;
@@ -154,6 +180,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         "Overview" => "Acompanhamento inicial da operação com dados do AnalictY Server quando disponíveis.",
         "Status" => "Saúde do servidor, runtime e máquinas com fallback seguro.",
+        "ProductionHistory" => "Produção por hora com dados reais quando disponíveis.",
         "Settings" => "Módulos previstos para operação e administração.",
         "Help" => "Orientações rápidas para uso do console.",
         _ => "Tela nativa reservada para a próxima etapa."
@@ -162,19 +189,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public string ServerStatus { get => _serverStatus; private set => SetProperty(ref _serverStatus, value); }
     public string ServerStatusDetail { get => _serverStatusDetail; private set => SetProperty(ref _serverStatusDetail, value); }
     public string CheckButtonText => StatusButtonText;
-
-    public string StatusButtonText
-    {
-        get => _statusButtonText;
-        private set
-        {
-            if (SetProperty(ref _statusButtonText, value))
-            {
-                OnPropertyChanged(nameof(CheckButtonText));
-            }
-        }
-    }
-
+    public string StatusButtonText { get => _statusButtonText; private set { if (SetProperty(ref _statusButtonText, value)) OnPropertyChanged(nameof(CheckButtonText)); } }
     public string LastCheckedAt { get => _lastCheckedAt; private set => SetProperty(ref _lastCheckedAt, value); }
     public string SelectedShift { get => _selectedShift; set => SetProperty(ref _selectedShift, value); }
     public string SelectedLine { get => _selectedLine; set => SetProperty(ref _selectedLine, value); }
@@ -188,29 +203,29 @@ public sealed class MainWindowViewModel : ObservableObject
     public string RuntimeStatus { get => _runtimeStatus; private set => SetProperty(ref _runtimeStatus, value); }
     public string ApiStatus { get => _apiStatus; private set => SetProperty(ref _apiStatus, value); }
     public string CurrentServerTime { get => _currentServerTime; private set => SetProperty(ref _currentServerTime, value); }
+    public string ProductionHistoryMessage { get => _productionHistoryMessage; private set => SetProperty(ref _productionHistoryMessage, value); }
+    public string SelectedProductionMachineId { get => _selectedProductionMachineId; set => SetProperty(ref _selectedProductionMachineId, value); }
+    public string SelectedProductionPeriod { get => _selectedProductionPeriod; set => SetProperty(ref _selectedProductionPeriod, value); }
+    public string ProductionHistoryButtonText { get => _productionHistoryButtonText; private set => SetProperty(ref _productionHistoryButtonText, value); }
+    public string ProductionMachineName { get => _productionMachineName; private set => SetProperty(ref _productionMachineName, value); }
+    public string ProductionPeriodLabel { get => _productionPeriodLabel; private set => SetProperty(ref _productionPeriodLabel, value); }
+    public string ProductionTotalProducedText => FormatNumber(ProductionTotalProduced);
+    public string ProductionTotalLostText => FormatNumber(ProductionTotalLost);
+    public string ProductionTotalGoodText => FormatNumber(ProductionTotalGood);
+    public double ProductionTotalProduced { get => _productionTotalProduced; private set { if (SetProperty(ref _productionTotalProduced, value)) OnPropertyChanged(nameof(ProductionTotalProducedText)); } }
+    public double ProductionTotalLost { get => _productionTotalLost; private set { if (SetProperty(ref _productionTotalLost, value)) OnPropertyChanged(nameof(ProductionTotalLostText)); } }
+    public double ProductionTotalGood { get => _productionTotalGood; private set { if (SetProperty(ref _productionTotalGood, value)) OnPropertyChanged(nameof(ProductionTotalGoodText)); } }
 
     public string LoginUsername
     {
         get => _loginUsername;
-        set
-        {
-            if (SetProperty(ref _loginUsername, value))
-            {
-                LoginError = string.Empty;
-            }
-        }
+        set { if (SetProperty(ref _loginUsername, value)) LoginError = string.Empty; }
     }
 
     public string LoginPassword
     {
         get => _loginPassword;
-        set
-        {
-            if (SetProperty(ref _loginPassword, value))
-            {
-                LoginError = string.Empty;
-            }
-        }
+        set { if (SetProperty(ref _loginPassword, value)) LoginError = string.Empty; }
     }
 
     public string LoginError { get => _loginError; private set => SetProperty(ref _loginError, value); }
@@ -219,6 +234,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsCheckingServer { get => _isCheckingServer; private set => SetProperty(ref _isCheckingServer, value); }
     public bool IsLoadingMachines { get => _isLoadingMachines; private set => SetProperty(ref _isLoadingMachines, value); }
     public bool IsLoadingStatus { get => _isLoadingStatus; private set => SetProperty(ref _isLoadingStatus, value); }
+    public bool IsLoadingProductionHistory { get => _isLoadingProductionHistory; private set => SetProperty(ref _isLoadingProductionHistory, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
 
     private async Task LoginAsync()
@@ -259,10 +275,12 @@ public sealed class MainWindowViewModel : ObservableObject
         _session = null;
         _hasLoadedOverview = false;
         _hasLoadedStatus = false;
+        _hasLoadedProductionHistory = false;
         LoginPassword = string.Empty;
         LoginError = string.Empty;
         OverviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
         StatusDataMessage = "Status ainda não atualizado.";
+        ProductionHistoryMessage = "Histórico ainda não carregado.";
         ApplyMachines(MachineOverviewService.CreateFallbackMachines());
         ApplyStatusMachines(MachineOverviewService.CreateFallbackMachines());
         UpdateStatusMetrics();
@@ -273,10 +291,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private async Task LoadMachineOverviewAsync()
     {
-        if (IsLoadingMachines)
-        {
-            return;
-        }
+        if (IsLoadingMachines) return;
 
         IsLoadingMachines = true;
         OverviewDataMessage = _hasLoadedOverview ? "Atualizando máquinas..." : "Carregando máquinas...";
@@ -294,12 +309,50 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private async Task EnsureProductionHistoryAsync()
+    {
+        if (!_hasLoadedProductionHistory)
+        {
+            await RefreshProductionHistoryAsync();
+        }
+    }
+
+    private async Task RefreshProductionHistoryAsync()
+    {
+        if (IsLoadingProductionHistory) return;
+
+        ProductionHistoryButtonText = "Atualizando...";
+        ProductionHistoryMessage = "Consultando histórico de produção...";
+        IsLoadingProductionHistory = true;
+
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+            ProductionHistoryResult result = await _productionHistoryService.LoadHistoryAsync(
+                SelectedProductionMachineId,
+                SelectedProductionPeriod,
+                timeout.Token);
+
+            ApplyProductionMachines(result.Machines, result.SelectedMachineId);
+            ApplyProductionRows(result.Rows);
+            ProductionMachineName = result.SelectedMachineName;
+            ProductionPeriodLabel = result.PeriodLabel;
+            ProductionTotalProduced = result.TotalProduced;
+            ProductionTotalLost = result.TotalLost;
+            ProductionTotalGood = result.TotalGood;
+            ProductionHistoryMessage = result.Message;
+            _hasLoadedProductionHistory = true;
+        }
+        finally
+        {
+            ProductionHistoryButtonText = "Atualizar";
+            IsLoadingProductionHistory = false;
+        }
+    }
+
     private async Task RefreshStatusAsync()
     {
-        if (IsLoadingStatus)
-        {
-            return;
-        }
+        if (IsLoadingStatus) return;
 
         StatusButtonText = "Atualizando...";
         IsLoadingStatus = true;
@@ -338,21 +391,27 @@ public sealed class MainWindowViewModel : ObservableObject
     private void ApplyMachines(IReadOnlyList<MachineCard> machines)
     {
         Machines.Clear();
-        foreach (MachineCard machine in machines)
-        {
-            Machines.Add(machine);
-        }
-
+        foreach (MachineCard machine in machines) Machines.Add(machine);
         UpdateKpis(machines);
     }
 
     private void ApplyStatusMachines(IReadOnlyList<MachineCard> machines)
     {
         StatusMachines.Clear();
-        foreach (MachineCard machine in machines.Take(8))
-        {
-            StatusMachines.Add(machine);
-        }
+        foreach (MachineCard machine in machines.Take(8)) StatusMachines.Add(machine);
+    }
+
+    private void ApplyProductionMachines(IReadOnlyList<ProductionMachineOption> machines, string selectedMachineId)
+    {
+        ProductionMachines.Clear();
+        foreach (ProductionMachineOption machine in machines) ProductionMachines.Add(machine);
+        SelectedProductionMachineId = selectedMachineId;
+    }
+
+    private void ApplyProductionRows(IReadOnlyList<ProductionHistoryRow> rows)
+    {
+        ProductionHistoryRows.Clear();
+        foreach (ProductionHistoryRow row in rows) ProductionHistoryRows.Add(row);
     }
 
     private void UpdateKpis(IReadOnlyList<MachineCard> machines)
@@ -381,6 +440,11 @@ public sealed class MainWindowViewModel : ObservableObject
         StatusMetrics.Add(new StatusMetricCard("Em operação", running.ToString(), "Status normalizado do runtime", new SolidColorBrush(Color.FromRgb(32, 180, 134))));
         StatusMetrics.Add(new StatusMetricCard("Ociosas", idle.ToString(), "Sem ordem em execução", new SolidColorBrush(Color.FromRgb(249, 115, 22))));
         StatusMetrics.Add(new StatusMetricCard("Manutenção", maintenance.ToString(), "Aguardando intervenção", new SolidColorBrush(Color.FromRgb(239, 68, 68))));
+    }
+
+    private static string FormatNumber(double value)
+    {
+        return value.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
     }
 
     private static ObservableCollection<ModuleCard> CreateModuleCards()

@@ -508,13 +508,162 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                            </StackPanel>
-                        </Grid>
+                        </StackPanel>
+                    </Grid>
 
-                        <Grid x:Name="StatusPage">
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Grid x:Name="ProductionHistoryPage">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentPage}" Value="ProductionHistory">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <StackPanel>
+                            <Grid Margin="0,0,0,18">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Histórico de Produção"
+                                               FontSize="22"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ContentTextBrush}" />
+                                    <TextBlock Text="{Binding ProductionHistoryMessage}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               Margin="0,4,0,0" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="{Binding ProductionHistoryButtonText}"
+                                        Command="{Binding RefreshProductionHistoryCommand}"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource PrimaryButtonStyle}" />
+                            </Grid>
+
+                            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="1.1*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Margin="0,0,16,0">
+                                        <TextBlock Text="Máquina"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,8" />
+                                        <ComboBox ItemsSource="{Binding ProductionMachines}"
+                                                  SelectedValue="{Binding SelectedProductionMachineId}"
+                                                  SelectedValuePath="Id"
+                                                  DisplayMemberPath="DisplayName"
+                                                  Height="36"
+                                                  VerticalContentAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                                        <TextBlock Text="Período"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,8" />
+                                        <ComboBox ItemsSource="{Binding ProductionPeriodOptions}"
+                                                  SelectedItem="{Binding SelectedProductionPeriod}"
+                                                  Height="36"
+                                                  VerticalContentAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                                        <TextBlock Text="Consulta"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,8" />
+                                        <Button Content="{Binding ProductionHistoryButtonText}"
+                                                Command="{Binding RefreshProductionHistoryCommand}"
+                                                Style="{StaticResource PrimaryButtonStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <UniformGrid Columns="4">
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#2563EB"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Total produzido" Foreground="#EFF6FF" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding ProductionTotalProducedText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
+                                        <TextBlock Text="{Binding ProductionMachineName}" Foreground="#DBEAFE" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#DC2626"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Quantidade perdida" Foreground="#FEE2E2" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding ProductionTotalLostText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
+                                        <TextBlock Text="Perdas do período" Foreground="#FEE2E2" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#059669"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Quantidade boa" Foreground="#D1FAE5" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding ProductionTotalGoodText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
+                                        <TextBlock Text="Produzido menos perdas" Foreground="#D1FAE5" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#334155"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Período" Foreground="#E2E8F0" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding ProductionPeriodLabel}" Foreground="White" FontSize="25" FontWeight="Bold" Margin="0,12,0,0" />
+                                        <TextBlock Text="Filtro selecionado" Foreground="#CBD5E1" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <Border Style="{StaticResource CardBorderStyle}" Margin="0">
+                                <StackPanel>
+                                    <TextBlock Text="Produção por hora"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ContentTextBrush}"
+                                               Margin="0,0,0,14" />
+                                    <DataGrid ItemsSource="{Binding ProductionHistoryRows}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              GridLinesVisibility="Horizontal"
+                                              RowHeaderWidth="0"
+                                              MinHeight="260">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Hora" Binding="{Binding Hour}" Width="*" />
+                                            <DataGridTextColumn Header="Produzido" Binding="{Binding Produced, StringFormat=N0}" Width="*" />
+                                            <DataGridTextColumn Header="Perdido" Binding="{Binding Lost, StringFormat=N0}" Width="*" />
+                                            <DataGridTextColumn Header="Bom" Binding="{Binding Good, StringFormat=N0}" Width="*" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="StatusPage">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding CurrentPage}" Value="Status">
                                             <Setter Property="Visibility" Value="Visible" />
@@ -837,12 +986,9 @@
                                 <Style TargetType="Grid">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="ProductionHistory">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="DowntimeHistory">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentPage}" Value="DowntimeHistory">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
                                         <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
