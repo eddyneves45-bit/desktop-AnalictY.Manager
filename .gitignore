@@ -1,0 +1,28 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET
+bin/
+obj/
+TestResults/
+*.nupkg
+*.snupkg
+
+# Logs/local data
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts
+dist/
+release/
+artifacts/
+
