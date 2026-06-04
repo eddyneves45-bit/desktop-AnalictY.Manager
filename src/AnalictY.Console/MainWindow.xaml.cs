@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Net;
 using System.Net.Http;
 using System.Windows;
 using AnalictY.Console.Services;
@@ -10,8 +12,38 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContext = new MainWindowViewModel(
-            new HealthService(new HttpClient { Timeout = TimeSpan.FromSeconds(6) }),
-            new MachineOverviewService(new HttpClient { Timeout = TimeSpan.FromSeconds(6) }));
+
+        var cookieContainer = new CookieContainer();
+        var handler = new HttpClientHandler
+        {
+            CookieContainer = cookieContainer,
+            UseCookies = true
+        };
+        var apiClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+
+        var viewModel = new MainWindowViewModel(
+            new AuthService(apiClient, cookieContainer),
+            new HealthService(apiClient),
+            new MachineOverviewService(apiClient));
+        viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
+        DataContext = viewModel;
+    }
+
+    private void LoginPasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.LoginPassword = LoginPasswordBox.Password;
+        }
+    }
+
+    private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is MainWindowViewModel { LoginPassword.Length: 0 } &&
+            e.PropertyName == nameof(MainWindowViewModel.LoginPassword) &&
+            !string.IsNullOrEmpty(LoginPasswordBox.Password))
+        {
+            LoginPasswordBox.Clear();
+        }
     }
 }

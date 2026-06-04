@@ -146,6 +146,7 @@ public sealed class MachineOverviewService
     private static MachineCard MapMachine(JsonElement machine, IReadOnlyDictionary<string, JsonElement> states)
     {
         string id = ReadString(machine, "id", "machine_id", "machineId") ?? string.Empty;
+        string? code = ReadString(machine, "code", "codigo", "código");
         string name = ReadString(machine, "name", "nome", "code", "codigo", "código") ?? id;
         string area = ReadString(machine, "location", "setor", "sector", "area", "cost_center", "centro_custo", "centroCusto")
             ?? "Sem setor informado";
@@ -153,7 +154,7 @@ public sealed class MachineOverviewService
             ?? "Sem ordem";
         string efficiency = ReadEfficiency(machine);
 
-        JsonElement? state = FindState(states, id, name, ReadString(machine, "code", "codigo", "código"));
+        JsonElement? state = FindState(states, id, name, code);
         string? rawStatus = state is null
             ? ReadString(machine, "status", "state", "estado", "resolved_state", "resolvedState")
             : ReadString(
@@ -311,7 +312,7 @@ public sealed class MachineOverviewService
         }
 
         string normalized = text.Normalize(NormalizationForm.FormD);
-        var builder = new System.Text.StringBuilder(normalized.Length);
+        var builder = new StringBuilder(normalized.Length);
 
         foreach (char character in normalized)
         {

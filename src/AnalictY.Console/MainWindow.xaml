@@ -38,9 +38,9 @@
         </Style>
 
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#1F7A5C" />
+            <Setter Property="Background" Value="#DC2626" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#1F7A5C" />
+            <Setter Property="BorderBrush" Value="#DC2626" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="18,10" />
             <Setter Property="MinWidth" Value="150" />
@@ -68,251 +68,539 @@
             <Setter Property="Margin" Value="8,0,0,0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
+
+        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style x:Key="InputPasswordBoxStyle" TargetType="PasswordBox">
+            <Setter Property="Height" Value="42" />
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="262" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid x:Name="LoginRoot">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsAuthenticated}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
 
-        <Border Grid.Column="0" Background="{StaticResource SidebarBrush}">
-            <DockPanel Margin="22,24">
-                <StackPanel DockPanel.Dock="Top">
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,22">
-                        <Border Width="42"
-                                Height="42"
-                                Background="#0F172A"
-                                BorderBrush="#273244"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.05*" />
+                <ColumnDefinition Width="0.95*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Background="#0F172A">
+                <Grid Margin="58">
+                    <StackPanel VerticalAlignment="Center">
+                        <Border Width="58"
+                                Height="58"
+                                Background="#111827"
+                                BorderBrush="#334155"
                                 BorderThickness="1"
-                                VerticalAlignment="Center">
+                                HorizontalAlignment="Left">
                             <TextBlock Text="iT"
                                        HorizontalAlignment="Center"
                                        VerticalAlignment="Center"
                                        Foreground="#EF4444"
-                                       FontSize="18"
+                                       FontSize="24"
                                        FontWeight="Black" />
                         </Border>
-                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="iioT"
-                                       Foreground="White"
-                                       FontSize="23"
-                                       FontWeight="Black" />
-                            <TextBlock Text="AnalictY Console"
-                                       Foreground="#F87171"
-                                       FontSize="13" />
-                        </StackPanel>
-                    </StackPanel>
-
-                    <Border Background="{StaticResource SidebarPanelBrush}"
-                            BorderBrush="#2D3946"
-                            BorderThickness="1"
-                            Padding="14"
-                            Margin="0,0,0,20">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="Usuário"
-                                       Foreground="#8EA0B5"
-                                       FontSize="12" />
-                            <TextBlock Grid.Row="1"
-                                       Text="admin/admin"
-                                       Foreground="White"
-                                       FontSize="16"
-                                       FontWeight="SemiBold"
-                                       Margin="0,3,0,10" />
-                            <StackPanel Grid.Row="2" Orientation="Horizontal">
-                                <Ellipse Width="9" Height="9" Margin="0,0,8,0">
-                                    <Ellipse.Style>
-                                        <Style TargetType="Ellipse">
-                                            <Setter Property="Fill" Value="#9CA3AF" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
-                                                    <Setter Property="Fill" Value="#20B486" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Ellipse.Style>
-                                </Ellipse>
-                                <TextBlock Text="{Binding ServerStatus}"
-                                           Foreground="#D7DEE7"
-                                           FontSize="12" />
+                        <TextBlock Text="iioT AnalictY Console"
+                                   Foreground="White"
+                                   FontSize="34"
+                                   FontWeight="Black"
+                                   Margin="0,26,0,0" />
+                        <TextBlock Text="Cliente desktop nativo para acompanhar o AnalictY Server instalado neste Windows."
+                                   Foreground="#CBD5E1"
+                                   FontSize="16"
+                                   TextWrapping="Wrap"
+                                   Width="470"
+                                   Margin="0,14,0,0" />
+                        <Border Background="#182235"
+                                BorderBrush="#2D3A4F"
+                                BorderThickness="1"
+                                Padding="18"
+                                Width="470"
+                                HorizontalAlignment="Left"
+                                Margin="0,34,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Sem navegador embutido"
+                                           Foreground="#F8FAFC"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="A autenticação usa a API local do AnalictY Server e mantém a sessão somente em memória."
+                                           Foreground="#94A3B8"
+                                           TextWrapping="Wrap"
+                                           Margin="0,6,0,0" />
                             </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <ItemsControl ItemsSource="{Binding NavigationItems}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Content="{Binding Title}"
-                                        Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding PageKey}">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding PageKey}" Value="Exit">
-                                                    <Setter Property="Background" Value="#DC2626" />
-                                                    <Setter Property="Foreground" Value="White" />
-                                                    <Setter Property="Margin" Value="0,18,0,0" />
-                                                    <Setter Property="FontWeight" Value="SemiBold" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-
-                <TextBlock DockPanel.Dock="Bottom"
-                           Text="Cliente nativo Windows"
-                           Foreground="#6E7F92"
-                           FontSize="12" />
-            </DockPanel>
-        </Border>
-
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="78" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <Border Grid.Row="0"
-                    Background="White"
-                    BorderBrush="{StaticResource BorderBrushSoft}"
-                    BorderThickness="0,0,0,1">
-                <Grid Margin="30,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="{Binding CurrentPageTitle}"
-                                   FontSize="22"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource ContentTextBrush}" />
-                        <TextBlock Text="{Binding CurrentPageSubtitle}"
-                                   FontSize="13"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   Margin="0,4,0,0" />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="1"
-                                Orientation="Horizontal"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="AnalictY Console"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,18,0" />
-                        <Ellipse Width="10" Height="10" Margin="0,0,8,0">
-                            <Ellipse.Style>
-                                <Style TargetType="Ellipse">
-                                    <Setter Property="Fill" Value="#A3ADB8" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
-                                            <Setter Property="Fill" Value="#20B486" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Ellipse.Style>
-                        </Ellipse>
-                        <TextBlock Text="{Binding ServerStatus}"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   FontWeight="SemiBold" />
+                        </Border>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <Grid Margin="30">
-                    <Grid x:Name="OverviewPage">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Overview">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-                        <StackPanel>
-                            <Grid Margin="0,0,0,18">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Resumo operacional"
-                                               FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Foreground="{StaticResource ContentTextBrush}" />
-                                    <TextBlock Text="{Binding OverviewDataMessage}"
-                                               FontSize="12"
-                                               Foreground="{StaticResource MutedTextBrush}"
-                                               Margin="0,4,0,0" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <ComboBox ItemsSource="{Binding ShiftFilters}"
-                                              SelectedItem="{Binding SelectedShift}"
-                                              Style="{StaticResource FilterComboStyle}" />
-                                    <ComboBox ItemsSource="{Binding LineFilters}"
-                                              SelectedItem="{Binding SelectedLine}"
-                                              Style="{StaticResource FilterComboStyle}" />
+            <Grid Grid.Column="1" Background="#F4F6F8">
+                <Border Width="420"
+                        Background="White"
+                        BorderBrush="{StaticResource BorderBrushSoft}"
+                        BorderThickness="1"
+                        Padding="34"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock Text="Entrar"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ContentTextBrush}" />
+                        <TextBlock Text="Use o mesmo acesso do AnalictY Server."
+                                   FontSize="14"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   Margin="0,8,0,28" />
+
+                        <TextBlock Text="Usuário ou e-mail"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ContentTextBrush}"
+                                   Margin="0,0,0,8" />
+                        <TextBox Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource InputTextBoxStyle}" />
+
+                        <TextBlock Text="Senha"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource ContentTextBrush}"
+                                   Margin="0,18,0,8" />
+                        <PasswordBox x:Name="LoginPasswordBox"
+                                     PasswordChanged="LoginPasswordBox_OnPasswordChanged"
+                                     Style="{StaticResource InputPasswordBoxStyle}" />
+
+                        <TextBlock Text="{Binding LoginError}"
+                                   Foreground="#B91C1C"
+                                   TextWrapping="Wrap"
+                                   Margin="0,14,0,0" />
+
+                        <Button Content="{Binding LoginButtonText}"
+                                Command="{Binding LoginCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,22,0,0" />
+
+                        <TextBlock Text="Recuperação de senha será disponibilizada em uma próxima etapa."
+                                   Foreground="#94A3B8"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,18,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Grid x:Name="ShellRoot">
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsAuthenticated}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="262" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{StaticResource SidebarBrush}">
+                <DockPanel Margin="22,24">
+                    <StackPanel DockPanel.Dock="Top">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,22">
+                            <Border Width="42"
+                                    Height="42"
+                                    Background="#0F172A"
+                                    BorderBrush="#273244"
+                                    BorderThickness="1"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="iT"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Foreground="#EF4444"
+                                           FontSize="18"
+                                           FontWeight="Black" />
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="iioT"
+                                           Foreground="White"
+                                           FontSize="23"
+                                           FontWeight="Black" />
+                                <TextBlock Text="AnalictY Console"
+                                           Foreground="#F87171"
+                                           FontSize="13" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Background="{StaticResource SidebarPanelBrush}"
+                                BorderBrush="#2D3946"
+                                BorderThickness="1"
+                                Padding="14"
+                                Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Usuário"
+                                           Foreground="#8EA0B5"
+                                           FontSize="12" />
+                                <TextBlock Grid.Row="1"
+                                           Text="{Binding AuthenticatedUserDisplay}"
+                                           Foreground="White"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"
+                                           Margin="0,3,0,2" />
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding AuthenticatedUserRole}"
+                                           Foreground="#9CA8B8"
+                                           FontSize="12"
+                                           Margin="0,0,0,10" />
+                                <StackPanel Grid.Row="3" Orientation="Horizontal">
+                                    <Ellipse Width="9" Height="9" Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="#9CA3AF" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
+                                                        <Setter Property="Fill" Value="#20B486" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="{Binding ServerStatus}"
+                                               Foreground="#D7DEE7"
+                                               FontSize="12" />
                                 </StackPanel>
                             </Grid>
+                        </Border>
 
-                            <ItemsControl ItemsSource="{Binding Kpis}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Columns="4" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Style="{StaticResource CardBorderStyle}"
-                                                Background="{Binding AccentBrush}"
-                                                BorderThickness="0"
-                                                Padding="20">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-                                                <TextBlock Text="{Binding Title}"
-                                                           FontSize="14"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#F8FAFC" />
-                                                <TextBlock Grid.Row="1"
-                                                           Text="{Binding Value}"
-                                                           FontSize="38"
-                                                           FontWeight="Bold"
-                                                           Foreground="White"
-                                                           Margin="0,12,0,0" />
-                                                <StackPanel Grid.Row="2">
-                                                    <TextBlock Text="{Binding Detail}"
+                        <ItemsControl ItemsSource="{Binding NavigationItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Title}"
+                                            Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding PageKey}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding PageKey}" Value="Exit">
+                                                        <Setter Property="Background" Value="#DC2626" />
+                                                        <Setter Property="Foreground" Value="White" />
+                                                        <Setter Property="Margin" Value="0,18,0,0" />
+                                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="Cliente nativo Windows"
+                               Foreground="#6E7F92"
+                               FontSize="12" />
+                </DockPanel>
+            </Border>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="78" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Background="White"
+                        BorderBrush="{StaticResource BorderBrushSoft}"
+                        BorderThickness="0,0,0,1">
+                    <Grid Margin="30,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CurrentPageTitle}"
+                                       FontSize="22"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource ContentTextBrush}" />
+                            <TextBlock Text="{Binding CurrentPageSubtitle}"
+                                       FontSize="13"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Margin="0,4,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="AnalictY Console"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,18,0" />
+                            <Ellipse Width="10" Height="10" Margin="0,0,8,0">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#A3ADB8" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
+                                                <Setter Property="Fill" Value="#20B486" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding ServerStatus}"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       FontWeight="SemiBold" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="30">
+                        <Grid x:Name="OverviewPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Overview">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <StackPanel>
+                                <Grid Margin="0,0,0,18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Resumo operacional"
+                                                   FontSize="18"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}" />
+                                        <TextBlock Text="{Binding OverviewDataMessage}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   Margin="0,4,0,0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <ComboBox ItemsSource="{Binding ShiftFilters}"
+                                                  SelectedItem="{Binding SelectedShift}"
+                                                  Style="{StaticResource FilterComboStyle}" />
+                                        <ComboBox ItemsSource="{Binding LineFilters}"
+                                                  SelectedItem="{Binding SelectedLine}"
+                                                  Style="{StaticResource FilterComboStyle}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding Kpis}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="4" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource CardBorderStyle}"
+                                                    Background="{Binding AccentBrush}"
+                                                    BorderThickness="0"
+                                                    Padding="20">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding Title}"
+                                                               FontSize="14"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#F8FAFC" />
+                                                    <TextBlock Grid.Row="1"
+                                                               Text="{Binding Value}"
+                                                               FontSize="38"
+                                                               FontWeight="Bold"
+                                                               Foreground="White"
+                                                               Margin="0,12,0,0" />
+                                                    <TextBlock Grid.Row="2"
+                                                               Text="{Binding Detail}"
                                                                FontSize="12"
                                                                Foreground="#E5E7EB"
                                                                Margin="0,2,0,0" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Máquinas"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource ContentTextBrush}"
+                                           Margin="0,8,0,14" />
+
+                                <ItemsControl ItemsSource="{Binding Machines}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="286" Style="{StaticResource CardBorderStyle}">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="18"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource ContentTextBrush}" />
+                                                        <Border Grid.Column="1"
+                                                                Background="{Binding StatusBackground}"
+                                                                Padding="8,4">
+                                                            <TextBlock Text="{Binding Status}"
+                                                                       Foreground="{Binding StatusBrush}"
+                                                                       FontSize="11"
+                                                                       FontWeight="SemiBold" />
+                                                        </Border>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding Area}"
+                                                               Foreground="{StaticResource MutedTextBrush}"
+                                                               Margin="0,8,0,14" />
+                                                    <TextBlock Text="{Binding CurrentOrder}"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource ContentTextBrush}" />
+                                                    <TextBlock Text="{Binding Efficiency, StringFormat='Eficiência: {0}'}"
+                                                               Foreground="{StaticResource MutedTextBrush}"
+                                                               Margin="0,6,0,0" />
                                                 </StackPanel>
-                                            </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid x:Name="StatusPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Status">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Border Style="{StaticResource CardBorderStyle}" Margin="0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="150" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="AnalictY Server"
+                                                   FontSize="26"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}" />
+                                        <TextBlock Text="Verificação da API local utilizada pelo console."
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   Margin="0,8,0,0" />
+                                    </StackPanel>
+                                    <Grid Grid.Row="1" VerticalAlignment="Center">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="82"
+                                                Height="82"
+                                                Background="#EEF3F5"
+                                                BorderBrush="#D9E2E8"
+                                                BorderThickness="1"
+                                                Margin="0,0,22,0">
+                                            <TextBlock Text="API"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="20"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="#1F7A5C" />
                                         </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ServerStatus}"
+                                                       FontSize="34"
+                                                       FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#7B8794" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
+                                                                <Setter Property="Foreground" Value="#16815E" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding ServerStatusDetail}"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding LastCheckedAt}"
+                                                       Foreground="#8290A0"
+                                                       FontSize="12"
+                                                       Margin="0,10,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Button Grid.Row="2"
+                                            Content="{Binding CheckButtonText}"
+                                            Command="{Binding CheckServerCommand}"
+                                            HorizontalAlignment="Left"
+                                            Style="{StaticResource PrimaryButtonStyle}" />
+                                </Grid>
+                            </Border>
+                        </Grid>
 
-                            <TextBlock Text="Máquinas"
-                                       FontSize="18"
-                                       FontWeight="SemiBold"
-                                       Foreground="{StaticResource ContentTextBrush}"
-                                       Margin="0,8,0,14" />
-
-                            <ItemsControl ItemsSource="{Binding Machines}">
+                        <Grid x:Name="SettingsPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Settings">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <ItemsControl ItemsSource="{Binding ModuleCards}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel />
@@ -320,247 +608,111 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Width="286" Style="{StaticResource CardBorderStyle}">
+                                        <Border Width="292" Style="{StaticResource CardBorderStyle}">
                                             <StackPanel>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Name}"
-                                                               FontSize="18"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="{StaticResource ContentTextBrush}" />
-                                                    <Border Grid.Column="1"
-                                                            Background="{Binding StatusBackground}"
-                                                            Padding="8,4">
-                                                        <TextBlock Text="{Binding Status}"
-                                                                   Foreground="{Binding StatusBrush}"
-                                                                   FontSize="11"
-                                                                   FontWeight="SemiBold" />
-                                                    </Border>
-                                                </Grid>
-                                                <TextBlock Text="{Binding Area}"
-                                                           Foreground="{StaticResource MutedTextBrush}"
-                                                           Margin="0,8,0,14" />
-                                                <TextBlock Text="{Binding CurrentOrder}"
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="18"
                                                            FontWeight="SemiBold"
                                                            Foreground="{StaticResource ContentTextBrush}" />
-                                                <TextBlock Text="{Binding Efficiency, StringFormat='Eficiência: {0}'}"
+                                                <TextBlock Text="{Binding Description}"
+                                                           TextWrapping="Wrap"
                                                            Foreground="{StaticResource MutedTextBrush}"
-                                                           Margin="0,6,0,0" />
+                                                           Margin="0,8,0,18" />
+                                                <Border Background="#EEF3F5"
+                                                        BorderBrush="#DDE4EA"
+                                                        BorderThickness="1"
+                                                        Padding="8,5"
+                                                        HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding State}"
+                                                               Foreground="#475569"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </StackPanel>
-                    </Grid>
+                        </Grid>
 
-                    <Grid x:Name="StatusPage">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Status">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-                        <Border Style="{StaticResource CardBorderStyle}" Margin="0">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="150" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                        <Grid x:Name="HelpPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Help">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <ItemsControl ItemsSource="{Binding HelpTopics}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="18"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{StaticResource ContentTextBrush}" />
+                                                <TextBlock Text="{Binding Content}"
+                                                           TextWrapping="Wrap"
+                                                           Foreground="{StaticResource MutedTextBrush}"
+                                                           FontSize="14"
+                                                           Margin="0,8,0,0" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <Grid x:Name="PlaceholderPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="ProductionHistory">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="DowntimeHistory">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Alerts">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <Border Style="{StaticResource CardBorderStyle}" Margin="0">
                                 <StackPanel>
-                                    <TextBlock Text="AnalictY Server"
-                                               FontSize="26"
+                                    <TextBlock Text="{Binding CurrentPageTitle}"
+                                               FontSize="24"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource ContentTextBrush}" />
-                                    <TextBlock Text="Verificação da API local utilizada pelo console."
-                                               Foreground="{StaticResource MutedTextBrush}"
-                                               Margin="0,8,0,0" />
-                                </StackPanel>
-                                <Grid Grid.Row="1" VerticalAlignment="Center">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Border Width="82"
-                                            Height="82"
-                                            Background="#EEF3F5"
-                                            BorderBrush="#D9E2E8"
-                                            BorderThickness="1"
-                                            Margin="0,0,22,0">
-                                        <TextBlock Text="API"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   FontSize="20"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="#1F7A5C" />
-                                    </Border>
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding ServerStatus}"
-                                                   FontSize="34"
-                                                   FontWeight="SemiBold">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Foreground" Value="#7B8794" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
-                                                            <Setter Property="Foreground" Value="#16815E" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding ServerStatusDetail}"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Margin="0,8,0,0" />
-                                        <TextBlock Text="{Binding LastCheckedAt}"
-                                                   Foreground="#8290A0"
-                                                   FontSize="12"
-                                                   Margin="0,10,0,0" />
-                                    </StackPanel>
-                                </Grid>
-                                <Button Grid.Row="2"
-                                        Content="{Binding CheckButtonText}"
-                                        Command="{Binding CheckServerCommand}"
-                                        HorizontalAlignment="Left"
-                                        Style="{StaticResource PrimaryButtonStyle}" />
-                            </Grid>
-                        </Border>
-                    </Grid>
-
-                    <Grid x:Name="SettingsPage">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Settings">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-                        <ItemsControl ItemsSource="{Binding ModuleCards}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Width="292" Style="{StaticResource CardBorderStyle}">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Title}"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{StaticResource ContentTextBrush}" />
-                                            <TextBlock Text="{Binding Description}"
-                                                       TextWrapping="Wrap"
-                                                       Foreground="{StaticResource MutedTextBrush}"
-                                                       Margin="0,8,0,18" />
-                                            <Border Background="#EEF3F5"
-                                                    BorderBrush="#DDE4EA"
-                                                    BorderThickness="1"
-                                                    Padding="8,5"
-                                                    HorizontalAlignment="Left">
-                                                <TextBlock Text="{Binding State}"
-                                                           Foreground="#475569"
-                                                           FontSize="12"
-                                                           FontWeight="SemiBold" />
-                                            </Border>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Grid>
-
-                    <Grid x:Name="HelpPage">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Help">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-                        <ItemsControl ItemsSource="{Binding HelpTopics}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,14">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Title}"
-                                                       FontSize="18"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{StaticResource ContentTextBrush}" />
-                                            <TextBlock Text="{Binding Content}"
-                                                       TextWrapping="Wrap"
-                                                       Foreground="{StaticResource MutedTextBrush}"
-                                                       FontSize="14"
-                                                       Margin="0,8,0,0" />
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Grid>
-
-                    <Grid x:Name="PlaceholderPage">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="ProductionHistory">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="DowntimeHistory">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Alerts">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Exit">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
-                        <Border Style="{StaticResource CardBorderStyle}" Margin="0">
-                            <StackPanel>
-                                <TextBlock Text="{Binding CurrentPageTitle}"
-                                           FontSize="24"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource ContentTextBrush}" />
-                                <TextBlock Text="{Binding CurrentPageSubtitle}"
-                                           TextWrapping="Wrap"
-                                           Foreground="{StaticResource MutedTextBrush}"
-                                           FontSize="14"
-                                           Margin="0,10,0,0" />
-                                <Border Background="#F8FAFC"
-                                        BorderBrush="#DDE4EA"
-                                        BorderThickness="1"
-                                        Padding="16"
-                                        Margin="0,22,0,0">
-                                    <TextBlock Text="Conteúdo nativo reservado para a próxima etapa. Nenhuma API, banco, login ou atualização real foi implementada aqui."
+                                    <TextBlock Text="{Binding CurrentPageSubtitle}"
                                                TextWrapping="Wrap"
-                                               Foreground="#475569" />
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               FontSize="14"
+                                               Margin="0,10,0,0" />
+                                    <Border Background="#F8FAFC"
+                                            BorderBrush="#DDE4EA"
+                                            BorderThickness="1"
+                                            Padding="16"
+                                            Margin="0,22,0,0">
+                                        <TextBlock Text="Conteúdo nativo reservado para a próxima etapa. Nenhuma API, banco ou atualização real foi implementada aqui."
+                                                   TextWrapping="Wrap"
+                                                   Foreground="#475569" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </ScrollViewer>
+                </ScrollViewer>
+            </Grid>
         </Grid>
     </Grid>
 </Window>
