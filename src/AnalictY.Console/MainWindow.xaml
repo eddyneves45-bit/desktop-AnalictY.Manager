@@ -521,72 +521,237 @@
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Grid.Style>
-                            <Border Style="{StaticResource CardBorderStyle}" Margin="0">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="150" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
+                        </Grid.Style>
+                            <StackPanel>
+                                <Grid Margin="0,0,0,18">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock Text="AnalictY Server"
-                                                   FontSize="26"
+                                        <TextBlock Text="Status do AnalictY"
+                                                   FontSize="22"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource ContentTextBrush}" />
-                                        <TextBlock Text="Verificação da API local utilizada pelo console."
+                                        <TextBlock Text="{Binding StatusDataMessage}"
                                                    Foreground="{StaticResource MutedTextBrush}"
-                                                   Margin="0,8,0,0" />
+                                                   FontSize="12"
+                                                   Margin="0,4,0,0" />
                                     </StackPanel>
-                                    <Grid Grid.Row="1" VerticalAlignment="Center">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <Border Width="82"
-                                                Height="82"
-                                                Background="#EEF3F5"
-                                                BorderBrush="#D9E2E8"
-                                                BorderThickness="1"
-                                                Margin="0,0,22,0">
-                                            <TextBlock Text="API"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
+                                    <Button Grid.Column="1"
+                                            Content="{Binding StatusButtonText}"
+                                            Command="{Binding RefreshStatusCommand}"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource PrimaryButtonStyle}" />
+                                </Grid>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.1*" />
+                                        <ColumnDefinition Width="0.9*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Style="{StaticResource CardBorderStyle}">
+                                        <StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border Width="72"
+                                                        Height="72"
+                                                        Background="#EEF3F5"
+                                                        BorderBrush="#D9E2E8"
+                                                        BorderThickness="1"
+                                                        Margin="0,0,18,0">
+                                                    <TextBlock Text="API"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="18"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="#1F7A5C" />
+                                                </Border>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="AnalictY Server"
+                                                               FontSize="24"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource ContentTextBrush}" />
+                                                    <TextBlock Text="{Binding ServerStatus}"
+                                                               FontSize="32"
+                                                               FontWeight="Bold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#7B8794" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
+                                                                        <Setter Property="Foreground" Value="#16815E" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding ServerStatusDetail}"
+                                                               Foreground="{StaticResource MutedTextBrush}" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <UniformGrid Columns="2" Margin="0,22,0,0">
+                                                <StackPanel Margin="0,0,18,14">
+                                                    <TextBlock Text="Versão" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                                    <TextBlock Text="{Binding SystemVersion}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="0,0,0,14">
+                                                    <TextBlock Text="Canal" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                                    <TextBlock Text="{Binding SystemChannel}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                                </StackPanel>
+                                                <StackPanel Margin="0,0,18,0">
+                                                    <TextBlock Text="Origem" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                                    <TextBlock Text="{Binding SystemSource}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                                </StackPanel>
+                                                <StackPanel>
+                                                    <TextBlock Text="Atualizado em" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                                    <TextBlock Text="{Binding CurrentServerTime}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                                </StackPanel>
+                                            </UniformGrid>
+
+                                            <Border Background="#F8FAFC"
+                                                    BorderBrush="#DDE4EA"
+                                                    BorderThickness="1"
+                                                    Padding="12"
+                                                    Margin="0,18,0,0">
+                                                <StackPanel>
+                                                    <TextBlock Text="Pasta de dados"
+                                                               Foreground="{StaticResource MutedTextBrush}"
+                                                               FontSize="12" />
+                                                    <TextBlock Text="{Binding DataDirectory}"
+                                                               TextWrapping="Wrap"
+                                                               Foreground="{StaticResource ContentTextBrush}"
+                                                               FontWeight="SemiBold" />
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                                        <StackPanel>
+                                            <TextBlock Text="Conexão e runtime"
                                                        FontSize="20"
                                                        FontWeight="SemiBold"
-                                                       Foreground="#1F7A5C" />
-                                        </Border>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ServerStatus}"
-                                                       FontSize="34"
-                                                       FontWeight="SemiBold">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="#7B8794" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsServerOnline}" Value="True">
-                                                                <Setter Property="Foreground" Value="#16815E" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding ServerStatusDetail}"
-                                                       Foreground="{StaticResource MutedTextBrush}"
-                                                       Margin="0,8,0,0" />
+                                                       Foreground="{StaticResource ContentTextBrush}" />
+                                            <Border Background="#F8FAFC"
+                                                    BorderBrush="#DDE4EA"
+                                                    BorderThickness="1"
+                                                    Padding="14"
+                                                    Margin="0,16,0,0">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="Backend/API" Foreground="{StaticResource MutedTextBrush}" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding ApiStatus}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                                    <TextBlock Grid.Row="1" Text="Banco" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0" />
+                                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DatabaseStatus}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" Margin="0,12,0,0" />
+                                                    <TextBlock Grid.Row="2" Text="Runtime" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0" />
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RuntimeStatus}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" Margin="0,12,0,0" />
+                                                    <TextBlock Grid.Row="3" Text="Hora local" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0" />
+                                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CurrentServerTime}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" Margin="0,12,0,0" />
+                                                </Grid>
+                                            </Border>
                                             <TextBlock Text="{Binding LastCheckedAt}"
                                                        Foreground="#8290A0"
                                                        FontSize="12"
-                                                       Margin="0,10,0,0" />
+                                                       Margin="0,14,0,0" />
                                         </StackPanel>
-                                    </Grid>
-                                    <Button Grid.Row="2"
-                                            Content="{Binding CheckButtonText}"
-                                            Command="{Binding CheckServerCommand}"
-                                            HorizontalAlignment="Left"
-                                            Style="{StaticResource PrimaryButtonStyle}" />
+                                    </Border>
                                 </Grid>
-                            </Border>
+
+                                <ItemsControl ItemsSource="{Binding StatusMetrics}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="4" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Style="{StaticResource CardBorderStyle}"
+                                                    Background="{Binding AccentBrush}"
+                                                    BorderThickness="0"
+                                                    Padding="18">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Title}"
+                                                               Foreground="#F8FAFC"
+                                                               FontSize="13"
+                                                               FontWeight="SemiBold" />
+                                                    <TextBlock Text="{Binding Value}"
+                                                               Foreground="White"
+                                                               FontSize="32"
+                                                               FontWeight="Bold"
+                                                               Margin="0,10,0,0" />
+                                                    <TextBlock Text="{Binding Detail}"
+                                                               Foreground="#E5E7EB"
+                                                               FontSize="12"
+                                                               Margin="0,2,0,0" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="Máquinas e status"
+                                           FontSize="18"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource ContentTextBrush}"
+                                           Margin="0,8,0,14" />
+                                <ItemsControl ItemsSource="{Binding StatusMachines}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="286" Style="{StaticResource CardBorderStyle}">
+                                                <StackPanel>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontSize="17"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource ContentTextBrush}" />
+                                                        <Border Grid.Column="1"
+                                                                Background="{Binding StatusBackground}"
+                                                                Padding="8,4">
+                                                            <TextBlock Text="{Binding Status}"
+                                                                       Foreground="{Binding StatusBrush}"
+                                                                       FontSize="11"
+                                                                       FontWeight="SemiBold" />
+                                                        </Border>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding Area}"
+                                                               Foreground="{StaticResource MutedTextBrush}"
+                                                               Margin="0,8,0,10" />
+                                                    <TextBlock Text="{Binding CurrentOrder}"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource ContentTextBrush}" />
+                                                    <TextBlock Text="{Binding Efficiency, StringFormat='Eficiência: {0}'}"
+                                                               Foreground="{StaticResource MutedTextBrush}"
+                                                               Margin="0,6,0,0" />
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
                         </Grid>
 
                         <Grid x:Name="SettingsPage">

@@ -21,10 +21,11 @@ public partial class MainWindow : Window
         };
         var apiClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
 
+        var machineOverviewService = new MachineOverviewService(apiClient);
         var viewModel = new MainWindowViewModel(
             new AuthService(apiClient, cookieContainer),
-            new HealthService(apiClient),
-            new MachineOverviewService(apiClient));
+            machineOverviewService,
+            new StatusOverviewService(apiClient, machineOverviewService));
         viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
         DataContext = viewModel;
     }

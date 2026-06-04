@@ -10,17 +10,27 @@ namespace AnalictY.Console.ViewModels;
 public sealed class MainWindowViewModel : ObservableObject
 {
     private readonly AuthService _authService;
-    private readonly HealthService _healthService;
     private readonly MachineOverviewService _machineOverviewService;
+    private readonly StatusOverviewService _statusOverviewService;
     private bool _hasLoadedOverview;
+    private bool _hasLoadedStatus;
     private string _currentPage = "Overview";
     private string _serverStatus = "Não verificado";
-    private string _serverStatusDetail = "Clique em Verificar servidor para consultar o AnalictY Server local.";
-    private string _checkButtonText = "Verificar servidor";
+    private string _serverStatusDetail = "Clique em Atualizar Status para consultar o AnalictY Server local.";
+    private string _statusButtonText = "Atualizar Status";
     private string _lastCheckedAt = "Ainda não verificado";
     private string _selectedShift = "Turno atual";
     private string _selectedLine = "Todas as linhas";
     private string _overviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
+    private string _statusDataMessage = "Status ainda não atualizado.";
+    private string _systemVersion = "-";
+    private string _systemChannel = "-";
+    private string _systemSource = "-";
+    private string _dataDirectory = "-";
+    private string _databaseStatus = "-";
+    private string _runtimeStatus = "-";
+    private string _apiStatus = "Não verificado";
+    private string _currentServerTime = "-";
     private string _loginUsername = string.Empty;
     private string _loginPassword = string.Empty;
     private string _loginError = string.Empty;
@@ -29,20 +39,22 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isServerOnline;
     private bool _isCheckingServer;
     private bool _isLoadingMachines;
+    private bool _isLoadingStatus;
     private bool _isLoggingIn;
 
     public MainWindowViewModel(
         AuthService authService,
-        HealthService healthService,
-        MachineOverviewService machineOverviewService)
+        MachineOverviewService machineOverviewService,
+        StatusOverviewService statusOverviewService)
     {
         _authService = authService;
-        _healthService = healthService;
         _machineOverviewService = machineOverviewService;
+        _statusOverviewService = statusOverviewService;
 
         LoginCommand = new RelayCommand(LoginAsync);
         LogoutCommand = new RelayCommand(LogoutAsync);
-        CheckServerCommand = new RelayCommand(CheckServerAsync);
+        CheckServerCommand = new RelayCommand(RefreshStatusAsync);
+        RefreshStatusCommand = new RelayCommand(RefreshStatusAsync);
         NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is not string pageKey)
@@ -61,6 +73,10 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 await LoadMachineOverviewAsync();
             }
+            else if (pageKey == "Status")
+            {
+                await RefreshStatusAsync();
+            }
         });
 
         NavigationItems = new ObservableCollection<NavigationItem>
@@ -78,40 +94,34 @@ public sealed class MainWindowViewModel : ObservableObject
 
         Kpis = new ObservableCollection<KpiCard>();
         Machines = new ObservableCollection<MachineCard>();
+        StatusMetrics = new ObservableCollection<StatusMetricCard>();
+        StatusMachines = new ObservableCollection<MachineCard>();
         ModuleCards = CreateModuleCards();
         HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
         LineFilters = new ObservableCollection<string> { "Todas as linhas", "Linha Principal", "Preparação", "Célula A" };
 
         ApplyMachines(MachineOverviewService.CreateFallbackMachines());
+        ApplyStatusMachines(MachineOverviewService.CreateFallbackMachines());
+        UpdateStatusMetrics();
     }
 
     public ObservableCollection<NavigationItem> NavigationItems { get; }
-
     public ObservableCollection<KpiCard> Kpis { get; }
-
     public ObservableCollection<MachineCard> Machines { get; }
-
+    public ObservableCollection<StatusMetricCard> StatusMetrics { get; }
+    public ObservableCollection<MachineCard> StatusMachines { get; }
     public ObservableCollection<ModuleCard> ModuleCards { get; }
-
     public ObservableCollection<HelpTopic> HelpTopics { get; }
-
     public ObservableCollection<string> ShiftFilters { get; }
-
     public ObservableCollection<string> LineFilters { get; }
-
     public ICommand NavigateCommand { get; }
-
     public ICommand CheckServerCommand { get; }
-
+    public ICommand RefreshStatusCommand { get; }
     public ICommand LoginCommand { get; }
-
     public ICommand LogoutCommand { get; }
-
     public bool IsAuthenticated => _session is not null;
-
     public string AuthenticatedUserDisplay => _session?.User.Username ?? "Não autenticado";
-
     public string AuthenticatedUserRole => _session?.User.Role ?? "sem sessão";
 
     public string CurrentPage
@@ -143,53 +153,41 @@ public sealed class MainWindowViewModel : ObservableObject
     public string CurrentPageSubtitle => CurrentPage switch
     {
         "Overview" => "Acompanhamento inicial da operação com dados do AnalictY Server quando disponíveis.",
-        "Status" => "Conectividade local com o AnalictY Server.",
+        "Status" => "Saúde do servidor, runtime e máquinas com fallback seguro.",
         "Settings" => "Módulos previstos para operação e administração.",
         "Help" => "Orientações rápidas para uso do console.",
         _ => "Tela nativa reservada para a próxima etapa."
     };
 
-    public string ServerStatus
+    public string ServerStatus { get => _serverStatus; private set => SetProperty(ref _serverStatus, value); }
+    public string ServerStatusDetail { get => _serverStatusDetail; private set => SetProperty(ref _serverStatusDetail, value); }
+    public string CheckButtonText => StatusButtonText;
+
+    public string StatusButtonText
     {
-        get => _serverStatus;
-        private set => SetProperty(ref _serverStatus, value);
+        get => _statusButtonText;
+        private set
+        {
+            if (SetProperty(ref _statusButtonText, value))
+            {
+                OnPropertyChanged(nameof(CheckButtonText));
+            }
+        }
     }
 
-    public string ServerStatusDetail
-    {
-        get => _serverStatusDetail;
-        private set => SetProperty(ref _serverStatusDetail, value);
-    }
-
-    public string CheckButtonText
-    {
-        get => _checkButtonText;
-        private set => SetProperty(ref _checkButtonText, value);
-    }
-
-    public string LastCheckedAt
-    {
-        get => _lastCheckedAt;
-        private set => SetProperty(ref _lastCheckedAt, value);
-    }
-
-    public string SelectedShift
-    {
-        get => _selectedShift;
-        set => SetProperty(ref _selectedShift, value);
-    }
-
-    public string SelectedLine
-    {
-        get => _selectedLine;
-        set => SetProperty(ref _selectedLine, value);
-    }
-
-    public string OverviewDataMessage
-    {
-        get => _overviewDataMessage;
-        private set => SetProperty(ref _overviewDataMessage, value);
-    }
+    public string LastCheckedAt { get => _lastCheckedAt; private set => SetProperty(ref _lastCheckedAt, value); }
+    public string SelectedShift { get => _selectedShift; set => SetProperty(ref _selectedShift, value); }
+    public string SelectedLine { get => _selectedLine; set => SetProperty(ref _selectedLine, value); }
+    public string OverviewDataMessage { get => _overviewDataMessage; private set => SetProperty(ref _overviewDataMessage, value); }
+    public string StatusDataMessage { get => _statusDataMessage; private set => SetProperty(ref _statusDataMessage, value); }
+    public string SystemVersion { get => _systemVersion; private set => SetProperty(ref _systemVersion, value); }
+    public string SystemChannel { get => _systemChannel; private set => SetProperty(ref _systemChannel, value); }
+    public string SystemSource { get => _systemSource; private set => SetProperty(ref _systemSource, value); }
+    public string DataDirectory { get => _dataDirectory; private set => SetProperty(ref _dataDirectory, value); }
+    public string DatabaseStatus { get => _databaseStatus; private set => SetProperty(ref _databaseStatus, value); }
+    public string RuntimeStatus { get => _runtimeStatus; private set => SetProperty(ref _runtimeStatus, value); }
+    public string ApiStatus { get => _apiStatus; private set => SetProperty(ref _apiStatus, value); }
+    public string CurrentServerTime { get => _currentServerTime; private set => SetProperty(ref _currentServerTime, value); }
 
     public string LoginUsername
     {
@@ -215,41 +213,13 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    public string LoginError
-    {
-        get => _loginError;
-        private set => SetProperty(ref _loginError, value);
-    }
-
-    public string LoginButtonText
-    {
-        get => _loginButtonText;
-        private set => SetProperty(ref _loginButtonText, value);
-    }
-
-    public bool IsServerOnline
-    {
-        get => _isServerOnline;
-        private set => SetProperty(ref _isServerOnline, value);
-    }
-
-    public bool IsCheckingServer
-    {
-        get => _isCheckingServer;
-        private set => SetProperty(ref _isCheckingServer, value);
-    }
-
-    public bool IsLoadingMachines
-    {
-        get => _isLoadingMachines;
-        private set => SetProperty(ref _isLoadingMachines, value);
-    }
-
-    public bool IsLoggingIn
-    {
-        get => _isLoggingIn;
-        private set => SetProperty(ref _isLoggingIn, value);
-    }
+    public string LoginError { get => _loginError; private set => SetProperty(ref _loginError, value); }
+    public string LoginButtonText { get => _loginButtonText; private set => SetProperty(ref _loginButtonText, value); }
+    public bool IsServerOnline { get => _isServerOnline; private set => SetProperty(ref _isServerOnline, value); }
+    public bool IsCheckingServer { get => _isCheckingServer; private set => SetProperty(ref _isCheckingServer, value); }
+    public bool IsLoadingMachines { get => _isLoadingMachines; private set => SetProperty(ref _isLoadingMachines, value); }
+    public bool IsLoadingStatus { get => _isLoadingStatus; private set => SetProperty(ref _isLoadingStatus, value); }
+    public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
 
     private async Task LoginAsync()
     {
@@ -261,7 +231,6 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
             AuthResult result = await _authService.LoginAsync(LoginUsername.Trim(), LoginPassword, timeout.Token);
-
             if (!result.Success || result.Session is null)
             {
                 LoginError = result.Message;
@@ -289,10 +258,14 @@ public sealed class MainWindowViewModel : ObservableObject
         await _authService.LogoutAsync(timeout.Token);
         _session = null;
         _hasLoadedOverview = false;
+        _hasLoadedStatus = false;
         LoginPassword = string.Empty;
         LoginError = string.Empty;
         OverviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
+        StatusDataMessage = "Status ainda não atualizado.";
         ApplyMachines(MachineOverviewService.CreateFallbackMachines());
+        ApplyStatusMachines(MachineOverviewService.CreateFallbackMachines());
+        UpdateStatusMetrics();
         OnPropertyChanged(nameof(IsAuthenticated));
         OnPropertyChanged(nameof(AuthenticatedUserDisplay));
         OnPropertyChanged(nameof(AuthenticatedUserRole));
@@ -307,7 +280,6 @@ public sealed class MainWindowViewModel : ObservableObject
 
         IsLoadingMachines = true;
         OverviewDataMessage = _hasLoadedOverview ? "Atualizando máquinas..." : "Carregando máquinas...";
-
         try
         {
             using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(6));
@@ -322,6 +294,47 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private async Task RefreshStatusAsync()
+    {
+        if (IsLoadingStatus)
+        {
+            return;
+        }
+
+        StatusButtonText = "Atualizando...";
+        IsLoadingStatus = true;
+        IsCheckingServer = true;
+        StatusDataMessage = _hasLoadedStatus ? "Atualizando status..." : "Consultando status do AnalictY Server...";
+
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(8));
+            StatusOverviewResult result = await _statusOverviewService.LoadAsync(timeout.Token);
+            IsServerOnline = result.IsOnline;
+            ServerStatus = result.IsOnline ? "Online" : "Offline";
+            ServerStatusDetail = result.HealthStatus;
+            ApiStatus = result.ApiStatus;
+            SystemVersion = result.Version;
+            SystemChannel = result.Channel;
+            SystemSource = result.Source;
+            DataDirectory = result.DataDirectory;
+            DatabaseStatus = result.DatabaseStatus;
+            RuntimeStatus = result.RuntimeStatus;
+            StatusDataMessage = result.Message;
+            CurrentServerTime = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+            LastCheckedAt = $"Última verificação: {CurrentServerTime}";
+            ApplyStatusMachines(result.Machines);
+            UpdateStatusMetrics();
+            _hasLoadedStatus = true;
+        }
+        finally
+        {
+            StatusButtonText = "Atualizar Status";
+            IsLoadingStatus = false;
+            IsCheckingServer = false;
+        }
+    }
+
     private void ApplyMachines(IReadOnlyList<MachineCard> machines)
     {
         Machines.Clear();
@@ -331,6 +344,15 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         UpdateKpis(machines);
+    }
+
+    private void ApplyStatusMachines(IReadOnlyList<MachineCard> machines)
+    {
+        StatusMachines.Clear();
+        foreach (MachineCard machine in machines.Take(8))
+        {
+            StatusMachines.Add(machine);
+        }
     }
 
     private void UpdateKpis(IReadOnlyList<MachineCard> machines)
@@ -347,31 +369,18 @@ public sealed class MainWindowViewModel : ObservableObject
         Kpis.Add(new KpiCard("Total Ociosas", idle.ToString(), "Sem ordem em execução", new SolidColorBrush(Color.FromRgb(249, 115, 22))));
     }
 
-    private async Task CheckServerAsync()
+    private void UpdateStatusMetrics()
     {
-        ServerStatus = "Verificando...";
-        ServerStatusDetail = "Consultando http://127.0.0.1:5000/api/system/health";
-        CheckButtonText = "Verificando...";
-        IsCheckingServer = true;
-        IsServerOnline = false;
+        int total = StatusMachines.Count;
+        int running = StatusMachines.Count(machine => machine.Status == "Em operação");
+        int maintenance = StatusMachines.Count(machine => machine.Status == "Manutenção");
+        int idle = StatusMachines.Count(machine => machine.Status == "Ociosa");
 
-        try
-        {
-            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(5));
-            var result = await _healthService.CheckAsync(timeout.Token);
-
-            IsServerOnline = result.IsOnline;
-            ServerStatus = result.Message;
-            ServerStatusDetail = result.IsOnline
-                ? "AnalictY Server respondeu com status saudável."
-                : "Não foi possível conectar ao AnalictY Server local.";
-            LastCheckedAt = $"Última verificação: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
-        }
-        finally
-        {
-            CheckButtonText = "Verificar servidor";
-            IsCheckingServer = false;
-        }
+        StatusMetrics.Clear();
+        StatusMetrics.Add(new StatusMetricCard("Máquinas", total.ToString(), "Amostra exibida no status", Brushes.DodgerBlue));
+        StatusMetrics.Add(new StatusMetricCard("Em operação", running.ToString(), "Status normalizado do runtime", new SolidColorBrush(Color.FromRgb(32, 180, 134))));
+        StatusMetrics.Add(new StatusMetricCard("Ociosas", idle.ToString(), "Sem ordem em execução", new SolidColorBrush(Color.FromRgb(249, 115, 22))));
+        StatusMetrics.Add(new StatusMetricCard("Manutenção", maintenance.ToString(), "Aguardando intervenção", new SolidColorBrush(Color.FromRgb(239, 68, 68))));
     }
 
     private static ObservableCollection<ModuleCard> CreateModuleCards()
