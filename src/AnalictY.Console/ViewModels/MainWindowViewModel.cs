@@ -10,6 +10,8 @@ namespace AnalictY.Console.ViewModels;
 public sealed class MainWindowViewModel : ObservableObject
 {
     private readonly HealthService _healthService;
+    private readonly MachineOverviewService _machineOverviewService;
+    private bool _hasLoadedOverview;
     private string _currentPage = "Overview";
     private string _serverStatus = "Não verificado";
     private string _serverStatusDetail = "Clique em Verificar servidor para consultar o AnalictY Server local.";
@@ -17,21 +19,26 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _lastCheckedAt = "Ainda não verificado";
     private string _selectedShift = "Turno atual";
     private string _selectedLine = "Todas as linhas";
+    private string _overviewDataMessage = "Carregando máquinas...";
     private bool _isServerOnline;
     private bool _isCheckingServer;
+    private bool _isLoadingMachines;
 
-    public MainWindowViewModel(HealthService healthService)
+    public MainWindowViewModel(HealthService healthService, MachineOverviewService machineOverviewService)
     {
         _healthService = healthService;
+        _machineOverviewService = machineOverviewService;
 
-        NavigateCommand = new RelayCommand(parameter =>
+        NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is string pageKey)
             {
                 CurrentPage = pageKey;
+                if (pageKey == "Overview")
+                {
+                    await LoadMachineOverviewAsync();
+                }
             }
-
-            return Task.CompletedTask;
         });
 
         CheckServerCommand = new RelayCommand(CheckServerAsync);
@@ -49,50 +56,15 @@ public sealed class MainWindowViewModel : ObservableObject
             new("Sair", "Exit")
         };
 
-        Kpis = new ObservableCollection<KpiCard>
-        {
-            new("Total Máquinas", "8", "Máquinas cadastradas no console", Brushes.DodgerBlue),
-            new("Total Em Operação", "5", "Produção ativa agora", new SolidColorBrush(Color.FromRgb(32, 180, 134))),
-            new("Total em Manutenção", "1", "Aguardando intervenção", new SolidColorBrush(Color.FromRgb(239, 68, 68))),
-            new("Total Ociosas", "2", "Sem ordem em execução", new SolidColorBrush(Color.FromRgb(249, 115, 22)))
-        };
-
-        Machines = new ObservableCollection<MachineCard>
-        {
-            new("PJ_08", "Linha Principal", "Em operação", "OP-2406-118", "92%", Brushes.White, new SolidColorBrush(Color.FromRgb(28, 139, 99))),
-            new("Morno_01", "Preparação", "Em operação", "OP-2406-121", "88%", Brushes.White, new SolidColorBrush(Color.FromRgb(28, 139, 99))),
-            new("Morno_02", "Preparação", "Ociosa", "Sem ordem", "0%", Brushes.White, new SolidColorBrush(Color.FromRgb(100, 116, 139))),
-            new("Injetora_03", "Célula A", "Manutenção", "Bloqueada", "0%", Brushes.White, new SolidColorBrush(Color.FromRgb(217, 119, 6))),
-            new("Esteira_01", "Expedição", "Em operação", "OP-2406-102", "95%", Brushes.White, new SolidColorBrush(Color.FromRgb(28, 139, 99))),
-            new("Misturador_02", "Célula B", "Ociosa", "Aguardando programação", "0%", Brushes.White, new SolidColorBrush(Color.FromRgb(100, 116, 139)))
-        };
-
-        ModuleCards = new ObservableCollection<ModuleCard>
-        {
-            new("TAGs", "Cadastro e organização dos pontos monitorados.", "Planejado"),
-            new("Weintek HTTP", "Conexão com IHMs e leitura por API local.", "Planejado"),
-            new("Alertas", "Regras de notificação e acompanhamento operacional.", "Planejado"),
-            new("Máquinas", "Cadastro das máquinas e agrupamento por linha.", "Mock inicial"),
-            new("Logs", "Acesso aos registros do AnalictY Server.", "Planejado"),
-            new("Turnos", "Janelas de produção e calendário operacional.", "Planejado"),
-            new("Dashboards", "Painéis nativos para acompanhamento da fábrica.", "Planejado"),
-            new("Telegram", "Canal de avisos para equipes configuradas.", "Planejado"),
-            new("Banco de Dados", "Status e rotinas do banco local.", "Planejado"),
-            new("Atualizações", "Verificação e aplicação de versões futuras.", "Planejado")
-        };
-
-        HelpTopics = new ObservableCollection<HelpTopic>
-        {
-            new("Funcionamento", "O AnalictY Console é a janela desktop para acompanhar o AnalictY Server instalado neste computador. Ele mostra o estado da operação sem abrir navegador."),
-            new("Cadastro e acesso", "Nesta etapa o usuário exibido é admin/admin apenas como referência visual. O login real será conectado em uma próxima fase."),
-            new("Configurações", "Os módulos de configuração aparecem como cartões para orientar o fluxo. Eles ainda não gravam dados nesta etapa."),
-            new("Telegram/Alertas", "Alertas e Telegram serão usados para avisos operacionais. Por enquanto, a tela mostra apenas a organização prevista."),
-            new("Produção/Histórico", "Os cards de produção são exemplos para validar a experiência. A leitura real de máquinas será integrada depois pela API."),
-            new("Atualizações", "Atualizações do sistema continuam fora do escopo desta etapa. O console apenas reserva a área visual para essa função.")
-        };
-
+        Kpis = new ObservableCollection<KpiCard>();
+        Machines = new ObservableCollection<MachineCard>();
+        ModuleCards = CreateModuleCards();
+        HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
         LineFilters = new ObservableCollection<string> { "Todas as linhas", "Linha Principal", "Preparação", "Célula A" };
+
+        ApplyMachines(MachineOverviewService.CreateFallbackMachines());
+        _ = LoadMachineOverviewAsync();
     }
 
     public ObservableCollection<NavigationItem> NavigationItems { get; }
@@ -142,7 +114,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string CurrentPageSubtitle => CurrentPage switch
     {
-        "Overview" => "Acompanhamento inicial da operação com dados mockados.",
+        "Overview" => "Acompanhamento inicial da operação com dados do AnalictY Server quando disponíveis.",
         "Status" => "Conectividade local com o AnalictY Server.",
         "Settings" => "Módulos previstos para operação e administração.",
         "Help" => "Orientações rápidas para uso do console.",
@@ -186,6 +158,12 @@ public sealed class MainWindowViewModel : ObservableObject
         set => SetProperty(ref _selectedLine, value);
     }
 
+    public string OverviewDataMessage
+    {
+        get => _overviewDataMessage;
+        private set => SetProperty(ref _overviewDataMessage, value);
+    }
+
     public bool IsServerOnline
     {
         get => _isServerOnline;
@@ -196,6 +174,61 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         get => _isCheckingServer;
         private set => SetProperty(ref _isCheckingServer, value);
+    }
+
+    public bool IsLoadingMachines
+    {
+        get => _isLoadingMachines;
+        private set => SetProperty(ref _isLoadingMachines, value);
+    }
+
+    private async Task LoadMachineOverviewAsync()
+    {
+        if (IsLoadingMachines)
+        {
+            return;
+        }
+
+        IsLoadingMachines = true;
+        OverviewDataMessage = _hasLoadedOverview ? "Atualizando máquinas..." : "Carregando máquinas...";
+
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(6));
+            MachineOverviewResult result = await _machineOverviewService.LoadAsync(timeout.Token);
+            ApplyMachines(result.Machines);
+            OverviewDataMessage = result.Message;
+            _hasLoadedOverview = true;
+        }
+        finally
+        {
+            IsLoadingMachines = false;
+        }
+    }
+
+    private void ApplyMachines(IReadOnlyList<MachineCard> machines)
+    {
+        Machines.Clear();
+        foreach (MachineCard machine in machines)
+        {
+            Machines.Add(machine);
+        }
+
+        UpdateKpis(machines);
+    }
+
+    private void UpdateKpis(IReadOnlyList<MachineCard> machines)
+    {
+        int total = machines.Count;
+        int running = machines.Count(machine => machine.Status == "Em operação");
+        int maintenance = machines.Count(machine => machine.Status == "Manutenção");
+        int idle = machines.Count(machine => machine.Status == "Ociosa");
+
+        Kpis.Clear();
+        Kpis.Add(new KpiCard("Total Máquinas", total.ToString(), "Máquinas retornadas para a visão geral", Brushes.DodgerBlue));
+        Kpis.Add(new KpiCard("Total Em Operação", running.ToString(), "Produção ativa agora", new SolidColorBrush(Color.FromRgb(32, 180, 134))));
+        Kpis.Add(new KpiCard("Total em Manutenção", maintenance.ToString(), "Aguardando intervenção", new SolidColorBrush(Color.FromRgb(239, 68, 68))));
+        Kpis.Add(new KpiCard("Total Ociosas", idle.ToString(), "Sem ordem em execução", new SolidColorBrush(Color.FromRgb(249, 115, 22))));
     }
 
     private async Task CheckServerAsync()
@@ -223,5 +256,35 @@ public sealed class MainWindowViewModel : ObservableObject
             CheckButtonText = "Verificar servidor";
             IsCheckingServer = false;
         }
+    }
+
+    private static ObservableCollection<ModuleCard> CreateModuleCards()
+    {
+        return new ObservableCollection<ModuleCard>
+        {
+            new("TAGs", "Cadastro e organização dos pontos monitorados.", "Planejado"),
+            new("Weintek HTTP", "Conexão com IHMs e leitura por API local.", "Planejado"),
+            new("Alertas", "Regras de notificação e acompanhamento operacional.", "Planejado"),
+            new("Máquinas", "Cadastro das máquinas e agrupamento por linha.", "API inicial"),
+            new("Logs", "Acesso aos registros do AnalictY Server.", "Planejado"),
+            new("Turnos", "Janelas de produção e calendário operacional.", "Planejado"),
+            new("Dashboards", "Painéis nativos para acompanhamento da fábrica.", "Planejado"),
+            new("Telegram", "Canal de avisos para equipes configuradas.", "Planejado"),
+            new("Banco de Dados", "Status e rotinas do banco local.", "Planejado"),
+            new("Atualizações", "Verificação e aplicação de versões futuras.", "Planejado")
+        };
+    }
+
+    private static ObservableCollection<HelpTopic> CreateHelpTopics()
+    {
+        return new ObservableCollection<HelpTopic>
+        {
+            new("Funcionamento", "O AnalictY Console é a janela desktop para acompanhar o AnalictY Server instalado neste computador. Ele mostra o estado da operação sem abrir navegador."),
+            new("Cadastro e acesso", "Nesta etapa o usuário exibido é admin/admin apenas como referência visual. O login real será conectado em uma próxima fase."),
+            new("Configurações", "Os módulos de configuração aparecem como cartões para orientar o fluxo. Eles ainda não gravam dados nesta etapa."),
+            new("Telegram/Alertas", "Alertas e Telegram serão usados para avisos operacionais. Por enquanto, a tela mostra apenas a organização prevista."),
+            new("Produção/Histórico", "A Visão Geral tenta carregar máquinas reais do AnalictY Server e usa dados demonstrativos se a API não responder."),
+            new("Atualizações", "Atualizações do sistema continuam fora do escopo desta etapa. O console apenas reserva a área visual para essa função.")
+        };
     }
 }

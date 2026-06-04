@@ -246,11 +246,16 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Resumo operacional"
-                                           FontSize="18"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource ContentTextBrush}"
-                                           VerticalAlignment="Center" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Resumo operacional"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ContentTextBrush}" />
+                                    <TextBlock Text="{Binding OverviewDataMessage}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               Margin="0,4,0,0" />
+                                </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <ComboBox ItemsSource="{Binding ShiftFilters}"
                                               SelectedItem="{Binding SelectedShift}"

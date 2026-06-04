@@ -11,6 +11,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new MainWindowViewModel(
-            new HealthService(new HttpClient { Timeout = TimeSpan.FromSeconds(6) }));
+            new HealthService(new HttpClient { Timeout = TimeSpan.FromSeconds(6) }),
+            new MachineOverviewService(new HttpClient { Timeout = TimeSpan.FromSeconds(6) }));
     }
 }
