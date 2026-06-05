@@ -1053,6 +1053,99 @@
                             </StackPanel>
                         </Grid>
 
+                        <Grid x:Name="ReportPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <StackPanel>
+                                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1.1*" />
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <StackPanel Margin="0,0,18,0">
+                                                <TextBlock Text="Tipo de relatório" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
+                                                <ComboBox Width="170" ItemsSource="{Binding ReportTypeOptions}" SelectedItem="{Binding SelectedReportType}" />
+                                            </StackPanel>
+                                            <StackPanel Margin="0,0,18,0">
+                                                <TextBlock Text="Máquina" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
+                                                        <ComboBox Width="220"
+                                                          ItemsSource="{Binding ReportMachines}"
+                                                          DisplayMemberPath="DisplayName"
+                                                          SelectedValuePath="Id"
+                                                          SelectedValue="{Binding SelectedReportMachineId}" />
+                                            </StackPanel>
+                                            <StackPanel>
+                                                <TextBlock Text="Período" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
+                                                <ComboBox Width="160" ItemsSource="{Binding ReportPeriodOptions}" SelectedItem="{Binding SelectedReportPeriod}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Prévia nativa" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                            <TextBlock Text="{Binding ReportMessage}" Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="{Binding ReportButtonText}" Command="{Binding RefreshReportCommand}" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,10,0" />
+                                            <Button Content="CSV" IsEnabled="False" Padding="16,10" BorderBrush="#CBD5E1" Background="#F8FAFC" Foreground="#64748B" Margin="0,0,8,0" />
+                                            <Button Content="PDF" IsEnabled="False" Padding="16,10" BorderBrush="#CBD5E1" Background="#F8FAFC" Foreground="#64748B" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <UniformGrid Columns="4">
+                                    <Border Style="{StaticResource CardBorderStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Tipo" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="{Binding SelectedReportTypeLabel}" Foreground="{StaticResource ContentTextBrush}" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource CardBorderStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Máquina" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="{Binding SelectedReportMachineLabel}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,10,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource CardBorderStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Período" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="{Binding SelectedReportPeriodLabel}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="SemiBold" Margin="0,10,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource CardBorderStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Status" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="{Binding ReportStatusLabel}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="SemiBold" Margin="0,10,0,0" />
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <Border Style="{StaticResource CardBorderStyle}" Margin="0">
+                                    <StackPanel>
+                                        <TextBlock Text="Prévia" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" Margin="0,0,0,12" />
+                                        <DataGrid ItemsSource="{Binding ReportRows}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeaderWidth="0" MinHeight="260">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Hora" Binding="{Binding Hour}" Width="1*" />
+                                                <DataGridTextColumn Header="Coluna A" Binding="{Binding ColumnA}" Width="1*" />
+                                                <DataGridTextColumn Header="Coluna B" Binding="{Binding ColumnB}" Width="1*" />
+                                                <DataGridTextColumn Header="Coluna C" Binding="{Binding ColumnC}" Width="1*" />
+                                                <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="0.8*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
                         <Grid x:Name="AlertsPage">
                             <Grid.Style>
                                 <Style TargetType="Grid">

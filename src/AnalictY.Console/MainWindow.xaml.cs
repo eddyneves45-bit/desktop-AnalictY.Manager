@@ -28,7 +28,8 @@ public partial class MainWindow : Window
             new StatusOverviewService(apiClient, machineOverviewService),
             new ProductionHistoryService(apiClient),
             new DowntimeHistoryService(apiClient),
-            new AlertService(apiClient));
+            new AlertService(apiClient),
+            new ReportService(apiClient));
         viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
         DataContext = viewModel;
     }

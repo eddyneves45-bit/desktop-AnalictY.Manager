@@ -15,11 +15,13 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly ProductionHistoryService _productionHistoryService;
     private readonly DowntimeHistoryService _downtimeHistoryService;
     private readonly AlertService _alertService;
+    private readonly ReportService _reportService;
     private bool _hasLoadedOverview;
     private bool _hasLoadedStatus;
     private bool _hasLoadedProductionHistory;
     private bool _hasLoadedDowntimeHistory;
     private bool _hasLoadedAlerts;
+    private bool _hasLoadedReport;
     private string _currentPage = "Overview";
     private string _serverStatus = "Não verificado";
     private string _serverStatusDetail = "Clique em Atualizar Status para consultar o AnalictY Server local.";
@@ -52,6 +54,15 @@ public sealed class MainWindowViewModel : ObservableObject
     private int _criticalAlertCount;
     private string _telegramAlertStatus = "-";
     private string _lastAlertActivity = "-";
+    private string _reportMessage = "Relatório ainda não gerado.";
+    private string _reportButtonText = "Gerar prévia";
+    private string _selectedReportType = "Produção";
+    private string _selectedReportMachineId = string.Empty;
+    private string _selectedReportPeriod = "Hoje";
+    private string _selectedReportTypeLabel = "Produção";
+    private string _selectedReportMachineLabel = "Aguardando seleção";
+    private string _selectedReportPeriodLabel = "Hoje";
+    private string _reportStatusLabel = "-";
     private string _systemVersion = "-";
     private string _systemChannel = "-";
     private string _systemSource = "-";
@@ -72,6 +83,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isLoadingProductionHistory;
     private bool _isLoadingDowntimeHistory;
     private bool _isLoadingAlerts;
+    private bool _isLoadingReport;
     private bool _isLoggingIn;
 
     public MainWindowViewModel(
@@ -80,7 +92,8 @@ public sealed class MainWindowViewModel : ObservableObject
         StatusOverviewService statusOverviewService,
         ProductionHistoryService productionHistoryService,
         DowntimeHistoryService downtimeHistoryService,
-        AlertService alertService)
+        AlertService alertService,
+        ReportService reportService)
     {
         _authService = authService;
         _machineOverviewService = machineOverviewService;
@@ -88,6 +101,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _productionHistoryService = productionHistoryService;
         _downtimeHistoryService = downtimeHistoryService;
         _alertService = alertService;
+        _reportService = reportService;
 
         LoginCommand = new RelayCommand(LoginAsync);
         LogoutCommand = new RelayCommand(LogoutAsync);
@@ -96,6 +110,7 @@ public sealed class MainWindowViewModel : ObservableObject
         RefreshProductionHistoryCommand = new RelayCommand(RefreshProductionHistoryAsync);
         RefreshDowntimeHistoryCommand = new RelayCommand(RefreshDowntimeHistoryAsync);
         RefreshAlertsCommand = new RelayCommand(RefreshAlertsAsync);
+        RefreshReportCommand = new RelayCommand(RefreshReportAsync);
         NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is not string pageKey)
@@ -130,6 +145,10 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 await EnsureAlertsAsync();
             }
+            else if (pageKey == "Report")
+            {
+                await EnsureReportAsync();
+            }
         });
 
         NavigationItems = new ObservableCollection<NavigationItem>
@@ -156,6 +175,10 @@ public sealed class MainWindowViewModel : ObservableObject
         DowntimePeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
         DowntimeHistoryRows = new ObservableCollection<DowntimeHistoryRow>();
         AlertRows = new ObservableCollection<AlertRuleRow>();
+        ReportMachines = new ObservableCollection<ReportMachineOption>();
+        ReportTypeOptions = new ObservableCollection<string> { "Produção", "Paradas", "Status" };
+        ReportPeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
+        ReportRows = new ObservableCollection<ReportPreviewRow>();
         ModuleCards = CreateModuleCards();
         HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
@@ -178,6 +201,10 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<string> DowntimePeriodOptions { get; }
     public ObservableCollection<DowntimeHistoryRow> DowntimeHistoryRows { get; }
     public ObservableCollection<AlertRuleRow> AlertRows { get; }
+    public ObservableCollection<ReportMachineOption> ReportMachines { get; }
+    public ObservableCollection<string> ReportTypeOptions { get; }
+    public ObservableCollection<string> ReportPeriodOptions { get; }
+    public ObservableCollection<ReportPreviewRow> ReportRows { get; }
     public ObservableCollection<ModuleCard> ModuleCards { get; }
     public ObservableCollection<HelpTopic> HelpTopics { get; }
     public ObservableCollection<string> ShiftFilters { get; }
@@ -188,6 +215,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand RefreshProductionHistoryCommand { get; }
     public ICommand RefreshDowntimeHistoryCommand { get; }
     public ICommand RefreshAlertsCommand { get; }
+    public ICommand RefreshReportCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LogoutCommand { get; }
     public bool IsAuthenticated => _session is not null;
@@ -278,6 +306,15 @@ public sealed class MainWindowViewModel : ObservableObject
     public string CriticalAlertCountText => CriticalAlertCount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
     public string TelegramAlertStatus { get => _telegramAlertStatus; private set => SetProperty(ref _telegramAlertStatus, value); }
     public string LastAlertActivity { get => _lastAlertActivity; private set => SetProperty(ref _lastAlertActivity, value); }
+    public string ReportMessage { get => _reportMessage; private set => SetProperty(ref _reportMessage, value); }
+    public string ReportButtonText { get => _reportButtonText; private set => SetProperty(ref _reportButtonText, value); }
+    public string SelectedReportType { get => _selectedReportType; set { if (SetProperty(ref _selectedReportType, value)) OnReportSelectionChanged(); } }
+    public string SelectedReportMachineId { get => _selectedReportMachineId; set { if (SetProperty(ref _selectedReportMachineId, value)) OnReportSelectionChanged(); } }
+    public string SelectedReportPeriod { get => _selectedReportPeriod; set { if (SetProperty(ref _selectedReportPeriod, value)) OnReportSelectionChanged(); } }
+    public string SelectedReportTypeLabel { get => _selectedReportTypeLabel; private set => SetProperty(ref _selectedReportTypeLabel, value); }
+    public string SelectedReportMachineLabel { get => _selectedReportMachineLabel; private set => SetProperty(ref _selectedReportMachineLabel, value); }
+    public string SelectedReportPeriodLabel { get => _selectedReportPeriodLabel; private set => SetProperty(ref _selectedReportPeriodLabel, value); }
+    public string ReportStatusLabel { get => _reportStatusLabel; private set => SetProperty(ref _reportStatusLabel, value); }
 
     public string LoginUsername
     {
@@ -300,6 +337,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsLoadingProductionHistory { get => _isLoadingProductionHistory; private set => SetProperty(ref _isLoadingProductionHistory, value); }
     public bool IsLoadingDowntimeHistory { get => _isLoadingDowntimeHistory; private set => SetProperty(ref _isLoadingDowntimeHistory, value); }
     public bool IsLoadingAlerts { get => _isLoadingAlerts; private set => SetProperty(ref _isLoadingAlerts, value); }
+    public bool IsLoadingReport { get => _isLoadingReport; private set => SetProperty(ref _isLoadingReport, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
 
     private async Task LoginAsync()
@@ -350,6 +388,18 @@ public sealed class MainWindowViewModel : ObservableObject
         ProductionHistoryMessage = "Histórico ainda não carregado.";
         DowntimeHistoryMessage = "Histórico ainda não carregado.";
         AlertMessage = "Alertas ainda não carregados.";
+        ReportMessage = "Relatório ainda não gerado.";
+        ReportStatusLabel = "-";
+        SelectedReportTypeLabel = "Produção";
+        SelectedReportMachineLabel = "Aguardando seleção";
+        SelectedReportPeriodLabel = "Hoje";
+        ApplyReportMachines(new List<ReportMachineOption>
+        {
+            new("1", "PJ_08", "PJ_08"),
+            new("2", "Morno_01", "Morno_01"),
+            new("3", "Morno_02", "Morno_02")
+        });
+        ApplyReportRows(Array.Empty<ReportPreviewRow>());
         ApplyAlertRows(Array.Empty<AlertRuleRow>());
         ActiveAlertCount = 0;
         CriticalAlertCount = 0;
@@ -404,6 +454,14 @@ public sealed class MainWindowViewModel : ObservableObject
         if (!_hasLoadedAlerts)
         {
             await RefreshAlertsAsync();
+        }
+    }
+
+    private async Task EnsureReportAsync()
+    {
+        if (!_hasLoadedReport)
+        {
+            await RefreshReportAsync();
         }
     }
 
@@ -499,6 +557,40 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private async Task RefreshReportAsync()
+    {
+        if (IsLoadingReport) return;
+
+        ReportButtonText = "Gerando...";
+        ReportMessage = "Montando prévia do relatório...";
+        IsLoadingReport = true;
+
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+            ReportPreviewResult result = await _reportService.LoadPreviewAsync(
+                SelectedReportType,
+                SelectedReportMachineId,
+                SelectedReportPeriod,
+                timeout.Token);
+
+            ApplyReportMachines(result.Machines);
+            ApplyReportRows(result.Rows);
+            SelectedReportTypeLabel = result.ReportType;
+            SelectedReportMachineLabel = result.SelectedMachineName;
+            SelectedReportPeriodLabel = result.PeriodLabel;
+            ReportStatusLabel = result.StatusLabel;
+            ReportMessage = result.Message;
+            SelectedReportMachineId = result.SelectedMachineId;
+            _hasLoadedReport = true;
+        }
+        finally
+        {
+            ReportButtonText = "Gerar prévia";
+            IsLoadingReport = false;
+        }
+    }
+
     private async Task RefreshStatusAsync()
     {
         if (IsLoadingStatus) return;
@@ -580,6 +672,33 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         AlertRows.Clear();
         foreach (AlertRuleRow row in rows) AlertRows.Add(row);
+    }
+
+    private void ApplyReportMachines(IReadOnlyList<ReportMachineOption> machines)
+    {
+        ReportMachines.Clear();
+        foreach (ReportMachineOption machine in machines) ReportMachines.Add(machine);
+    }
+
+    private void ApplyReportRows(IReadOnlyList<ReportPreviewRow> rows)
+    {
+        ReportRows.Clear();
+        foreach (ReportPreviewRow row in rows) ReportRows.Add(row);
+    }
+
+    private void OnReportSelectionChanged()
+    {
+        SelectedReportTypeLabel = SelectedReportType switch
+        {
+            "production" => "Produção",
+            "status" => "Status",
+            "downtime" => "Paradas",
+            _ => "Relatório"
+        };
+        SelectedReportMachineLabel = string.IsNullOrWhiteSpace(SelectedReportMachineId)
+            ? "Todas as máquinas"
+            : ReportMachines.FirstOrDefault(machine => machine.Id == SelectedReportMachineId)?.DisplayName ?? "Máquina selecionada";
+        SelectedReportPeriodLabel = SelectedReportPeriod;
     }
 
     private void UpdateKpis(IReadOnlyList<MachineCard> machines)
