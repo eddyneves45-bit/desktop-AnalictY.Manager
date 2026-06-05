@@ -303,15 +303,82 @@
                                    Foreground="#4B5563"
                                    FontSize="17"
                                    TextAlignment="Center"
-                                   Margin="0,8,0,28" />
+                                   Margin="0,8,0,30" />
 
-                        <Border Background="White"
+                        <Button Content="Acessar Sistema"
+                                Command="{Binding OpenLoginModalCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                HorizontalAlignment="Center"
+                                MinWidth="220"
+                                Padding="24,14"
+                                FontSize="15"
+                                Margin="0,0,0,14" />
+
+                        <Button Content="Recuperar acesso"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                IsEnabled="False"
+                                HorizontalAlignment="Center"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Foreground="#4B5563"
+                                Padding="10,4" />
+                    </StackPanel>
+
+                    <Grid Background="#99000000">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsLoginModalOpen}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <Border Width="430"
+                                Background="White"
                                 BorderBrush="#E5E7EB"
                                 BorderThickness="1"
-                                CornerRadius="16"
-                                Padding="22"
-                                Margin="0,0,0,14">
+                                CornerRadius="18"
+                                Padding="28"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="28" ShadowDepth="4" Opacity="0.24" Color="#000000" />
+                            </Border.Effect>
+
                             <StackPanel>
+                                <Grid Margin="0,0,0,20">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel>
+                                        <TextBlock Text="Entrar"
+                                                   FontSize="26"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}" />
+                                        <TextBlock Text="Use o mesmo acesso do AnalictY Server."
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   FontSize="13"
+                                                   Margin="0,6,0,0" />
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Content="×"
+                                            Command="{Binding CloseLoginModalCommand}"
+                                            Width="34"
+                                            Height="34"
+                                            Padding="0"
+                                            BorderThickness="0"
+                                            Background="Transparent"
+                                            Foreground="#64748B"
+                                            FontSize="24"
+                                            FontWeight="Light" />
+                                </Grid>
+
                                 <TextBlock Text="Usuário ou e-mail"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource ContentTextBrush}"
@@ -338,19 +405,16 @@
                                         Command="{Binding LoginCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch"
-                                        Margin="0,18,0,0" />
+                                        Margin="0,20,0,0" />
+
+                                <TextBlock Text="Recuperação de senha será disponibilizada em uma próxima etapa."
+                                           Foreground="#94A3B8"
+                                           TextWrapping="Wrap"
+                                           FontSize="12"
+                                           Margin="0,16,0,0" />
                             </StackPanel>
                         </Border>
-
-                        <Button Content="Recuperar acesso"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                IsEnabled="False"
-                                HorizontalAlignment="Center"
-                                BorderThickness="0"
-                                Background="Transparent"
-                                Foreground="#4B5563"
-                                Padding="10,4" />
-                    </StackPanel>
+                    </Grid>
                 </Grid>
 
                 <Border Grid.Row="2" Background="#111827">

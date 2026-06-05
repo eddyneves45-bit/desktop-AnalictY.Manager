@@ -86,6 +86,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _loginPassword = string.Empty;
     private string _loginError = string.Empty;
     private string _loginButtonText = "Entrar";
+    private bool _isLoginModalOpen;
     private AuthSession? _session;
     private bool _isServerOnline;
     private bool _isCheckingServer;
@@ -115,6 +116,22 @@ public sealed class MainWindowViewModel : ObservableObject
         _reportService = reportService;
 
         LoginCommand = new RelayCommand(LoginAsync);
+        OpenLoginModalCommand = new RelayCommand(() =>
+        {
+            LoginError = string.Empty;
+            IsLoginModalOpen = true;
+            return Task.CompletedTask;
+        });
+        CloseLoginModalCommand = new RelayCommand(() =>
+        {
+            if (!IsLoggingIn)
+            {
+                LoginError = string.Empty;
+                IsLoginModalOpen = false;
+            }
+
+            return Task.CompletedTask;
+        });
         LogoutCommand = new RelayCommand(LogoutAsync);
         CheckServerCommand = new RelayCommand(RefreshStatusAsync);
         RefreshStatusCommand = new RelayCommand(RefreshStatusAsync);
@@ -260,6 +277,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand OpenSelectedHelpCommand { get; }
     public ICommand OpenSelectedModuleCommand { get; }
     public ICommand LoginCommand { get; }
+    public ICommand OpenLoginModalCommand { get; }
+    public ICommand CloseLoginModalCommand { get; }
     public ICommand LogoutCommand { get; }
     public bool IsAuthenticated => _session is not null;
     public string AuthenticatedUserDisplay => _session?.User.Username ?? "Não autenticado";
@@ -393,6 +412,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsLoadingAlerts { get => _isLoadingAlerts; private set => SetProperty(ref _isLoadingAlerts, value); }
     public bool IsLoadingReport { get => _isLoadingReport; private set => SetProperty(ref _isLoadingReport, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
+    public bool IsLoginModalOpen { get => _isLoginModalOpen; private set => SetProperty(ref _isLoginModalOpen, value); }
 
     private async Task LoginAsync()
     {
@@ -412,6 +432,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
             _session = result.Session;
             LoginPassword = string.Empty;
+            IsLoginModalOpen = false;
             CurrentPage = "Overview";
             OnPropertyChanged(nameof(IsAuthenticated));
             OnPropertyChanged(nameof(AuthenticatedUserDisplay));
@@ -437,6 +458,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _hasLoadedAlerts = false;
         LoginPassword = string.Empty;
         LoginError = string.Empty;
+        IsLoginModalOpen = false;
         OverviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
         StatusDataMessage = "Status ainda não atualizado.";
         ProductionHistoryMessage = "Histórico ainda não carregado.";
