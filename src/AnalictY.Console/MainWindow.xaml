@@ -1053,6 +1053,115 @@
                             </StackPanel>
                         </Grid>
 
+                        <Grid x:Name="AlertsPage">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Alerts">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+
+                            <StackPanel>
+                                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Central de alertas"
+                                                       FontSize="22"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{StaticResource ContentTextBrush}" />
+                                            <TextBlock Text="{Binding AlertMessage}"
+                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,6,0,0" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1"
+                                                Content="{Binding AlertButtonText}"
+                                                Command="{Binding RefreshAlertsCommand}"
+                                                Style="{StaticResource PrimaryButtonStyle}"
+                                                Margin="18,0,10,0"
+                                                VerticalAlignment="Center" />
+                                        <Button Grid.Column="2"
+                                                Content="Testar Telegram"
+                                                IsEnabled="False"
+                                                Padding="16,10"
+                                                BorderBrush="#CBD5E1"
+                                                Background="#F8FAFC"
+                                                Foreground="#64748B"
+                                                VerticalAlignment="Center"
+                                                ToolTip="Envio de teste será liberado em uma etapa futura com confirmação." />
+                                    </Grid>
+                                </Border>
+
+                                <UniformGrid Columns="4">
+                                    <Border Style="{StaticResource CardBorderStyle}" Background="#DC2626" BorderThickness="0">
+                                        <StackPanel>
+                                            <TextBlock Text="Alertas ativos" Foreground="#FEE2E2" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding ActiveAlertCountText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,10,0,0" />
+                                            <TextBlock Text="Pendentes de reconhecimento" Foreground="#FECACA" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource CardBorderStyle}" Background="#7F1D1D" BorderThickness="0">
+                                        <StackPanel>
+                                            <TextBlock Text="Críticos" Foreground="#FEE2E2" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding CriticalAlertCountText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,10,0,0" />
+                                            <TextBlock Text="Severidade alta ou crítica" Foreground="#FECACA" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource CardBorderStyle}">
+                                        <StackPanel>
+                                            <TextBlock Text="Telegram" Foreground="{StaticResource MutedTextBrush}" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding TelegramAlertStatus}" Foreground="{StaticResource ContentTextBrush}" FontSize="20" FontWeight="Bold" Margin="0,12,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Status de envio configurado" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                                        <StackPanel>
+                                            <TextBlock Text="Último envio/teste" Foreground="{StaticResource MutedTextBrush}" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding LastAlertActivity}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="Bold" Margin="0,12,0,0" TextWrapping="Wrap" />
+                                            <TextBlock Text="Quando disponível pela API" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                        </StackPanel>
+                                    </Border>
+                                </UniformGrid>
+
+                                <Border Style="{StaticResource CardBorderStyle}" Margin="0">
+                                    <StackPanel>
+                                        <TextBlock Text="Regras e eventos"
+                                                   FontSize="20"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,12" />
+                                        <DataGrid ItemsSource="{Binding AlertRows}"
+                                                  AutoGenerateColumns="False"
+                                                  CanUserAddRows="False"
+                                                  CanUserDeleteRows="False"
+                                                  IsReadOnly="True"
+                                                  HeadersVisibility="Column"
+                                                  GridLinesVisibility="Horizontal"
+                                                  BorderThickness="0"
+                                                  RowHeaderWidth="0"
+                                                  MinHeight="260">
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="1.3*" />
+                                                <DataGridTextColumn Header="Máquina/Escopo" Binding="{Binding Scope}" Width="*" />
+                                                <DataGridTextColumn Header="Condição" Binding="{Binding Condition}" Width="1.7*" />
+                                                <DataGridTextColumn Header="Severidade" Binding="{Binding Severity}" Width="0.8*" />
+                                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="0.8*" />
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
                         <Grid x:Name="SettingsPage">
                             <Grid.Style>
                                 <Style TargetType="Grid">
@@ -1139,9 +1248,6 @@
                                     <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
                                         <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Alerts">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Grid.Style>

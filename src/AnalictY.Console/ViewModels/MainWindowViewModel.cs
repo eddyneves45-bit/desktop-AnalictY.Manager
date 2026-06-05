@@ -14,10 +14,12 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly StatusOverviewService _statusOverviewService;
     private readonly ProductionHistoryService _productionHistoryService;
     private readonly DowntimeHistoryService _downtimeHistoryService;
+    private readonly AlertService _alertService;
     private bool _hasLoadedOverview;
     private bool _hasLoadedStatus;
     private bool _hasLoadedProductionHistory;
     private bool _hasLoadedDowntimeHistory;
+    private bool _hasLoadedAlerts;
     private string _currentPage = "Overview";
     private string _serverStatus = "Não verificado";
     private string _serverStatusDetail = "Clique em Atualizar Status para consultar o AnalictY Server local.";
@@ -44,6 +46,12 @@ public sealed class MainWindowViewModel : ObservableObject
     private int _downtimeTotalStops;
     private string _downtimeTotalDuration = "0s";
     private string _downtimeMainReason = "-";
+    private string _alertMessage = "Alertas ainda não carregados.";
+    private string _alertButtonText = "Atualizar";
+    private int _activeAlertCount;
+    private int _criticalAlertCount;
+    private string _telegramAlertStatus = "-";
+    private string _lastAlertActivity = "-";
     private string _systemVersion = "-";
     private string _systemChannel = "-";
     private string _systemSource = "-";
@@ -63,6 +71,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isLoadingStatus;
     private bool _isLoadingProductionHistory;
     private bool _isLoadingDowntimeHistory;
+    private bool _isLoadingAlerts;
     private bool _isLoggingIn;
 
     public MainWindowViewModel(
@@ -70,13 +79,15 @@ public sealed class MainWindowViewModel : ObservableObject
         MachineOverviewService machineOverviewService,
         StatusOverviewService statusOverviewService,
         ProductionHistoryService productionHistoryService,
-        DowntimeHistoryService downtimeHistoryService)
+        DowntimeHistoryService downtimeHistoryService,
+        AlertService alertService)
     {
         _authService = authService;
         _machineOverviewService = machineOverviewService;
         _statusOverviewService = statusOverviewService;
         _productionHistoryService = productionHistoryService;
         _downtimeHistoryService = downtimeHistoryService;
+        _alertService = alertService;
 
         LoginCommand = new RelayCommand(LoginAsync);
         LogoutCommand = new RelayCommand(LogoutAsync);
@@ -84,6 +95,7 @@ public sealed class MainWindowViewModel : ObservableObject
         RefreshStatusCommand = new RelayCommand(RefreshStatusAsync);
         RefreshProductionHistoryCommand = new RelayCommand(RefreshProductionHistoryAsync);
         RefreshDowntimeHistoryCommand = new RelayCommand(RefreshDowntimeHistoryAsync);
+        RefreshAlertsCommand = new RelayCommand(RefreshAlertsAsync);
         NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is not string pageKey)
@@ -114,6 +126,10 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 await EnsureDowntimeHistoryAsync();
             }
+            else if (pageKey == "Alerts")
+            {
+                await EnsureAlertsAsync();
+            }
         });
 
         NavigationItems = new ObservableCollection<NavigationItem>
@@ -139,6 +155,7 @@ public sealed class MainWindowViewModel : ObservableObject
         DowntimeMachines = new ObservableCollection<DowntimeMachineOption>();
         DowntimePeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
         DowntimeHistoryRows = new ObservableCollection<DowntimeHistoryRow>();
+        AlertRows = new ObservableCollection<AlertRuleRow>();
         ModuleCards = CreateModuleCards();
         HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
@@ -160,6 +177,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<DowntimeMachineOption> DowntimeMachines { get; }
     public ObservableCollection<string> DowntimePeriodOptions { get; }
     public ObservableCollection<DowntimeHistoryRow> DowntimeHistoryRows { get; }
+    public ObservableCollection<AlertRuleRow> AlertRows { get; }
     public ObservableCollection<ModuleCard> ModuleCards { get; }
     public ObservableCollection<HelpTopic> HelpTopics { get; }
     public ObservableCollection<string> ShiftFilters { get; }
@@ -169,6 +187,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand RefreshStatusCommand { get; }
     public ICommand RefreshProductionHistoryCommand { get; }
     public ICommand RefreshDowntimeHistoryCommand { get; }
+    public ICommand RefreshAlertsCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LogoutCommand { get; }
     public bool IsAuthenticated => _session is not null;
@@ -207,6 +226,7 @@ public sealed class MainWindowViewModel : ObservableObject
         "Status" => "Saúde do servidor, runtime e máquinas com fallback seguro.",
         "ProductionHistory" => "Produção por hora com dados reais quando disponíveis.",
         "DowntimeHistory" => "Paradas por período com dados reais quando disponíveis.",
+        "Alerts" => "Regras, eventos recentes e Telegram com fallback seguro.",
         "Settings" => "Módulos previstos para operação e administração.",
         "Help" => "Orientações rápidas para uso do console.",
         _ => "Tela nativa reservada para a próxima etapa."
@@ -250,6 +270,14 @@ public sealed class MainWindowViewModel : ObservableObject
     public string DowntimeTotalStopsText => DowntimeTotalStops.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
     public string DowntimeTotalDuration { get => _downtimeTotalDuration; private set => SetProperty(ref _downtimeTotalDuration, value); }
     public string DowntimeMainReason { get => _downtimeMainReason; private set => SetProperty(ref _downtimeMainReason, value); }
+    public string AlertMessage { get => _alertMessage; private set => SetProperty(ref _alertMessage, value); }
+    public string AlertButtonText { get => _alertButtonText; private set => SetProperty(ref _alertButtonText, value); }
+    public int ActiveAlertCount { get => _activeAlertCount; private set { if (SetProperty(ref _activeAlertCount, value)) OnPropertyChanged(nameof(ActiveAlertCountText)); } }
+    public string ActiveAlertCountText => ActiveAlertCount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
+    public int CriticalAlertCount { get => _criticalAlertCount; private set { if (SetProperty(ref _criticalAlertCount, value)) OnPropertyChanged(nameof(CriticalAlertCountText)); } }
+    public string CriticalAlertCountText => CriticalAlertCount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
+    public string TelegramAlertStatus { get => _telegramAlertStatus; private set => SetProperty(ref _telegramAlertStatus, value); }
+    public string LastAlertActivity { get => _lastAlertActivity; private set => SetProperty(ref _lastAlertActivity, value); }
 
     public string LoginUsername
     {
@@ -271,6 +299,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsLoadingStatus { get => _isLoadingStatus; private set => SetProperty(ref _isLoadingStatus, value); }
     public bool IsLoadingProductionHistory { get => _isLoadingProductionHistory; private set => SetProperty(ref _isLoadingProductionHistory, value); }
     public bool IsLoadingDowntimeHistory { get => _isLoadingDowntimeHistory; private set => SetProperty(ref _isLoadingDowntimeHistory, value); }
+    public bool IsLoadingAlerts { get => _isLoadingAlerts; private set => SetProperty(ref _isLoadingAlerts, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
 
     private async Task LoginAsync()
@@ -313,12 +342,19 @@ public sealed class MainWindowViewModel : ObservableObject
         _hasLoadedStatus = false;
         _hasLoadedProductionHistory = false;
         _hasLoadedDowntimeHistory = false;
+        _hasLoadedAlerts = false;
         LoginPassword = string.Empty;
         LoginError = string.Empty;
         OverviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
         StatusDataMessage = "Status ainda não atualizado.";
         ProductionHistoryMessage = "Histórico ainda não carregado.";
         DowntimeHistoryMessage = "Histórico ainda não carregado.";
+        AlertMessage = "Alertas ainda não carregados.";
+        ApplyAlertRows(Array.Empty<AlertRuleRow>());
+        ActiveAlertCount = 0;
+        CriticalAlertCount = 0;
+        TelegramAlertStatus = "-";
+        LastAlertActivity = "-";
         ApplyMachines(MachineOverviewService.CreateFallbackMachines());
         ApplyStatusMachines(MachineOverviewService.CreateFallbackMachines());
         UpdateStatusMetrics();
@@ -360,6 +396,14 @@ public sealed class MainWindowViewModel : ObservableObject
         if (!_hasLoadedDowntimeHistory)
         {
             await RefreshDowntimeHistoryAsync();
+        }
+    }
+
+    private async Task EnsureAlertsAsync()
+    {
+        if (!_hasLoadedAlerts)
+        {
+            await RefreshAlertsAsync();
         }
     }
 
@@ -425,6 +469,33 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             DowntimeHistoryButtonText = "Atualizar";
             IsLoadingDowntimeHistory = false;
+        }
+    }
+
+    private async Task RefreshAlertsAsync()
+    {
+        if (IsLoadingAlerts) return;
+
+        AlertButtonText = "Atualizando...";
+        AlertMessage = "Consultando alertas e Telegram...";
+        IsLoadingAlerts = true;
+
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+            AlertOverviewResult result = await _alertService.LoadAsync(timeout.Token);
+            ApplyAlertRows(result.Rows);
+            ActiveAlertCount = result.ActiveAlerts;
+            CriticalAlertCount = result.CriticalAlerts;
+            TelegramAlertStatus = result.TelegramStatus;
+            LastAlertActivity = result.LastActivity;
+            AlertMessage = result.Message;
+            _hasLoadedAlerts = true;
+        }
+        finally
+        {
+            AlertButtonText = "Atualizar";
+            IsLoadingAlerts = false;
         }
     }
 
@@ -503,6 +574,12 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         DowntimeHistoryRows.Clear();
         foreach (DowntimeHistoryRow row in rows) DowntimeHistoryRows.Add(row);
+    }
+
+    private void ApplyAlertRows(IReadOnlyList<AlertRuleRow> rows)
+    {
+        AlertRows.Clear();
+        foreach (AlertRuleRow row in rows) AlertRows.Add(row);
     }
 
     private void UpdateKpis(IReadOnlyList<MachineCard> machines)
