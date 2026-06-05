@@ -1,0 +1,76 @@
+<Page x:Class="AnalictY.Manager.Views.ProductionDiagnosticsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DesignHeight="760" d:DesignWidth="1280"
+      Background="#F3F5F7"
+      FontFamily="Segoe UI">
+    
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24">
+                <Grid Margin="0,0,0,24">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Width="40" Height="40" Margin="0,0,16,0"
+                                Background="Transparent" BorderThickness="0"
+                                Cursor="Hand" Click="BackButton_Click">
+                            <Path Data="M19 12H5M12 19l-7-7 7-7" 
+                                  Stroke="#6B7280" StrokeThickness="2" 
+                                  Fill="Transparent" 
+                                  Width="20" Height="20" Stretch="Uniform"/>
+                        </Button>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Diagnóstico" FontSize="28" FontWeight="Bold" Foreground="#111827"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="12" Padding="24" Margin="0,0,0,24">
+                    <StackPanel>
+                        <TextBlock Text="Diagnóstico de Produção" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
+                        <TextBlock Text="Fluxo real de produção" FontSize="14" Foreground="#6B7280" Margin="0,0,0,16"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Máquina:" Foreground="#374151" Margin="0,0,0,8"/>
+                            <ComboBox Grid.Row="0" Grid.Column="1" Height="36" Margin="0,0,0,16"
+                                      BorderBrush="#D1D5DB" BorderThickness="1" Padding="8">
+                                <ComboBoxItem Content="Selecione uma máquina"/>
+                            </ComboBox>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Período:" Foreground="#374151" Margin="0,0,0,8"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" Height="36" Margin="0,0,0,16"
+                                      BorderBrush="#D1D5DB" BorderThickness="1" Padding="8">
+                                <ComboBoxItem Content="Última hora"/>
+                                <ComboBoxItem Content="Últimas 24 horas"/>
+                                <ComboBoxItem Content="Última semana"/>
+                            </ComboBox>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <Button Content="Carregar Dados" 
+                                    Background="#3B82F6" Foreground="White"
+                                    BorderThickness="0" Padding="16,8"
+                                    Cursor="Hand"/>
+                        </StackPanel>
+
+                        <Border Background="#F8FAFC" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                            <TextBlock Text="Nenhum dado de diagnóstico carregado." Foreground="#64748B" FontSize="14" HorizontalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

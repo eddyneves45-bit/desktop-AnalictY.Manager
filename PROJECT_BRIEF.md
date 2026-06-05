@@ -1,10 +1,10 @@
-# Project Brief: AnalictY Console
+# Project Brief: AnalictY Manager
 
 ## Contexto
 
 O AnalictY atual e uma plataforma industrial instalavel para Windows, composta por servicos locais, backend, frontend web, banco local, Agent Tray e instalador.
 
-Este repositorio deve criar um novo cliente desktop nativo chamado `AnalictY Console`, sem alterar o sistema atual.
+Este repositorio deve criar o `AnalictY Manager`, aplicativo desktop nativo para administracao local do AnalictY Server.
 
 ## Objetivo
 
@@ -33,9 +33,9 @@ http://127.0.0.1:5000
 ## Estrutura Recomendada
 
 ```text
-desktop-AnalictY.Console
+desktop-AnalictY.Manager
 ├── src
-│   └── AnalictY.Console
+│   └── AnalictY.Manager
 │       ├── App.xaml
 │       ├── MainWindow.xaml
 │       ├── Views
@@ -78,7 +78,7 @@ Sidebar:
 
 Topbar:
 
-- Nome `AnalictY Console`.
+- Nome `AnalictY Manager`.
 - Status do AnalictY Server.
 - Usuario logado.
 
@@ -114,4 +114,3 @@ Se algum endpoint ainda nao existir ou falhar, mostrar estado vazio.
 - Build funcionando.
 - README atualizado com como rodar.
 - Codigo simples, sem overengineering.
-

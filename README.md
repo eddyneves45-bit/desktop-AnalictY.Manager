@@ -1,8 +1,10 @@
-# AnalictY Console
+# AnalictY Manager
 
-Cliente desktop nativo Windows para o AnalictY Server.
+Aplicativo desktop nativo Windows para administracao local do AnalictY Server.
 
-Este projeto existe para criar uma interface instalada, com cara de software Windows, sem WebView2, sem Electron e sem navegador embutido.
+Este projeto e o **AnalictY Manager**, o escritorio do gerente/tecnico dentro da familia AnalictY Platform.
+
+Ele nao substitui o AnalictY Web. O Web continua sendo a interface operacional da fabrica.
 
 ## Objetivo
 
@@ -20,9 +22,20 @@ O AnalictY Server atual continua existindo e funcionando normalmente:
 - Agent/Tray preservado.
 - Atualizacoes preservadas.
 
+## Familia De Produto
+
+```text
+AnalictY Platform
+├── AnalictY Server
+├── AnalictY Web
+└── AnalictY Manager
+```
+
+Veja tambem: [PRODUCT_PORTFOLIO.md](PRODUCT_PORTFOLIO.md).
+
 ## Regra Principal
 
-Este projeto nao deve quebrar nem substituir o AnalictY existente. Ele e um novo cliente desktop nativo sobre a API existente.
+Este projeto nao deve quebrar nem substituir o AnalictY existente. Ele e um aplicativo desktop nativo de administracao sobre a API existente.
 
 ## Escopo Inicial
 
@@ -57,13 +70,13 @@ Requisitos:
 Restaurar e compilar:
 
 ```powershell
-dotnet build AnalictY.Console.sln
+dotnet build AnalictY.Manager.sln
 ```
 
-Executar o cliente desktop:
+Executar o Manager:
 
 ```powershell
-dotnet run --project src/AnalictY.Console/AnalictY.Console.csproj
+dotnet run --project src/AnalictY.Manager/AnalictY.Manager.csproj
 ```
 
 ## Publicacao Desktop
@@ -71,13 +84,13 @@ dotnet run --project src/AnalictY.Console/AnalictY.Console.csproj
 Para gerar uma versao testavel em pasta local:
 
 ```powershell
-.\scripts\publish-console.ps1
+.\scripts\publish-manager.ps1
 ```
 
 O executavel publicado fica em:
 
 ```text
-release\desktop-console\AnalictY.Console.exe
+release\desktop-manager\AnalictY.Manager.exe
 ```
 
 A publicacao atual e dependente do runtime do .NET para manter o pacote pequeno. Instalador completo e pacote auto-contido ficam para uma etapa separada.
