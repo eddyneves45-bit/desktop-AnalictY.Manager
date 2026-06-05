@@ -1,0 +1,501 @@
+<Page x:Class="AnalictY.Console.Views.ConfigPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      d:DesignHeight="760" d:DesignWidth="1280"
+      Background="#F3F5F7"
+      FontFamily="Segoe UI">
+    
+    <Page.Resources>
+        <!-- Card Styles -->
+        <Style x:Key="ConfigCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="MinHeight" Value="160"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="10" ShadowDepth="0"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="RenderTransform">
+                        <Setter.Value>
+                            <TranslateTransform Y="-2"/>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Effect">
+                        <Setter.Value>
+                            <DropShadowEffect Color="#000000" Opacity="0.1" BlurRadius="15" ShadowDepth="0"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SectorButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="Foreground" Value="#475569"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="MinWidth" Value="144"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F1F5F9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActiveSectorButtonStyle" TargetType="Button" BasedOn="{StaticResource SectorButtonStyle}">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1E293B"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#111827"/>
+        </Style>
+
+        <Style x:Key="CardDescriptionStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="CardCountStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#111827"/>
+        </Style>
+
+        <Style x:Key="CardLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid x:Name="ConfigHeader" Grid.Row="0" Margin="24,24,24,0">
+            <StackPanel Orientation="Horizontal">
+                <Button Width="40" Height="40" Margin="0,0,16,0"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" Visibility="Collapsed" x:Name="BackButton" Click="BackButton_Click">
+                    <Path Data="M19 12H5M12 19l-7-7 7-7" 
+                          Stroke="#6B7280" StrokeThickness="2" 
+                          Fill="Transparent" 
+                          Width="20" Height="20" Stretch="Uniform"/>
+                </Button>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Central de Configurações" 
+                               FontSize="28" FontWeight="Bold" 
+                               Foreground="#111827"/>
+                    <TextBlock Text="Gerenciamento de conexões e configurações do sistema" 
+                               FontSize="14" 
+                               Foreground="#6B7280" Margin="0,4,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="24">
+            <ScrollViewer x:Name="MainConfigContent" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0,24,0,24">
+                <!-- Sector Tabs -->
+                <Border Background="White" 
+                        BorderBrush="#E5E7EB" 
+                        BorderThickness="1" 
+                        CornerRadius="12" 
+                        Padding="12" 
+                        Margin="0,0,0,24">
+                    <ItemsControl ItemsSource="{Binding ConfigSectors}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Label}"
+                                        Click="SectorButton_Click"
+                                        Tag="{Binding Id}"
+                                        Margin="0,0,8,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource SectorButtonStyle}">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#F1F5F9"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- Config Cards Grid -->
+                <ItemsControl ItemsSource="{Binding ConfigCards}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="4"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,16,16"
+                                    Tag="{Binding NavigationTarget}"
+                                    Cursor="Hand"
+                                    MouseLeftButtonUp="Card_MouseLeftButtonUp">
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource ConfigCardStyle}">
+                                        <Setter Property="BorderThickness" Value="1,1,1,1"/>
+                                        <Setter Property="BorderBrush" Value="#E5E7EB"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Id}" Value="opc">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#10B981"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="mqtt">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#6366F1"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="mysql">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#0EA5E9"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="connections">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#A855F7"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="tags">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#F59E0B"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="alerts">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#F43F5E"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="machines">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#64748B"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="logs">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#06B6D4"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="shifts">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#22C55E"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="simulator">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#14B8A6"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="diagnostics">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#2563EB"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="telegram">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#2563EB"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="dashboards">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#8B5CF6"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="users">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#EF4444"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="audit">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#334155"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="localServer">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#0891B2"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Id}" Value="weintek">
+                                                <Setter Property="BorderThickness" Value="4,1,1,1"/>
+                                                <Setter Property="BorderBrush" Value="#EF4444"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                
+                                <StackPanel>
+                                    <!-- Icon -->
+                                    <Border Width="48" Height="48" 
+                                            Background="{Binding HoverColorHex}" 
+                                            CornerRadius="12" 
+                                            HorizontalAlignment="Center"
+                                            Margin="0,0,0,12">
+                                        <Path Data="{Binding IconPath}" 
+                                              Fill="{Binding IconColorHex}" 
+                                              Width="24" Height="24" 
+                                              Stretch="Uniform" 
+                                              HorizontalAlignment="Center" 
+                                              VerticalAlignment="Center"/>
+                                    </Border>
+                                    
+                                    <!-- Title -->
+                                    <TextBlock Text="{Binding Title}" 
+                                               Style="{StaticResource CardTitleStyle}" 
+                                               TextAlignment="Center"
+                                               Margin="0,0,0,8"/>
+                                    
+                                    <!-- Description -->
+                                    <TextBlock Text="{Binding Description}" 
+                                               Style="{StaticResource CardDescriptionStyle}" 
+                                               TextAlignment="Center"
+                                               Margin="0,0,0,12"/>
+                                    
+                                    <!-- Count (if applicable) -->
+                                    <TextBlock Text="{Binding Count}" 
+                                               TextAlignment="Center"
+                                               Margin="0,0,0,4"
+                                               FontSize="24" FontWeight="Bold" Foreground="#111827">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Count}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Count}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    
+                                    <!-- Label -->
+                                    <TextBlock Text="conexões" 
+                                               TextAlignment="Center"
+                                               FontSize="11" Foreground="#6B7280">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Count}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Count}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Timezone Card -->
+                <Border Style="{StaticResource ConfigCardStyle}" 
+                        BorderThickness="4,1,1,1" 
+                        BorderBrush="#F59E0B"
+                        Margin="0,0,16,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Icon -->
+                        <Border Width="40" Height="40" 
+                                Background="#FEF3C7" 
+                                CornerRadius="10" 
+                                Margin="0,0,12,0">
+                            <Path Data="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+                                  Fill="#D97706" 
+                                  Width="20" Height="20" 
+                                  Stretch="Uniform" 
+                                  HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"/>
+                        </Border>
+                        
+                        <!-- Content -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                            <TextBlock Text="Fuso horário" 
+                                       FontSize="18" FontWeight="SemiBold" 
+                                       Foreground="#111827"/>
+                            <TextBlock Text="{Binding CurrentClock, StringFormat='{}{0:dd/MM/yyyy HH:mm:ss}'}" 
+                                       FontSize="14" FontWeight="Medium" 
+                                       Foreground="#92400E" 
+                                       Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding TimeZoneLabel}" 
+                                       FontSize="12" 
+                                       Foreground="#B45309" 
+                                       Margin="0,2,0,8"/>
+                            
+                            <ComboBox ItemsSource="{Binding TimeZoneOptions}"
+                                      SelectedValuePath="Id"
+                                      DisplayMemberPath="Label"
+                                      SelectedValue="{Binding TimeZoneId}"
+                                      Width="300"
+                                      Height="36"
+                                      Margin="0,0,0,8"
+                                      BorderBrush="#FBBF24"
+                                      Background="White"/>
+                            
+                            <Button Content="Salvar fuso"
+                                    Click="SaveTimeZone_Click"
+                                    Background="#D97706"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Padding="16,8"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    Cursor="Hand"
+                                    HorizontalAlignment="Left">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}"
+                                                            CornerRadius="8"
+                                                            Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#B45309"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            
+                            <TextBlock Text="{Binding TimeZoneMessage}" 
+                                       FontSize="12" 
+                                       Foreground="#92400E" 
+                                       Margin="0,8,0,0">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TimeZoneMessage}" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Updates Card -->
+                <Border Style="{StaticResource ConfigCardStyle}" 
+                        BorderThickness="4,1,1,1" 
+                        BorderBrush="#059669"
+                        Margin="0,0,16,16"
+                        Cursor="Hand">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Icon -->
+                            <Border Width="48" Height="48" 
+                                    Background="#D1FAE5" 
+                                    CornerRadius="12" 
+                                    Margin="0,0,12,0">
+                                <Path Data="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" 
+                                      Fill="#059669" 
+                                      Width="24" Height="24" 
+                                      Stretch="Uniform" 
+                                      HorizontalAlignment="Center" 
+                                      VerticalAlignment="Center"/>
+                            </Border>
+                            
+                            <!-- Title -->
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Atualizações" 
+                                           FontSize="18" FontWeight="SemiBold" 
+                                           Foreground="#111827"/>
+                                <TextBlock Text="Gerenciar versão instalada" 
+                                           FontSize="13" 
+                                           Foreground="#6B7280" 
+                                           Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <!-- Version Info -->
+                        <Grid Margin="0,20,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Text="Instalada" 
+                                       FontSize="13" 
+                                       Foreground="#6B7280"/>
+                            <Border Grid.Column="1" 
+                                    Background="#F1F5F9" 
+                                    CornerRadius="8" 
+                                    Padding="12,4">
+                                <TextBlock Text="{Binding SystemVersion}" 
+                                           FontSize="13" 
+                                           FontWeight="Bold" 
+                                           Foreground="#111827"/>
+                            </Border>
+                        </Grid>
+                        
+                        <TextBlock Text="Abrir detalhes" 
+                                   FontSize="13" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="#065F46" 
+                                   Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <Frame x:Name="NavigationFrame"
+                   NavigationUIVisibility="Hidden"
+                   Visibility="Collapsed"/>
+        </Grid>
+    </Grid>
+</Page>

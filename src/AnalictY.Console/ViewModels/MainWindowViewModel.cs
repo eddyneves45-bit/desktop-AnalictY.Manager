@@ -115,30 +115,24 @@ public sealed class MainWindowViewModel : ObservableObject
         _alertService = alertService;
         _reportService = reportService;
 
-        LoginCommand = new RelayCommand(LoginAsync);
-        OpenLoginModalCommand = new RelayCommand(() =>
+        LoginCommand = new RelayCommand(_ => LoginAsync());
+        OpenLoginModalCommand = new RelayCommand(_ =>
         {
-            LoginError = string.Empty;
-            IsLoginModalOpen = true;
+            OpenLoginModal();
             return Task.CompletedTask;
         });
-        CloseLoginModalCommand = new RelayCommand(() =>
+        CloseLoginModalCommand = new RelayCommand(_ =>
         {
-            if (!IsLoggingIn)
-            {
-                LoginError = string.Empty;
-                IsLoginModalOpen = false;
-            }
-
+            CloseLoginModal();
             return Task.CompletedTask;
         });
-        LogoutCommand = new RelayCommand(LogoutAsync);
-        CheckServerCommand = new RelayCommand(RefreshStatusAsync);
-        RefreshStatusCommand = new RelayCommand(RefreshStatusAsync);
-        RefreshProductionHistoryCommand = new RelayCommand(RefreshProductionHistoryAsync);
-        RefreshDowntimeHistoryCommand = new RelayCommand(RefreshDowntimeHistoryAsync);
-        RefreshAlertsCommand = new RelayCommand(RefreshAlertsAsync);
-        RefreshReportCommand = new RelayCommand(RefreshReportAsync);
+        LogoutCommand = new RelayCommand(_ => LogoutAsync());
+        CheckServerCommand = new RelayCommand(_ => RefreshStatusAsync());
+        RefreshStatusCommand = new RelayCommand(_ => RefreshStatusAsync());
+        RefreshProductionHistoryCommand = new RelayCommand(_ => RefreshProductionHistoryAsync());
+        RefreshDowntimeHistoryCommand = new RelayCommand(_ => RefreshDowntimeHistoryAsync());
+        RefreshAlertsCommand = new RelayCommand(_ => RefreshAlertsAsync());
+        RefreshReportCommand = new RelayCommand(_ => RefreshReportAsync());
         SelectModuleCommand = new RelayCommand(parameter =>
         {
             if (parameter is ModuleCard module)
@@ -150,7 +144,6 @@ public sealed class MainWindowViewModel : ObservableObject
                 SelectedModuleCanOpen = !string.IsNullOrWhiteSpace(module.PageKey);
                 SelectedModuleAction = SelectedModuleCanOpen ? "Abrir módulo" : "Planejado";
             }
-
             return Task.CompletedTask;
         });
         SelectHelpTopicCommand = new RelayCommand(parameter =>
@@ -163,7 +156,6 @@ public sealed class MainWindowViewModel : ObservableObject
                 SelectedHelpCanOpen = !string.IsNullOrWhiteSpace(SelectedHelpPageKey);
                 SelectedHelpAction = SelectedHelpCanOpen ? "Abrir seção" : "Apenas leitura";
             }
-
             return Task.CompletedTask;
         });
         OpenSelectedHelpCommand = new RelayCommand(async _ =>
@@ -186,7 +178,6 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 return;
             }
-
             await NavigateToPageAsync(pageKey);
         });
 
@@ -413,6 +404,21 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsLoadingReport { get => _isLoadingReport; private set => SetProperty(ref _isLoadingReport, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
     public bool IsLoginModalOpen { get => _isLoginModalOpen; private set => SetProperty(ref _isLoginModalOpen, value); }
+
+    public void OpenLoginModal()
+    {
+        LoginError = string.Empty;
+        IsLoginModalOpen = true;
+    }
+
+    public void CloseLoginModal()
+    {
+        if (!IsLoggingIn)
+        {
+            LoginError = string.Empty;
+            IsLoginModalOpen = false;
+        }
+    }
 
     private async Task LoginAsync()
     {

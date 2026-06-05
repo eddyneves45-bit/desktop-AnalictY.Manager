@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using System.Windows;
 
 namespace AnalictY.Console.Infrastructure;
 
@@ -38,6 +39,14 @@ public sealed class RelayCommand : ICommand
             _isExecuting = true;
             RaiseCanExecuteChanged();
             await _execute(parameter);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                ex.Message,
+                "Erro ao executar ação",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
         finally
         {

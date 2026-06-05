@@ -42,6 +42,26 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OpenLoginModalButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.OpenLoginModal();
+        }
+
+        LoginModalOverlay.Visibility = Visibility.Visible;
+    }
+
+    private void CloseLoginModalButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.CloseLoginModal();
+        }
+
+        LoginModalOverlay.Visibility = Visibility.Collapsed;
+    }
+
     private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (sender is MainWindowViewModel { LoginPassword.Length: 0 } &&
@@ -49,6 +69,14 @@ public partial class MainWindow : Window
             !string.IsNullOrEmpty(LoginPasswordBox.Password))
         {
             LoginPasswordBox.Clear();
+        }
+
+        if (sender is MainWindowViewModel viewModel &&
+            e.PropertyName == nameof(MainWindowViewModel.IsLoginModalOpen))
+        {
+            LoginModalOverlay.Visibility = viewModel.IsLoginModalOpen
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
     }
 }
