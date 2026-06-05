@@ -67,6 +67,11 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _selectedModuleDescription = "Visão geral dos módulos de configuração e manutenção disponíveis no console.";
     private string _selectedModuleState = "Em breve";
     private string _selectedModuleAction = "Ver detalhes";
+    private string _selectedHelpTitle = "Funcionamento";
+    private string _selectedHelpContent = "O AnalictY Console é a janela desktop para acompanhar o AnalictY Server instalado neste computador. Ele mostra o estado da operação sem abrir navegador.";
+    private string _selectedHelpAction = "Apenas leitura";
+    private string _selectedHelpPageKey = string.Empty;
+    private bool _selectedHelpCanOpen;
     private string _selectedModulePageKey = string.Empty;
     private bool _selectedModuleCanOpen;
     private string _systemVersion = "-";
@@ -131,6 +136,26 @@ public sealed class MainWindowViewModel : ObservableObject
 
             return Task.CompletedTask;
         });
+        SelectHelpTopicCommand = new RelayCommand(parameter =>
+        {
+            if (parameter is HelpTopic topic)
+            {
+                SelectedHelpTitle = topic.Title;
+                SelectedHelpContent = topic.Content;
+                SelectedHelpPageKey = topic.PageKey;
+                SelectedHelpCanOpen = !string.IsNullOrWhiteSpace(SelectedHelpPageKey);
+                SelectedHelpAction = SelectedHelpCanOpen ? "Abrir seção" : "Apenas leitura";
+            }
+
+            return Task.CompletedTask;
+        });
+        OpenSelectedHelpCommand = new RelayCommand(async _ =>
+        {
+            if (!string.IsNullOrWhiteSpace(SelectedHelpPageKey))
+            {
+                await NavigateToPageAsync(SelectedHelpPageKey);
+            }
+        });
         OpenSelectedModuleCommand = new RelayCommand(async _ =>
         {
             if (!string.IsNullOrWhiteSpace(SelectedModulePageKey))
@@ -187,6 +212,14 @@ public sealed class MainWindowViewModel : ObservableObject
             SelectedModuleAction = SelectedModuleCanOpen ? "Abrir módulo" : "Planejado";
         }
         HelpTopics = CreateHelpTopics();
+        if (HelpTopics.Count > 0)
+        {
+            SelectedHelpTitle = HelpTopics[0].Title;
+            SelectedHelpContent = HelpTopics[0].Content;
+            SelectedHelpPageKey = HelpTopics[0].PageKey;
+            SelectedHelpCanOpen = !string.IsNullOrWhiteSpace(HelpTopics[0].PageKey);
+            SelectedHelpAction = SelectedHelpCanOpen ? "Abrir seção" : "Apenas leitura";
+        }
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
         LineFilters = new ObservableCollection<string> { "Todas as linhas", "Linha Principal", "Preparação", "Célula A" };
 
@@ -223,6 +256,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand RefreshAlertsCommand { get; }
     public ICommand RefreshReportCommand { get; }
     public ICommand SelectModuleCommand { get; }
+    public ICommand SelectHelpTopicCommand { get; }
+    public ICommand OpenSelectedHelpCommand { get; }
     public ICommand OpenSelectedModuleCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LogoutCommand { get; }
@@ -327,6 +362,11 @@ public sealed class MainWindowViewModel : ObservableObject
     public string SelectedModuleDescription { get => _selectedModuleDescription; private set => SetProperty(ref _selectedModuleDescription, value); }
     public string SelectedModuleState { get => _selectedModuleState; private set => SetProperty(ref _selectedModuleState, value); }
     public string SelectedModuleAction { get => _selectedModuleAction; private set => SetProperty(ref _selectedModuleAction, value); }
+    public string SelectedHelpTitle { get => _selectedHelpTitle; private set => SetProperty(ref _selectedHelpTitle, value); }
+    public string SelectedHelpContent { get => _selectedHelpContent; private set => SetProperty(ref _selectedHelpContent, value); }
+    public string SelectedHelpAction { get => _selectedHelpAction; private set => SetProperty(ref _selectedHelpAction, value); }
+    public string SelectedHelpPageKey { get => _selectedHelpPageKey; private set => SetProperty(ref _selectedHelpPageKey, value); }
+    public bool SelectedHelpCanOpen { get => _selectedHelpCanOpen; private set => SetProperty(ref _selectedHelpCanOpen, value); }
     public string SelectedModulePageKey { get => _selectedModulePageKey; private set => SetProperty(ref _selectedModulePageKey, value); }
     public bool SelectedModuleCanOpen { get => _selectedModuleCanOpen; private set => SetProperty(ref _selectedModuleCanOpen, value); }
 
@@ -807,12 +847,16 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         return new ObservableCollection<HelpTopic>
         {
-            new("Funcionamento", "O AnalictY Console é a janela desktop para acompanhar o AnalictY Server instalado neste computador. Ele mostra o estado da operação sem abrir navegador."),
-            new("Cadastro e acesso", "O acesso usa o login do AnalictY Server. A senha fica somente em memória durante a tentativa de entrada."),
-            new("Configurações", "Os módulos de configuração aparecem como cartões para orientar o fluxo. Eles ainda não gravam dados nesta etapa."),
-            new("Telegram/Alertas", "Alertas e Telegram serão usados para avisos operacionais. Por enquanto, a tela mostra apenas a organização prevista."),
-            new("Produção/Histórico", "A Visão Geral tenta carregar máquinas reais do AnalictY Server e usa dados demonstrativos se a API não responder."),
-            new("Atualizações", "Atualizações do sistema continuam fora do escopo desta etapa. O console apenas reserva a área visual para essa função.")
+            new("Funcionamento", "O AnalictY Console reúne as telas principais da operação em um aplicativo desktop. Você pode acompanhar máquinas, status, histórico e alertas sem usar navegador.", string.Empty),
+            new("Cadastro e acesso", "Entre com o mesmo usuário do AnalictY Server. Depois de entrar, a navegação lateral libera as telas do console e mantém a sessão apenas enquanto o aplicativo estiver aberto.", string.Empty),
+            new("Visão Geral", "A visão geral mostra as máquinas, os estados principais e os indicadores mais importantes para você entender rapidamente a operação.", "Overview"),
+            new("Status", "A tela de status resume a saúde do ambiente, a situação do servidor e a condição das máquinas, com atualização manual quando necessário.", "Status"),
+            new("Histórico de Produção", "Use essa tela para conferir a produção por período, comparar máquinas e revisar os totais de peças produzidas, boas e perdidas.", "ProductionHistory"),
+            new("Histórico de Paradas", "Aqui você acompanha paradas registradas, duração, motivos e categorias para entender o que afetou a operação.", "DowntimeHistory"),
+            new("Relatório", "O relatório ajuda a gerar uma prévia organizada por tipo, máquina e período. Nesta etapa, a geração é segura e apenas de visualização.", "Report"),
+            new("Alertas e Telegram", "Os alertas mostram ocorrências importantes e o status do canal Telegram quando ele estiver configurado.", "Alerts"),
+            new("Configurações", "A área de configurações organiza os módulos do sistema. Alguns itens já podem ser abertos para consulta, e os demais continuam em preparação.", "Settings"),
+            new("Atualizações", "As rotinas de atualização ainda não fazem parte desta etapa. A área existe para orientar o usuário sobre o que virá depois.", string.Empty)
         };
     }
 }
