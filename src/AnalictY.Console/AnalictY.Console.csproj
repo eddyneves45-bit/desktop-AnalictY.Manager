@@ -19,4 +19,10 @@
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Resource Include="..\..\assets\industrial-intelligence-icon.png">
+      <Link>Assets\industrial-intelligence-icon.png</Link>
+    </Resource>
+  </ItemGroup>
+
 </Project>

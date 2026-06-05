@@ -231,168 +231,100 @@
                 </Style>
             </Grid.Style>
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.15*" />
-                    <ColumnDefinition Width="0.85*" />
-                </Grid.ColumnDefinitions>
+            <Grid Background="#F6F7F9">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="88" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="42" />
+                </Grid.RowDefinitions>
 
-                <Border Background="#0B1220">
-                    <Grid Margin="58">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                <Border Background="#424956">
+                    <Grid Margin="56,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="50"
-                                    Height="50"
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="48"
+                                    Height="48"
                                     Background="#111827"
-                                    BorderBrush="#263244"
+                                    BorderBrush="#1F2937"
                                     BorderThickness="1"
-                                    CornerRadius="14"
-                                    HorizontalAlignment="Left">
+                                    CornerRadius="9">
                                 <TextBlock Text="iT"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            Foreground="#EF4444"
-                                           FontSize="22"
+                                           FontSize="21"
                                            FontWeight="Black" />
                             </Border>
-                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="iioT"
                                            Foreground="White"
                                            FontSize="24"
                                            FontWeight="Black" />
-                                <TextBlock Text="AnalictY Console"
-                                           Foreground="#F87171"
-                                           FontSize="14"
+                                <TextBlock Text="AnalictY"
+                                           Foreground="#FF4B5F"
+                                           FontSize="13"
                                            FontWeight="SemiBold" />
                             </StackPanel>
                         </StackPanel>
 
-                        <StackPanel Grid.Row="1" VerticalAlignment="Center" MaxWidth="560">
-                            <TextBlock Text="iioT AnalictY Console"
+                        <Border Grid.Column="1"
+                                Background="#1F2937"
+                                CornerRadius="8"
+                                Padding="16,9"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="◎  PT"
                                        Foreground="White"
-                                       FontSize="40"
-                                       FontWeight="Black" />
-                            <TextBlock Text="Acesso nativo ao AnalictY Server no Windows, com a mesma linguagem visual do web e sem navegador embutido."
-                                       Foreground="#CBD5E1"
-                                       FontSize="17"
-                                       TextWrapping="Wrap"
-                                       Margin="0,16,0,0"
-                                       Width="520" />
-
-                            <Border Background="#111827"
-                                    BorderBrush="#263244"
-                                    BorderThickness="1"
-                                    CornerRadius="18"
-                                    Padding="18"
-                                    Width="520"
-                                    HorizontalAlignment="Left"
-                                    Margin="0,34,0,0">
-                                <StackPanel>
-                                    <TextBlock Text="Acesso local e seguro"
-                                               Foreground="White"
-                                               FontSize="15"
-                                               FontWeight="SemiBold" />
-                                    <TextBlock Text="Use o mesmo usuário do AnalictY Server. A sessão fica apenas em memória enquanto o app estiver aberto."
-                                               Foreground="#94A3B8"
-                                               TextWrapping="Wrap"
-                                               Margin="0,8,0,0" />
-                                </StackPanel>
-                            </Border>
-
-                            <UniformGrid Columns="3" Margin="0,28,0,0" Width="520">
-                                <Border Background="#111827" BorderBrush="#243041" BorderThickness="1" CornerRadius="16" Padding="14" Margin="0,0,12,0">
-                                    <StackPanel>
-                                        <TextBlock Text="Sem WebView" Foreground="#F8FAFC" FontWeight="SemiBold" />
-                                        <TextBlock Text="Interface nativa do Windows" Foreground="#94A3B8" FontSize="12" Margin="0,4,0,0" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#111827" BorderBrush="#243041" BorderThickness="1" CornerRadius="16" Padding="14" Margin="0,0,12,0">
-                                    <StackPanel>
-                                        <TextBlock Text="Ligado ao servidor" Foreground="#F8FAFC" FontWeight="SemiBold" />
-                                        <TextBlock Text="Status e visões reais" Foreground="#94A3B8" FontSize="12" Margin="0,4,0,0" />
-                                    </StackPanel>
-                                </Border>
-                                <Border Background="#111827" BorderBrush="#243041" BorderThickness="1" CornerRadius="16" Padding="14">
-                                    <StackPanel>
-                                        <TextBlock Text="Sessão em memória" Foreground="#F8FAFC" FontWeight="SemiBold" />
-                                        <TextBlock Text="Sem salvar senha" Foreground="#94A3B8" FontSize="12" Margin="0,4,0,0" />
-                                    </StackPanel>
-                                </Border>
-                            </UniformGrid>
-                        </StackPanel>
-
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Bottom">
-                            <TextBlock Text="Acesso restrito à gestão. Contate o administrador em caso de necessidade."
-                                       Foreground="#94A3B8"
-                                       FontSize="12" />
-                        </StackPanel>
+                                       FontWeight="SemiBold"
+                                       FontSize="13" />
+                        </Border>
                     </Grid>
                 </Border>
 
-                <Grid Grid.Column="1" Background="#F3F5F7">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <Border Margin="32,24,32,0"
-                                Background="White"
-                                BorderBrush="{StaticResource BorderBrushSoft}"
-                                BorderThickness="1"
-                                CornerRadius="18"
-                                Padding="22"
-                                HorizontalAlignment="Right">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Width="12" Height="12" CornerRadius="6" Background="#16A34A" Margin="0,0,10,0" />
-                                <StackPanel>
-                                    <TextBlock Text="AnalictY Server"
-                                               Foreground="{StaticResource ContentTextBrush}"
-                                               FontWeight="SemiBold" />
-                                    <TextBlock Text="Cliente desktop nativo"
-                                               Foreground="{StaticResource MutedTextBrush}"
-                                               FontSize="12" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Grid.Row="1"
-                                Width="440"
-                                Background="White"
-                                BorderBrush="{StaticResource BorderBrushSoft}"
-                                BorderThickness="1"
-                                CornerRadius="22"
-                                Padding="34"
+                <Grid Grid.Row="1">
+                    <StackPanel HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
-                                HorizontalAlignment="Center"
-                                Effect="{DynamicResource {x:Static SystemParameters.DropShadowKey}}">
-                            <StackPanel>
-                                <TextBlock Text="Entrar"
-                                           FontSize="30"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource ContentTextBrush}" />
-                                <TextBlock Text="Use o mesmo acesso do AnalictY Server."
-                                           FontSize="14"
-                                           Foreground="{StaticResource MutedTextBrush}"
-                                           Margin="0,8,0,28" />
+                                Width="430">
+                        <Image Source="/Assets/industrial-intelligence-icon.png"
+                               Width="148"
+                               Height="148"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,22" />
 
+                        <TextBlock Text="iioT AnalictY"
+                                   Foreground="#111827"
+                                   FontSize="38"
+                                   FontWeight="Black"
+                                   TextAlignment="Center" />
+                        <TextBlock Text="Plataforma de Inteligência Industrial"
+                                   Foreground="#4B5563"
+                                   FontSize="17"
+                                   TextAlignment="Center"
+                                   Margin="0,8,0,28" />
+
+                        <Border Background="White"
+                                BorderBrush="#E5E7EB"
+                                BorderThickness="1"
+                                CornerRadius="16"
+                                Padding="22"
+                                Margin="0,0,0,14">
+                            <StackPanel>
                                 <TextBlock Text="Usuário ou e-mail"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource ContentTextBrush}"
-                                           Margin="0,0,0,8" />
+                                           FontSize="12"
+                                           Margin="0,0,0,7" />
                                 <TextBox Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}"
                                          Style="{StaticResource InputTextBoxStyle}" />
 
                                 <TextBlock Text="Senha"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource ContentTextBrush}"
-                                           Margin="0,18,0,8" />
+                                           FontSize="12"
+                                           Margin="0,16,0,7" />
                                 <PasswordBox x:Name="LoginPasswordBox"
                                              PasswordChanged="LoginPasswordBox_OnPasswordChanged"
                                              Style="{StaticResource InputPasswordBoxStyle}" />
@@ -400,36 +332,34 @@
                                 <TextBlock Text="{Binding LoginError}"
                                            Foreground="#B91C1C"
                                            TextWrapping="Wrap"
-                                           Margin="0,14,0,0" />
+                                           Margin="0,12,0,0" />
 
                                 <Button Content="{Binding LoginButtonText}"
                                         Command="{Binding LoginCommand}"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         HorizontalAlignment="Stretch"
-                                        Margin="0,22,0,0" />
-
-                                <Border Background="#F8FAFC"
-                                        BorderBrush="#E2E8F0"
-                                        BorderThickness="1"
-                                        CornerRadius="14"
-                                        Padding="14"
-                                        Margin="0,18,0,0">
-                                    <TextBlock Text="Recuperação de senha será disponibilizada em uma próxima etapa."
-                                               Foreground="#64748B"
-                                               FontSize="12"
-                                               TextWrapping="Wrap" />
-                                </Border>
+                                        Margin="0,18,0,0" />
                             </StackPanel>
                         </Border>
 
-                        <TextBlock Grid.Row="2"
-                                   Margin="0,0,0,22"
-                                   HorizontalAlignment="Center"
-                                   Foreground="#94A3B8"
-                                   FontSize="11"
-                                   Text="Cliente nativo Windows sem navegador embutido" />
-                    </Grid>
+                        <Button Content="Recuperar acesso"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                IsEnabled="False"
+                                HorizontalAlignment="Center"
+                                BorderThickness="0"
+                                Background="Transparent"
+                                Foreground="#4B5563"
+                                Padding="10,4" />
+                    </StackPanel>
                 </Grid>
+
+                <Border Grid.Row="2" Background="#111827">
+                    <TextBlock Text="Acesso restrito à gestão. Contate o administrador em caso de necessidade."
+                               Foreground="#CBD5E1"
+                               FontSize="11"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                </Border>
             </Grid>
         </Grid>
 
