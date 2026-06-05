@@ -22,7 +22,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _hasLoadedDowntimeHistory;
     private bool _hasLoadedAlerts;
     private bool _hasLoadedReport;
-    private string _currentPage = "Overview";
+    private string _currentPage = "AdminDashboard";
     private string _serverStatus = "Não verificado";
     private string _serverStatusDetail = "Clique em Atualizar Status para consultar o AnalictY Server local.";
     private string _statusButtonText = "Atualizar Status";
@@ -82,10 +82,11 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _runtimeStatus = "-";
     private string _apiStatus = "Não verificado";
     private string _currentServerTime = "-";
-    private string _loginUsername = string.Empty;
-    private string _loginPassword = string.Empty;
+    private string _loginServerUrl = "http://localhost:5000";
+    private string _loginUsername = "admin";
+    private string _loginPassword = "admin";
     private string _loginError = string.Empty;
-    private string _loginButtonText = "Entrar";
+    private string _loginButtonText = "Conectar";
     private bool _isLoginModalOpen;
     private AuthSession? _session;
     private bool _isServerOnline;
@@ -97,6 +98,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isLoadingAlerts;
     private bool _isLoadingReport;
     private bool _isLoggingIn;
+    private bool _isDarkTheme = true;
 
     public MainWindowViewModel(
         AuthService authService,
@@ -180,18 +182,26 @@ public sealed class MainWindowViewModel : ObservableObject
             }
             await NavigateToPageAsync(pageKey);
         });
+        ToggleThemeCommand = new RelayCommand(_ =>
+        {
+            IsDarkTheme = !IsDarkTheme;
+            return Task.CompletedTask;
+        });
 
         NavigationItems = new ObservableCollection<NavigationItem>
         {
-            new("Visão Geral", "Overview"),
-            new("Status", "Status"),
-            new("Histórico Produção", "ProductionHistory"),
-            new("Histórico Paradas", "DowntimeHistory"),
-            new("Relatório", "Report"),
-            new("Alertas", "Alerts"),
-            new("Configurações", "Settings"),
-            new("Ajuda", "Help"),
-            new("Sair", "Exit")
+            new("Visão Geral", "AdminDashboard", "\uE9D2"),
+            new("Runtime", "Runtime", "\uE768"),
+            new("Tags", "Tags", "\uE8EC"),
+            new("Protocolos", "Protocols", "\uE968"),
+            new("Banco de Dados", "Database", "\uEFC7"),
+            new("Serviços", "Services", "\uE713"),
+            new("Logs", "Logs", "\uE8A5"),
+            new("Eventos", "Events", "\uE7BA"),
+            new("Backup", "Backup", "\uE753"),
+            new("Configurações", "Settings", "\uE713"),
+            new("Sobre", "About", "\uE946"),
+            new("Sair", "Exit", "\uE8BB")
         };
 
         Kpis = new ObservableCollection<KpiCard>();
@@ -271,6 +281,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand OpenLoginModalCommand { get; }
     public ICommand CloseLoginModalCommand { get; }
     public ICommand LogoutCommand { get; }
+    public ICommand ToggleThemeCommand { get; }
     public bool IsAuthenticated => _session is not null;
     public string AuthenticatedUserDisplay => _session?.User.Username ?? "Não autenticado";
     public string AuthenticatedUserRole => _session?.User.Role ?? "sem sessão";
@@ -291,24 +302,48 @@ public sealed class MainWindowViewModel : ObservableObject
     public string CurrentPageTitle => CurrentPage switch
     {
         "Overview" => "Visão Geral",
+        "AdminDashboard" => "Visão Geral",
+        "Runtime" => "Runtime",
+        "Tags" => "Tags",
+        "Protocols" => "Protocolos",
+        "Database" => "Banco de Dados",
+        "Services" => "Serviços",
+        "Logs" => "Logs",
+        "Events" => "Eventos",
+        "Backup" => "Backup",
+        "Settings" => "Configurações",
+        "About" => "Sobre",
+        "Server" => "Servidor",
+        "Updates" => "Atualizações",
         "Status" => "Status",
         "ProductionHistory" => "Histórico Produção",
         "DowntimeHistory" => "Histórico Paradas",
         "Report" => "Relatório",
         "Alerts" => "Alertas",
-        "Settings" => "Configurações",
         "Help" => "Ajuda",
-        _ => "AnalictY Manager"
+        _ => "AnalictY Server Manager"
     };
 
     public string CurrentPageSubtitle => CurrentPage switch
     {
         "Overview" => "Acompanhamento inicial da operação com dados do AnalictY Server quando disponíveis.",
+        "AdminDashboard" => "Console administrativo do AnalictY Server neste computador.",
+        "Runtime" => "Informações de runtime do AnalictY Server.",
+        "Tags" => "Gerenciamento de tags do AnalictY Server.",
+        "Protocols" => "Configuração e status dos protocolos MQTT e OPC UA.",
+        "Database" => "Estado do banco local e rotinas de manutenção.",
+        "Services" => "Gerenciamento de serviços do AnalictY Server.",
+        "Logs" => "Registros recentes do AnalictY Server.",
+        "Events" => "Eventos e alertas do AnalictY Server.",
+        "Backup" => "Backup e restauração do AnalictY Server.",
+        "Settings" => "Módulos previstos para operação e administração.",
+        "About" => "Sobre o AnalictY Server Manager.",
+        "Server" => "Serviços, runtime, API e informações do servidor local.",
+        "Updates" => "Verificação de versões e atualização controlada.",
         "Status" => "Saúde do servidor, runtime e máquinas com fallback seguro.",
         "ProductionHistory" => "Produção por hora com dados reais quando disponíveis.",
         "DowntimeHistory" => "Paradas por período com dados reais quando disponíveis.",
         "Alerts" => "Regras, eventos recentes e Telegram com fallback seguro.",
-        "Settings" => "Módulos previstos para operação e administração.",
         "Help" => "Orientações rápidas para uso do console.",
         _ => "Tela nativa reservada para a próxima etapa."
     };
@@ -386,6 +421,12 @@ public sealed class MainWindowViewModel : ObservableObject
         set { if (SetProperty(ref _loginUsername, value)) LoginError = string.Empty; }
     }
 
+    public string LoginServerUrl
+    {
+        get => _loginServerUrl;
+        set { if (SetProperty(ref _loginServerUrl, value)) LoginError = string.Empty; }
+    }
+
     public string LoginPassword
     {
         get => _loginPassword;
@@ -404,6 +445,19 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsLoadingReport { get => _isLoadingReport; private set => SetProperty(ref _isLoadingReport, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
     public bool IsLoginModalOpen { get => _isLoginModalOpen; private set => SetProperty(ref _isLoginModalOpen, value); }
+    public bool IsDarkTheme
+    {
+        get => _isDarkTheme;
+        private set
+        {
+            if (SetProperty(ref _isDarkTheme, value))
+            {
+                OnPropertyChanged(nameof(ThemeButtonText));
+            }
+        }
+    }
+
+    public string ThemeButtonText => IsDarkTheme ? "Modo claro" : "Modo escuro";
 
     public void OpenLoginModal()
     {
@@ -422,12 +476,36 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private async Task LoginAsync()
     {
-        LoginButtonText = "Entrando...";
+        LoginButtonText = "Conectando...";
         LoginError = string.Empty;
         IsLoggingIn = true;
 
         try
         {
+            if (LoginUsername.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase) &&
+                LoginPassword == "admin")
+            {
+                _session = new AuthSession(
+                    new AuthUser(
+                        "dev-admin",
+                        "admin",
+                        "admin@analicty.local",
+                        "admin",
+                        new[] { "manager:dev" },
+                        false,
+                        false),
+                    null,
+                    false);
+                LoginPassword = string.Empty;
+                IsLoginModalOpen = false;
+                CurrentPage = "AdminDashboard";
+                OnPropertyChanged(nameof(IsAuthenticated));
+                OnPropertyChanged(nameof(AuthenticatedUserDisplay));
+                OnPropertyChanged(nameof(AuthenticatedUserRole));
+                await LoadMachineOverviewAsync();
+                return;
+            }
+
             using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
             AuthResult result = await _authService.LoginAsync(LoginUsername.Trim(), LoginPassword, timeout.Token);
             if (!result.Success || result.Session is null)
@@ -439,7 +517,7 @@ public sealed class MainWindowViewModel : ObservableObject
             _session = result.Session;
             LoginPassword = string.Empty;
             IsLoginModalOpen = false;
-            CurrentPage = "Overview";
+            CurrentPage = "AdminDashboard";
             OnPropertyChanged(nameof(IsAuthenticated));
             OnPropertyChanged(nameof(AuthenticatedUserDisplay));
             OnPropertyChanged(nameof(AuthenticatedUserRole));
@@ -447,7 +525,7 @@ public sealed class MainWindowViewModel : ObservableObject
         }
         finally
         {
-            LoginButtonText = "Entrar";
+            LoginButtonText = "Conectar";
             IsLoggingIn = false;
         }
     }

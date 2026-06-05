@@ -1,0 +1,359 @@
+<UserControl x:Class="AnalictY.Manager.Views.ProtocolsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+        <LinearGradientBrush x:Key="ManagerPanelBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#17222C" Offset="0" />
+            <GradientStop Color="#101820" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="ManagerCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource ManagerPanelBrush}" />
+            <Setter Property="BorderBrush" Value="#2A3848" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,12,12" />
+        </Style>
+
+        <Style x:Key="ManagerTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#F8FAFC" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="ManagerMutedStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#AAB7C5" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style x:Key="MetricValueStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style x:Key="AdminDataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#E5EDF5" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#263445" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="RowHeaderWidth" Value="0" />
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="IsReadOnly" Value="True" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderBrush" Value="#DC2626" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#B91C1C" />
+                    <Setter Property="BorderBrush" Value="#B91C1C" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1E2A36" />
+            <Setter Property="Foreground" Value="#E5EDF5" />
+            <Setter Property="BorderBrush" Value="#334456" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#263445" />
+                    <Setter Property="BorderBrush" Value="#42556A" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#14202A" />
+            <Setter Property="Foreground" Value="#D8E2EC" />
+            <Setter Property="BorderBrush" Value="#263445" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#E5EDF5" />
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,6" />
+        </Style>
+
+        <Style x:Key="TabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1E2A36" />
+            <Setter Property="Foreground" Value="#AAB7C5" />
+            <Setter Property="BorderBrush" Value="#334456" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#263445" />
+                    <Setter Property="BorderBrush" Value="#42556A" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#DC2626" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="BorderBrush" Value="#DC2626" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,0,20">
+            <Border Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12" Padding="22,18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Protocolos de Comunicação" Style="{StaticResource ManagerTitleStyle}" />
+                        <TextBlock Text="Configuração e status dos protocolos MQTT e OPC UA" Style="{StaticResource ManagerMutedStyle}" Margin="0,6,0,0" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="MQTT" Command="{Binding SelectMqttCommand}" Style="{StaticResource TabButtonStyle}" Margin="0,0,8,0" />
+                        <Button Content="OPC UA" Command="{Binding SelectOpcUaCommand}" Style="{StaticResource TabButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- MQTT Section -->
+            <StackPanel x:Name="MqttSection" Visibility="{Binding IsMqttSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource ManagerCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Status" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding MqttStatus}" Foreground="#72D44E" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource ManagerCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Clientes" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding MqttClients}" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource ManagerCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Tópicos" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding MqttTopics}" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="3" Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Mensagens/s" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding MqttMessagesPerSecond}" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Border Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Configuração MQTT" Style="{StaticResource ManagerTitleStyle}" Margin="0,0,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Porta:" Grid.Row="0" Grid.Column="0" Style="{StaticResource ManagerMutedStyle}" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding MqttPort}" Grid.Row="0" Grid.Column="1" Style="{StaticResource ManagerMutedStyle}" Margin="10,0,0,8" />
+                            <TextBlock Text="Host:" Grid.Row="1" Grid.Column="0" Style="{StaticResource ManagerMutedStyle}" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding MqttHost}" Grid.Row="1" Grid.Column="1" Style="{StaticResource ManagerMutedStyle}" Margin="10,0,0,8" />
+                            <TextBlock Text="SSL:" Grid.Row="2" Grid.Column="0" Style="{StaticResource ManagerMutedStyle}" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding MqttSsl}" Grid.Row="2" Grid.Column="1" Style="{StaticResource ManagerMutedStyle}" Margin="10,0,0,8" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Tópicos MQTT" Style="{StaticResource ManagerTitleStyle}" Margin="0,0,0,10" />
+                        <DataGrid ItemsSource="{Binding MqttTopicsList}" Style="{StaticResource AdminDataGridStyle}" MinHeight="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Tópico" Binding="{Binding Topic}" Width="2*" />
+                                <DataGridTextColumn Header="QoS" Binding="{Binding Qos}" Width="0.5*" />
+                                <DataGridTextColumn Header="Assinantes" Binding="{Binding Subscribers}" Width="0.8*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ManagerCardStyle}" Margin="0">
+                    <StackPanel>
+                        <TextBlock Text="Clientes MQTT" Style="{StaticResource ManagerTitleStyle}" Margin="0,0,0,10" />
+                        <DataGrid ItemsSource="{Binding MqttClientsList}" Style="{StaticResource AdminDataGridStyle}" MinHeight="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID Cliente" Binding="{Binding ClientId}" Width="1.5*" />
+                                <DataGridTextColumn Header="IP" Binding="{Binding Ip}" Width="1.2*" />
+                                <DataGridTextColumn Header="Conectado" Binding="{Binding Connected}" Width="0.8*" />
+                                <DataGridTextColumn Header="Tópicos" Binding="{Binding Topics}" Width="0.8*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- OPC UA Section -->
+            <StackPanel x:Name="OpcUaSection" Visibility="{Binding IsOpcUaSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource ManagerCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Status" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding OpcUaStatus}" Foreground="#72D44E" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="1" Style="{StaticResource ManagerCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Servidores" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding OpcUaServers}" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="2" Style="{StaticResource ManagerCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Endpoints" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding OpcUaEndpoints}" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                    <Border Grid.Column="3" Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Nós" Style="{StaticResource ManagerMutedStyle}" />
+                            <TextBlock Text="{Binding OpcUaNodes}" Style="{StaticResource MetricValueStyle}" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <Border Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Configuração OPC UA" Style="{StaticResource ManagerTitleStyle}" Margin="0,0,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Porta:" Grid.Row="0" Grid.Column="0" Style="{StaticResource ManagerMutedStyle}" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding OpcUaPort}" Grid.Row="0" Grid.Column="1" Style="{StaticResource ManagerMutedStyle}" Margin="10,0,0,8" />
+                            <TextBlock Text="Security:" Grid.Row="1" Grid.Column="0" Style="{StaticResource ManagerMutedStyle}" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding OpcUaSecurity}" Grid.Row="1" Grid.Column="1" Style="{StaticResource ManagerMutedStyle}" Margin="10,0,0,8" />
+                            <TextBlock Text="Discovery:" Grid.Row="2" Grid.Column="0" Style="{StaticResource ManagerMutedStyle}" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding OpcUaDiscovery}" Grid.Row="2" Grid.Column="1" Style="{StaticResource ManagerMutedStyle}" Margin="10,0,0,8" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ManagerCardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Servidores OPC UA" Style="{StaticResource ManagerTitleStyle}" Margin="0,0,0,10" />
+                        <DataGrid ItemsSource="{Binding OpcUaServersList}" Style="{StaticResource AdminDataGridStyle}" MinHeight="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="1.5*" />
+                                <DataGridTextColumn Header="Endpoint" Binding="{Binding Endpoint}" Width="2*" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="0.8*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ManagerCardStyle}" Margin="0">
+                    <StackPanel>
+                        <TextBlock Text="Nodos OPC UA" Style="{StaticResource ManagerTitleStyle}" Margin="0,0,0,10" />
+                        <DataGrid ItemsSource="{Binding OpcUaNodesList}" Style="{StaticResource AdminDataGridStyle}" MinHeight="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="NodeId" Binding="{Binding NodeId}" Width="1.5*" />
+                                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="1.5*" />
+                                <DataGridTextColumn Header="Tipo" Binding="{Binding Type}" Width="0.8*" />
+                                <DataGridTextColumn Header="Qualidade" Binding="{Binding Quality}" Width="0.8*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
