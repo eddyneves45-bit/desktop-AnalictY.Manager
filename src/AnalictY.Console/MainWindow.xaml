@@ -7,17 +7,56 @@
         Title="AnalictY Console"
         Height="760"
         MinHeight="650"
-        Width="1220"
-        MinWidth="1080"
-        Background="#F4F6F8"
+        Width="1280"
+        MinWidth="1120"
+        Background="#F3F5F7"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <SolidColorBrush x:Key="SidebarBrush" Color="#111827" />
         <SolidColorBrush x:Key="SidebarPanelBrush" Color="#1F2937" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#F3F5F7" />
+        <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF" />
         <SolidColorBrush x:Key="ContentTextBrush" Color="#18212B" />
         <SolidColorBrush x:Key="MutedTextBrush" Color="#64707D" />
         <SolidColorBrush x:Key="BorderBrushSoft" Color="#DDE4EA" />
+        <SolidColorBrush x:Key="PrimaryRedBrush" Color="#DC2626" />
+        <SolidColorBrush x:Key="PrimaryRedDarkBrush" Color="#B91C1C" />
+        <SolidColorBrush x:Key="RunningBrush" Color="#16A34A" />
+        <SolidColorBrush x:Key="IdleBrush" Color="#F59E0B" />
+        <SolidColorBrush x:Key="MaintenanceBrush" Color="#EF4444" />
+        <SolidColorBrush x:Key="OfflineBrush" Color="#64748B" />
+
+        <LinearGradientBrush x:Key="KpiBlueBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#3B82F6" Offset="0" />
+            <GradientStop Color="#1D4ED8" Offset="1" />
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="KpiGreenBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#22C55E" Offset="0" />
+            <GradientStop Color="#15803D" Offset="1" />
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="KpiRedBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#EF4444" Offset="0" />
+            <GradientStop Color="#B91C1C" Offset="1" />
+        </LinearGradientBrush>
+
+        <LinearGradientBrush x:Key="KpiOrangeBrush" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#F59E0B" Offset="0" />
+            <GradientStop Color="#D97706" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource ContentTextBrush}" />
+        </Style>
+
+        <Style x:Key="SectionSubtitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+        </Style>
 
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
@@ -25,28 +64,62 @@
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Padding" Value="14,10" />
-            <Setter Property="Margin" Value="0,0,0,4" />
+            <Setter Property="Padding" Value="14,11" />
+            <Setter Property="Margin" Value="0,0,0,6" />
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#263244" />
+                    <Setter Property="Background" Value="#243041" />
                     <Setter Property="Foreground" Value="White" />
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#DC2626" />
+            <Setter Property="Background" Value="{StaticResource PrimaryRedBrush}" />
             <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderBrush" Value="#DC2626" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryRedBrush}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Padding" Value="18,10" />
             <Setter Property="MinWidth" Value="150" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryRedDarkBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryRedDarkBrush}" />
+                </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
                     <Setter Property="Opacity" Value="0.65" />
                     <Setter Property="Cursor" Value="Arrow" />
@@ -54,18 +127,75 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F8FAFC" />
+            <Setter Property="Foreground" Value="#475569" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EEF2F7" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="CardBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="White" />
+            <Setter Property="Background" Value="{StaticResource CardBrush}" />
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrushSoft}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="18" />
             <Setter Property="Padding" Value="18" />
             <Setter Property="Margin" Value="0,0,16,16" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <Style x:Key="SurfaceCardStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
+            <Setter Property="Background" Value="#FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.08" Color="#000000" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StatusBadgeStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="11,5" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="BorderBrush" Value="#CBD5E1" />
+            <Setter Property="Background" Value="#F8FAFC" />
+        </Style>
+
+        <Style x:Key="StatusBadgeTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextAlignment" Value="Center" />
         </Style>
 
         <Style x:Key="FilterComboStyle" TargetType="ComboBox">
-            <Setter Property="MinWidth" Value="160" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="MinWidth" Value="170" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Margin" Value="10,0,0,0" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
 
@@ -101,110 +231,205 @@
                 </Style>
             </Grid.Style>
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.05*" />
-                <ColumnDefinition Width="0.95*" />
-            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.15*" />
+                    <ColumnDefinition Width="0.85*" />
+                </Grid.ColumnDefinitions>
 
-            <Border Background="#0F172A">
-                <Grid Margin="58">
-                    <StackPanel VerticalAlignment="Center">
-                        <Border Width="58"
-                                Height="58"
-                                Background="#111827"
-                                BorderBrush="#334155"
-                                BorderThickness="1"
-                                HorizontalAlignment="Left">
-                            <TextBlock Text="iT"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Foreground="#EF4444"
-                                       FontSize="24"
-                                       FontWeight="Black" />
-                        </Border>
-                        <TextBlock Text="iioT AnalictY Console"
-                                   Foreground="White"
-                                   FontSize="34"
-                                   FontWeight="Black"
-                                   Margin="0,26,0,0" />
-                        <TextBlock Text="Cliente desktop nativo para acompanhar o AnalictY Server instalado neste Windows."
-                                   Foreground="#CBD5E1"
-                                   FontSize="16"
-                                   TextWrapping="Wrap"
-                                   Width="470"
-                                   Margin="0,14,0,0" />
-                        <Border Background="#182235"
-                                BorderBrush="#2D3A4F"
-                                BorderThickness="1"
-                                Padding="18"
-                                Width="470"
-                                HorizontalAlignment="Left"
-                                Margin="0,34,0,0">
-                            <StackPanel>
-                                <TextBlock Text="Sem navegador embutido"
-                                           Foreground="#F8FAFC"
+                <Border Background="#0B1220">
+                    <Grid Margin="58">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="50"
+                                    Height="50"
+                                    Background="#111827"
+                                    BorderBrush="#263244"
+                                    BorderThickness="1"
+                                    CornerRadius="14"
+                                    HorizontalAlignment="Left">
+                                <TextBlock Text="iT"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Foreground="#EF4444"
+                                           FontSize="22"
+                                           FontWeight="Black" />
+                            </Border>
+                            <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="iioT"
+                                           Foreground="White"
+                                           FontSize="24"
+                                           FontWeight="Black" />
+                                <TextBlock Text="AnalictY Console"
+                                           Foreground="#F87171"
+                                           FontSize="14"
                                            FontWeight="SemiBold" />
-                                <TextBlock Text="A autenticação usa a API local do AnalictY Server e mantém a sessão somente em memória."
-                                           Foreground="#94A3B8"
-                                           TextWrapping="Wrap"
-                                           Margin="0,6,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" VerticalAlignment="Center" MaxWidth="560">
+                            <TextBlock Text="iioT AnalictY Console"
+                                       Foreground="White"
+                                       FontSize="40"
+                                       FontWeight="Black" />
+                            <TextBlock Text="Acesso nativo ao AnalictY Server no Windows, com a mesma linguagem visual do web e sem navegador embutido."
+                                       Foreground="#CBD5E1"
+                                       FontSize="17"
+                                       TextWrapping="Wrap"
+                                       Margin="0,16,0,0"
+                                       Width="520" />
+
+                            <Border Background="#111827"
+                                    BorderBrush="#263244"
+                                    BorderThickness="1"
+                                    CornerRadius="18"
+                                    Padding="18"
+                                    Width="520"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,34,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Acesso local e seguro"
+                                               Foreground="White"
+                                               FontSize="15"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Use o mesmo usuário do AnalictY Server. A sessão fica apenas em memória enquanto o app estiver aberto."
+                                               Foreground="#94A3B8"
+                                               TextWrapping="Wrap"
+                                               Margin="0,8,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <UniformGrid Columns="3" Margin="0,28,0,0" Width="520">
+                                <Border Background="#111827" BorderBrush="#243041" BorderThickness="1" CornerRadius="16" Padding="14" Margin="0,0,12,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Sem WebView" Foreground="#F8FAFC" FontWeight="SemiBold" />
+                                        <TextBlock Text="Interface nativa do Windows" Foreground="#94A3B8" FontSize="12" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#111827" BorderBrush="#243041" BorderThickness="1" CornerRadius="16" Padding="14" Margin="0,0,12,0">
+                                    <StackPanel>
+                                        <TextBlock Text="Ligado ao servidor" Foreground="#F8FAFC" FontWeight="SemiBold" />
+                                        <TextBlock Text="Status e visões reais" Foreground="#94A3B8" FontSize="12" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Background="#111827" BorderBrush="#243041" BorderThickness="1" CornerRadius="16" Padding="14">
+                                    <StackPanel>
+                                        <TextBlock Text="Sessão em memória" Foreground="#F8FAFC" FontWeight="SemiBold" />
+                                        <TextBlock Text="Sem salvar senha" Foreground="#94A3B8" FontSize="12" Margin="0,4,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <TextBlock Text="Acesso restrito à gestão. Contate o administrador em caso de necessidade."
+                                       Foreground="#94A3B8"
+                                       FontSize="12" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Column="1" Background="#F3F5F7">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Border Margin="32,24,32,0"
+                                Background="White"
+                                BorderBrush="{StaticResource BorderBrushSoft}"
+                                BorderThickness="1"
+                                CornerRadius="18"
+                                Padding="22"
+                                HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="12" Height="12" CornerRadius="6" Background="#16A34A" Margin="0,0,10,0" />
+                                <StackPanel>
+                                    <TextBlock Text="AnalictY Server"
+                                               Foreground="{StaticResource ContentTextBrush}"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="Cliente desktop nativo"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               FontSize="12" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
-                    </StackPanel>
-                </Grid>
-            </Border>
 
-            <Grid Grid.Column="1" Background="#F4F6F8">
-                <Border Width="420"
-                        Background="White"
-                        BorderBrush="{StaticResource BorderBrushSoft}"
-                        BorderThickness="1"
-                        Padding="34"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center">
-                    <StackPanel>
-                        <TextBlock Text="Entrar"
-                                   FontSize="28"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource ContentTextBrush}" />
-                        <TextBlock Text="Use o mesmo acesso do AnalictY Server."
-                                   FontSize="14"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   Margin="0,8,0,28" />
+                        <Border Grid.Row="1"
+                                Width="440"
+                                Background="White"
+                                BorderBrush="{StaticResource BorderBrushSoft}"
+                                BorderThickness="1"
+                                CornerRadius="22"
+                                Padding="34"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Effect="{DynamicResource {x:Static SystemParameters.DropShadowKey}}">
+                            <StackPanel>
+                                <TextBlock Text="Entrar"
+                                           FontSize="30"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource ContentTextBrush}" />
+                                <TextBlock Text="Use o mesmo acesso do AnalictY Server."
+                                           FontSize="14"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           Margin="0,8,0,28" />
 
-                        <TextBlock Text="Usuário ou e-mail"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource ContentTextBrush}"
-                                   Margin="0,0,0,8" />
-                        <TextBox Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}"
-                                 Style="{StaticResource InputTextBoxStyle}" />
+                                <TextBlock Text="Usuário ou e-mail"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource ContentTextBrush}"
+                                           Margin="0,0,0,8" />
+                                <TextBox Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputTextBoxStyle}" />
 
-                        <TextBlock Text="Senha"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource ContentTextBrush}"
-                                   Margin="0,18,0,8" />
-                        <PasswordBox x:Name="LoginPasswordBox"
-                                     PasswordChanged="LoginPasswordBox_OnPasswordChanged"
-                                     Style="{StaticResource InputPasswordBoxStyle}" />
+                                <TextBlock Text="Senha"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource ContentTextBrush}"
+                                           Margin="0,18,0,8" />
+                                <PasswordBox x:Name="LoginPasswordBox"
+                                             PasswordChanged="LoginPasswordBox_OnPasswordChanged"
+                                             Style="{StaticResource InputPasswordBoxStyle}" />
 
-                        <TextBlock Text="{Binding LoginError}"
-                                   Foreground="#B91C1C"
-                                   TextWrapping="Wrap"
-                                   Margin="0,14,0,0" />
+                                <TextBlock Text="{Binding LoginError}"
+                                           Foreground="#B91C1C"
+                                           TextWrapping="Wrap"
+                                           Margin="0,14,0,0" />
 
-                        <Button Content="{Binding LoginButtonText}"
-                                Command="{Binding LoginCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                HorizontalAlignment="Stretch"
-                                Margin="0,22,0,0" />
+                                <Button Content="{Binding LoginButtonText}"
+                                        Command="{Binding LoginCommand}"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        HorizontalAlignment="Stretch"
+                                        Margin="0,22,0,0" />
 
-                        <TextBlock Text="Recuperação de senha será disponibilizada em uma próxima etapa."
+                                <Border Background="#F8FAFC"
+                                        BorderBrush="#E2E8F0"
+                                        BorderThickness="1"
+                                        CornerRadius="14"
+                                        Padding="14"
+                                        Margin="0,18,0,0">
+                                    <TextBlock Text="Recuperação de senha será disponibilizada em uma próxima etapa."
+                                               Foreground="#64748B"
+                                               FontSize="12"
+                                               TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Grid.Row="2"
+                                   Margin="0,0,0,22"
+                                   HorizontalAlignment="Center"
                                    Foreground="#94A3B8"
-                                   FontSize="12"
-                                   TextWrapping="Wrap"
-                                   Margin="0,18,0,0" />
-                    </StackPanel>
-                </Border>
+                                   FontSize="11"
+                                   Text="Cliente nativo Windows sem navegador embutido" />
+                    </Grid>
+                </Grid>
             </Grid>
         </Grid>
 
@@ -384,7 +609,7 @@
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <Grid Margin="30">
-                        <Grid x:Name="OverviewPage">
+                                                <Grid x:Name="OverviewPage">
                             <Grid.Style>
                                 <Style TargetType="Grid">
                                     <Setter Property="Visibility" Value="Collapsed" />
@@ -396,32 +621,36 @@
                                 </Style>
                             </Grid.Style>
                             <StackPanel>
-                                <Grid Margin="0,0,0,18">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="Resumo operacional"
-                                                   FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{StaticResource ContentTextBrush}" />
-                                        <TextBlock Text="{Binding OverviewDataMessage}"
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Margin="0,4,0,0" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <ComboBox ItemsSource="{Binding ShiftFilters}"
-                                                  SelectedItem="{Binding SelectedShift}"
-                                                  Style="{StaticResource FilterComboStyle}" />
-                                        <ComboBox ItemsSource="{Binding LineFilters}"
-                                                  SelectedItem="{Binding SelectedLine}"
-                                                  Style="{StaticResource FilterComboStyle}" />
-                                    </StackPanel>
-                                </Grid>
+                                <Border Style="{StaticResource SurfaceCardStyle}" Margin="0,0,0,18" Padding="18,16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Resumo operacional"
+                                                       Style="{StaticResource SectionTitleStyle}" />
+                                            <TextBlock Text="{Binding OverviewDataMessage}"
+                                                       Style="{StaticResource SectionSubtitleStyle}"
+                                                       Margin="0,6,0,0" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <ComboBox ItemsSource="{Binding ShiftFilters}"
+                                                      SelectedItem="{Binding SelectedShift}"
+                                                      Style="{StaticResource FilterComboStyle}" />
+                                            <ComboBox ItemsSource="{Binding LineFilters}"
+                                                      SelectedItem="{Binding SelectedLine}"
+                                                      Style="{StaticResource FilterComboStyle}" />
+                                            <Button Content="Atualizar"
+                                                    Command="{Binding NavigateCommand}"
+                                                    CommandParameter="Overview"
+                                                    Style="{StaticResource PrimaryButtonStyle}"
+                                                    Margin="14,0,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
 
-                                <ItemsControl ItemsSource="{Binding Kpis}">
+                                <ItemsControl ItemsSource="{Binding Kpis}" Margin="0,0,0,8">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <UniformGrid Columns="4" />
@@ -429,10 +658,16 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Style="{StaticResource CardBorderStyle}"
-                                                    Background="{Binding AccentBrush}"
-                                                    BorderThickness="0"
-                                                    Padding="20">
+                                            <Border CornerRadius="18"
+                                                    Margin="0,0,16,16"
+                                                    Padding="18"
+                                                    BorderThickness="0">
+                                                <Border.Background>
+                                                    <Binding Path="AccentBrush" />
+                                                </Border.Background>
+                                                <Border.Effect>
+                                                    <DropShadowEffect BlurRadius="16" ShadowDepth="2" Opacity="0.12" Color="#000000" />
+                                                </Border.Effect>
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -440,31 +675,51 @@
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
                                                     <TextBlock Text="{Binding Title}"
-                                                               FontSize="14"
+                                                               FontSize="13"
                                                                FontWeight="SemiBold"
-                                                               Foreground="#F8FAFC" />
+                                                               Foreground="#EAF2FF" />
                                                     <TextBlock Grid.Row="1"
                                                                Text="{Binding Value}"
-                                                               FontSize="38"
-                                                               FontWeight="Bold"
+                                                               FontSize="36"
+                                                               FontWeight="Black"
                                                                Foreground="White"
-                                                               Margin="0,12,0,0" />
+                                                               Margin="0,10,0,0" />
                                                     <TextBlock Grid.Row="2"
                                                                Text="{Binding Detail}"
                                                                FontSize="12"
-                                                               Foreground="#E5E7EB"
-                                                               Margin="0,2,0,0" />
+                                                               Foreground="#ECFDF5"
+                                                               Margin="0,4,0,0"
+                                                               TextWrapping="Wrap" />
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <TextBlock Text="Máquinas"
-                                           FontSize="18"
-                                           FontWeight="SemiBold"
-                                           Foreground="{StaticResource ContentTextBrush}"
-                                           Margin="0,8,0,14" />
+                                <Border Style="{StaticResource SurfaceCardStyle}" Margin="0,0,0,18" Padding="18,16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Máquinas em destaque"
+                                                       Style="{StaticResource SectionTitleStyle}" />
+                                            <TextBlock Text="Acompanhe o estado das máquinas carregadas do AnalictY Server com um visual próximo ao web."
+                                                       Style="{StaticResource SectionSubtitleStyle}"
+                                                       Margin="0,6,0,0" />
+                                        </StackPanel>
+                                        <Border Grid.Column="1"
+                                                Style="{StaticResource StatusBadgeStyle}"
+                                                Background="#FFF1F2"
+                                                BorderBrush="#FECACA"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="Visão Geral"
+                                                       Style="{StaticResource StatusBadgeTextStyle}"
+                                                       Foreground="#B91C1C" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
 
                                 <ItemsControl ItemsSource="{Binding Machines}">
                                     <ItemsControl.ItemsPanel>
@@ -474,44 +729,85 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Width="286" Style="{StaticResource CardBorderStyle}">
+                                            <Border Width="300"
+                                                    Style="{StaticResource SurfaceCardStyle}"
+                                                    Margin="0,0,16,16"
+                                                    Padding="18">
                                                 <StackPanel>
+                                                    <Border Style="{StaticResource StatusBadgeStyle}"
+                                                                Background="{Binding StatusBackground}"
+                                                            BorderBrush="{Binding StatusBackground}"
+                                                            Margin="0,0,0,12">
+                                                        <TextBlock Text="{Binding Status}"
+                                                                   Style="{StaticResource StatusBadgeTextStyle}"
+                                                                   Foreground="{Binding StatusBrush}" />
+                                                    </Border>
+
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontSize="18"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{StaticResource ContentTextBrush}"
+                                                               TextWrapping="Wrap"
+                                                               MaxHeight="48"
+                                                               Margin="0,0,0,4" />
+                                                    <TextBlock Text="{Binding Area}"
+                                                               Style="{StaticResource SectionSubtitleStyle}"
+                                                               Margin="0,0,0,14"
+                                                               TextTrimming="CharacterEllipsis" />
+
+                                                    <Border Background="#F8FAFC"
+                                                            BorderBrush="#E2E8F0"
+                                                            BorderThickness="1"
+                                                            CornerRadius="14"
+                                                            Padding="12"
+                                                            Margin="0,0,0,12">
+                                                        <StackPanel>
+                                                            <TextBlock Text="Ordem atual"
+                                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                                       FontSize="11" />
+                                                            <TextBlock Text="{Binding CurrentOrder}"
+                                                                       Foreground="{StaticResource ContentTextBrush}"
+                                                                       FontSize="14"
+                                                                       FontWeight="SemiBold"
+                                                                       TextWrapping="Wrap"
+                                                                       Margin="0,4,0,0" />
+                                                        </StackPanel>
+                                                    </Border>
+
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="{Binding Name}"
-                                                                   FontSize="18"
-                                                                   FontWeight="SemiBold"
-                                                                   Foreground="{StaticResource ContentTextBrush}" />
-                                                        <Border Grid.Column="1"
-                                                                Background="{Binding StatusBackground}"
-                                                                Padding="8,4">
-                                                            <TextBlock Text="{Binding Status}"
-                                                                       Foreground="{Binding StatusBrush}"
-                                                                       FontSize="11"
-                                                                       FontWeight="SemiBold" />
-                                                        </Border>
+                                                        <StackPanel>
+                                                            <TextBlock Text="Eficiência"
+                                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                                       FontSize="11" />
+                                                            <TextBlock Text="{Binding Efficiency}"
+                                                                       Foreground="{StaticResource ContentTextBrush}"
+                                                                       FontSize="15"
+                                                                       FontWeight="SemiBold"
+                                                                       Margin="0,4,0,0" />
+                                                        </StackPanel>
+                                                        <StackPanel Grid.Column="1">
+                                                            <TextBlock Text="Linha"
+                                                                       Foreground="{StaticResource MutedTextBrush}"
+                                                                       FontSize="11" />
+                                                            <TextBlock Text="{Binding Area}"
+                                                                       Foreground="{StaticResource ContentTextBrush}"
+                                                                       FontSize="15"
+                                                                       FontWeight="SemiBold"
+                                                                       Margin="0,4,0,0"
+                                                                       TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
                                                     </Grid>
-                                                    <TextBlock Text="{Binding Area}"
-                                                               Foreground="{StaticResource MutedTextBrush}"
-                                                               Margin="0,8,0,14" />
-                                                    <TextBlock Text="{Binding CurrentOrder}"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="{StaticResource ContentTextBrush}" />
-                                                    <TextBlock Text="{Binding Efficiency, StringFormat='Eficiência: {0}'}"
-                                                               Foreground="{StaticResource MutedTextBrush}"
-                                                               Margin="0,6,0,0" />
                                                 </StackPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid x:Name="ProductionHistoryPage">
+                            </StackPanel>
+                        </Grid><Grid x:Name="ProductionHistoryPage">
                         <Grid.Style>
                             <Style TargetType="Grid">
                                 <Setter Property="Visibility" Value="Collapsed" />
@@ -1550,3 +1846,4 @@
         </Grid>
     </Grid>
 </Window>
+
