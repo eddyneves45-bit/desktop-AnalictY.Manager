@@ -6,6 +6,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>AnalictY.Console</AssemblyName>
+    <RootNamespace>AnalictY.Console</RootNamespace>
+    <AssemblyTitle>AnalictY Console</AssemblyTitle>
+    <Product>AnalictY Console</Product>
+    <Company>iioT AnalictY</Company>
+    <Authors>Eddy A R Neves</Authors>
+    <Version>0.1.0</Version>
+    <FileVersion>0.1.0.0</FileVersion>
+    <InformationalVersion>0.1.0</InformationalVersion>
+    <ApplicationIcon>..\..\assets\analicty.ico</ApplicationIcon>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
   </PropertyGroup>
 
 </Project>

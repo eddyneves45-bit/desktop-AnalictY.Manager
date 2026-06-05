@@ -52,6 +52,7 @@ Requisitos:
 
 - Windows.
 - .NET SDK 8 instalado.
+- Para executar a pasta publicada em outro computador: .NET Desktop Runtime 8 instalado.
 
 Restaurar e compilar:
 
@@ -63,6 +64,28 @@ Executar o cliente desktop:
 
 ```powershell
 dotnet run --project src/AnalictY.Console/AnalictY.Console.csproj
+```
+
+## Publicacao Desktop
+
+Para gerar uma versao testavel em pasta local:
+
+```powershell
+.\scripts\publish-console.ps1
+```
+
+O executavel publicado fica em:
+
+```text
+release\desktop-console\AnalictY.Console.exe
+```
+
+A publicacao atual e dependente do runtime do .NET para manter o pacote pequeno. Instalador completo e pacote auto-contido ficam para uma etapa separada.
+
+O executavel usa o icone oficial em:
+
+```text
+assets\analicty.ico
 ```
 
 O botao `Verificar servidor` consulta:
