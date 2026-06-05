@@ -26,7 +26,8 @@ public partial class MainWindow : Window
             new AuthService(apiClient, cookieContainer),
             machineOverviewService,
             new StatusOverviewService(apiClient, machineOverviewService),
-            new ProductionHistoryService(apiClient));
+            new ProductionHistoryService(apiClient),
+            new DowntimeHistoryService(apiClient));
         viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
         DataContext = viewModel;
     }

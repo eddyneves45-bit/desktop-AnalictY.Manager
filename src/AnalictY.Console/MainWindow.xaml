@@ -660,6 +660,156 @@
                         </StackPanel>
                     </Grid>
 
+                    <Grid x:Name="DowntimeHistoryPage">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentPage}" Value="DowntimeHistory">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+
+                        <StackPanel>
+                            <Grid Margin="0,0,0,18">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Histórico de Paradas"
+                                               FontSize="22"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ContentTextBrush}" />
+                                    <TextBlock Text="{Binding DowntimeHistoryMessage}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource MutedTextBrush}"
+                                               Margin="0,4,0,0" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        Content="{Binding DowntimeHistoryButtonText}"
+                                        Command="{Binding RefreshDowntimeHistoryCommand}"
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource PrimaryButtonStyle}" />
+                            </Grid>
+
+                            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="1.1*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Margin="0,0,16,0">
+                                        <TextBlock Text="Máquina"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,8" />
+                                        <ComboBox ItemsSource="{Binding DowntimeMachines}"
+                                                  SelectedValue="{Binding SelectedDowntimeMachineId}"
+                                                  SelectedValuePath="Id"
+                                                  DisplayMemberPath="DisplayName"
+                                                  Height="36"
+                                                  VerticalContentAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Margin="0,0,16,0">
+                                        <TextBlock Text="Período"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,8" />
+                                        <ComboBox ItemsSource="{Binding DowntimePeriodOptions}"
+                                                  SelectedItem="{Binding SelectedDowntimePeriod}"
+                                                  Height="36"
+                                                  VerticalContentAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                                        <TextBlock Text="Consulta"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{StaticResource ContentTextBrush}"
+                                                   Margin="0,0,0,8" />
+                                        <Button Content="{Binding DowntimeHistoryButtonText}"
+                                                Command="{Binding RefreshDowntimeHistoryCommand}"
+                                                Style="{StaticResource PrimaryButtonStyle}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <UniformGrid Columns="4">
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#2563EB"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Total de paradas" Foreground="#EFF6FF" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding DowntimeTotalStopsText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
+                                        <TextBlock Text="Eventos encontrados" Foreground="#DBEAFE" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#DC2626"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Tempo parado" Foreground="#FEE2E2" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding DowntimeTotalDuration}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
+                                        <TextBlock Text="Soma das durações" Foreground="#FEE2E2" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#059669"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Principal motivo" Foreground="#D1FAE5" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding DowntimeMainReason}" Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,12,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Text="Motivo mais recorrente" Foreground="#D1FAE5" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorderStyle}"
+                                        Background="#334155"
+                                        BorderThickness="0"
+                                        Padding="18">
+                                    <StackPanel>
+                                        <TextBlock Text="Período" Foreground="#E2E8F0" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding DowntimePeriodLabel}" Foreground="White" FontSize="25" FontWeight="Bold" Margin="0,12,0,0" />
+                                        <TextBlock Text="Filtro selecionado" Foreground="#CBD5E1" FontSize="12" />
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+
+                            <Border Style="{StaticResource CardBorderStyle}" Margin="0">
+                                <StackPanel>
+                                    <TextBlock Text="Eventos de parada"
+                                               FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Foreground="{StaticResource ContentTextBrush}"
+                                               Margin="0,0,0,14" />
+                                    <DataGrid ItemsSource="{Binding DowntimeHistoryRows}"
+                                              AutoGenerateColumns="False"
+                                              CanUserAddRows="False"
+                                              IsReadOnly="True"
+                                              HeadersVisibility="Column"
+                                              GridLinesVisibility="Horizontal"
+                                              RowHeaderWidth="0"
+                                              MinHeight="260">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Início" Binding="{Binding Start}" Width="*" />
+                                            <DataGridTextColumn Header="Fim" Binding="{Binding End}" Width="*" />
+                                            <DataGridTextColumn Header="Motivo" Binding="{Binding Reason}" Width="1.4*" />
+                                            <DataGridTextColumn Header="Categoria" Binding="{Binding Category}" Width="*" />
+                                            <DataGridTextColumn Header="Duração" Binding="{Binding Duration}" Width="*" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
                     <Grid x:Name="StatusPage">
                         <Grid.Style>
                             <Style TargetType="Grid">
@@ -986,12 +1136,9 @@
                                 <Style TargetType="Grid">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentPage}" Value="DowntimeHistory">
+                                    <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
                                         <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
-                                        <DataTrigger Binding="{Binding CurrentPage}" Value="Report">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding CurrentPage}" Value="Alerts">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>

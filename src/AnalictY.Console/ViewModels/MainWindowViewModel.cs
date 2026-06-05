@@ -13,9 +13,11 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly MachineOverviewService _machineOverviewService;
     private readonly StatusOverviewService _statusOverviewService;
     private readonly ProductionHistoryService _productionHistoryService;
+    private readonly DowntimeHistoryService _downtimeHistoryService;
     private bool _hasLoadedOverview;
     private bool _hasLoadedStatus;
     private bool _hasLoadedProductionHistory;
+    private bool _hasLoadedDowntimeHistory;
     private string _currentPage = "Overview";
     private string _serverStatus = "Não verificado";
     private string _serverStatusDetail = "Clique em Atualizar Status para consultar o AnalictY Server local.";
@@ -34,6 +36,14 @@ public sealed class MainWindowViewModel : ObservableObject
     private double _productionTotalProduced;
     private double _productionTotalLost;
     private double _productionTotalGood;
+    private string _downtimeHistoryMessage = "Histórico ainda não carregado.";
+    private string _selectedDowntimeMachineId = string.Empty;
+    private string _selectedDowntimePeriod = "Hoje";
+    private string _downtimeHistoryButtonText = "Atualizar";
+    private string _downtimePeriodLabel = "Hoje";
+    private int _downtimeTotalStops;
+    private string _downtimeTotalDuration = "0s";
+    private string _downtimeMainReason = "-";
     private string _systemVersion = "-";
     private string _systemChannel = "-";
     private string _systemSource = "-";
@@ -52,24 +62,28 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _isLoadingMachines;
     private bool _isLoadingStatus;
     private bool _isLoadingProductionHistory;
+    private bool _isLoadingDowntimeHistory;
     private bool _isLoggingIn;
 
     public MainWindowViewModel(
         AuthService authService,
         MachineOverviewService machineOverviewService,
         StatusOverviewService statusOverviewService,
-        ProductionHistoryService productionHistoryService)
+        ProductionHistoryService productionHistoryService,
+        DowntimeHistoryService downtimeHistoryService)
     {
         _authService = authService;
         _machineOverviewService = machineOverviewService;
         _statusOverviewService = statusOverviewService;
         _productionHistoryService = productionHistoryService;
+        _downtimeHistoryService = downtimeHistoryService;
 
         LoginCommand = new RelayCommand(LoginAsync);
         LogoutCommand = new RelayCommand(LogoutAsync);
         CheckServerCommand = new RelayCommand(RefreshStatusAsync);
         RefreshStatusCommand = new RelayCommand(RefreshStatusAsync);
         RefreshProductionHistoryCommand = new RelayCommand(RefreshProductionHistoryAsync);
+        RefreshDowntimeHistoryCommand = new RelayCommand(RefreshDowntimeHistoryAsync);
         NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is not string pageKey)
@@ -96,6 +110,10 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 await EnsureProductionHistoryAsync();
             }
+            else if (pageKey == "DowntimeHistory")
+            {
+                await EnsureDowntimeHistoryAsync();
+            }
         });
 
         NavigationItems = new ObservableCollection<NavigationItem>
@@ -118,6 +136,9 @@ public sealed class MainWindowViewModel : ObservableObject
         ProductionMachines = new ObservableCollection<ProductionMachineOption>();
         ProductionPeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
         ProductionHistoryRows = new ObservableCollection<ProductionHistoryRow>();
+        DowntimeMachines = new ObservableCollection<DowntimeMachineOption>();
+        DowntimePeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
+        DowntimeHistoryRows = new ObservableCollection<DowntimeHistoryRow>();
         ModuleCards = CreateModuleCards();
         HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
@@ -136,6 +157,9 @@ public sealed class MainWindowViewModel : ObservableObject
     public ObservableCollection<ProductionMachineOption> ProductionMachines { get; }
     public ObservableCollection<string> ProductionPeriodOptions { get; }
     public ObservableCollection<ProductionHistoryRow> ProductionHistoryRows { get; }
+    public ObservableCollection<DowntimeMachineOption> DowntimeMachines { get; }
+    public ObservableCollection<string> DowntimePeriodOptions { get; }
+    public ObservableCollection<DowntimeHistoryRow> DowntimeHistoryRows { get; }
     public ObservableCollection<ModuleCard> ModuleCards { get; }
     public ObservableCollection<HelpTopic> HelpTopics { get; }
     public ObservableCollection<string> ShiftFilters { get; }
@@ -144,6 +168,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand CheckServerCommand { get; }
     public ICommand RefreshStatusCommand { get; }
     public ICommand RefreshProductionHistoryCommand { get; }
+    public ICommand RefreshDowntimeHistoryCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LogoutCommand { get; }
     public bool IsAuthenticated => _session is not null;
@@ -181,6 +206,7 @@ public sealed class MainWindowViewModel : ObservableObject
         "Overview" => "Acompanhamento inicial da operação com dados do AnalictY Server quando disponíveis.",
         "Status" => "Saúde do servidor, runtime e máquinas com fallback seguro.",
         "ProductionHistory" => "Produção por hora com dados reais quando disponíveis.",
+        "DowntimeHistory" => "Paradas por período com dados reais quando disponíveis.",
         "Settings" => "Módulos previstos para operação e administração.",
         "Help" => "Orientações rápidas para uso do console.",
         _ => "Tela nativa reservada para a próxima etapa."
@@ -215,6 +241,15 @@ public sealed class MainWindowViewModel : ObservableObject
     public double ProductionTotalProduced { get => _productionTotalProduced; private set { if (SetProperty(ref _productionTotalProduced, value)) OnPropertyChanged(nameof(ProductionTotalProducedText)); } }
     public double ProductionTotalLost { get => _productionTotalLost; private set { if (SetProperty(ref _productionTotalLost, value)) OnPropertyChanged(nameof(ProductionTotalLostText)); } }
     public double ProductionTotalGood { get => _productionTotalGood; private set { if (SetProperty(ref _productionTotalGood, value)) OnPropertyChanged(nameof(ProductionTotalGoodText)); } }
+    public string DowntimeHistoryMessage { get => _downtimeHistoryMessage; private set => SetProperty(ref _downtimeHistoryMessage, value); }
+    public string SelectedDowntimeMachineId { get => _selectedDowntimeMachineId; set => SetProperty(ref _selectedDowntimeMachineId, value); }
+    public string SelectedDowntimePeriod { get => _selectedDowntimePeriod; set => SetProperty(ref _selectedDowntimePeriod, value); }
+    public string DowntimeHistoryButtonText { get => _downtimeHistoryButtonText; private set => SetProperty(ref _downtimeHistoryButtonText, value); }
+    public string DowntimePeriodLabel { get => _downtimePeriodLabel; private set => SetProperty(ref _downtimePeriodLabel, value); }
+    public int DowntimeTotalStops { get => _downtimeTotalStops; private set { if (SetProperty(ref _downtimeTotalStops, value)) OnPropertyChanged(nameof(DowntimeTotalStopsText)); } }
+    public string DowntimeTotalStopsText => DowntimeTotalStops.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
+    public string DowntimeTotalDuration { get => _downtimeTotalDuration; private set => SetProperty(ref _downtimeTotalDuration, value); }
+    public string DowntimeMainReason { get => _downtimeMainReason; private set => SetProperty(ref _downtimeMainReason, value); }
 
     public string LoginUsername
     {
@@ -235,6 +270,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public bool IsLoadingMachines { get => _isLoadingMachines; private set => SetProperty(ref _isLoadingMachines, value); }
     public bool IsLoadingStatus { get => _isLoadingStatus; private set => SetProperty(ref _isLoadingStatus, value); }
     public bool IsLoadingProductionHistory { get => _isLoadingProductionHistory; private set => SetProperty(ref _isLoadingProductionHistory, value); }
+    public bool IsLoadingDowntimeHistory { get => _isLoadingDowntimeHistory; private set => SetProperty(ref _isLoadingDowntimeHistory, value); }
     public bool IsLoggingIn { get => _isLoggingIn; private set => SetProperty(ref _isLoggingIn, value); }
 
     private async Task LoginAsync()
@@ -276,11 +312,13 @@ public sealed class MainWindowViewModel : ObservableObject
         _hasLoadedOverview = false;
         _hasLoadedStatus = false;
         _hasLoadedProductionHistory = false;
+        _hasLoadedDowntimeHistory = false;
         LoginPassword = string.Empty;
         LoginError = string.Empty;
         OverviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";
         StatusDataMessage = "Status ainda não atualizado.";
         ProductionHistoryMessage = "Histórico ainda não carregado.";
+        DowntimeHistoryMessage = "Histórico ainda não carregado.";
         ApplyMachines(MachineOverviewService.CreateFallbackMachines());
         ApplyStatusMachines(MachineOverviewService.CreateFallbackMachines());
         UpdateStatusMetrics();
@@ -317,6 +355,14 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private async Task EnsureDowntimeHistoryAsync()
+    {
+        if (!_hasLoadedDowntimeHistory)
+        {
+            await RefreshDowntimeHistoryAsync();
+        }
+    }
+
     private async Task RefreshProductionHistoryAsync()
     {
         if (IsLoadingProductionHistory) return;
@@ -347,6 +393,38 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             ProductionHistoryButtonText = "Atualizar";
             IsLoadingProductionHistory = false;
+        }
+    }
+
+    private async Task RefreshDowntimeHistoryAsync()
+    {
+        if (IsLoadingDowntimeHistory) return;
+
+        DowntimeHistoryButtonText = "Atualizando...";
+        DowntimeHistoryMessage = "Consultando histórico de paradas...";
+        IsLoadingDowntimeHistory = true;
+
+        try
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
+            DowntimeHistoryResult result = await _downtimeHistoryService.LoadAsync(
+                SelectedDowntimeMachineId,
+                SelectedDowntimePeriod,
+                timeout.Token);
+
+            ApplyDowntimeMachines(result.Machines, result.SelectedMachineId);
+            ApplyDowntimeRows(result.Rows);
+            DowntimePeriodLabel = result.PeriodLabel;
+            DowntimeTotalStops = result.TotalStops;
+            DowntimeTotalDuration = result.TotalDowntime;
+            DowntimeMainReason = result.MainReason;
+            DowntimeHistoryMessage = result.Message;
+            _hasLoadedDowntimeHistory = true;
+        }
+        finally
+        {
+            DowntimeHistoryButtonText = "Atualizar";
+            IsLoadingDowntimeHistory = false;
         }
     }
 
@@ -412,6 +490,19 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         ProductionHistoryRows.Clear();
         foreach (ProductionHistoryRow row in rows) ProductionHistoryRows.Add(row);
+    }
+
+    private void ApplyDowntimeMachines(IReadOnlyList<DowntimeMachineOption> machines, string selectedMachineId)
+    {
+        DowntimeMachines.Clear();
+        foreach (DowntimeMachineOption machine in machines) DowntimeMachines.Add(machine);
+        SelectedDowntimeMachineId = selectedMachineId;
+    }
+
+    private void ApplyDowntimeRows(IReadOnlyList<DowntimeHistoryRow> rows)
+    {
+        DowntimeHistoryRows.Clear();
+        foreach (DowntimeHistoryRow row in rows) DowntimeHistoryRows.Add(row);
     }
 
     private void UpdateKpis(IReadOnlyList<MachineCard> machines)
