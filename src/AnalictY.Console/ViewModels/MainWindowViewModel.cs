@@ -63,6 +63,12 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _selectedReportMachineLabel = "Aguardando seleção";
     private string _selectedReportPeriodLabel = "Hoje";
     private string _reportStatusLabel = "-";
+    private string _selectedModuleTitle = "Sistema";
+    private string _selectedModuleDescription = "Visão geral dos módulos de configuração e manutenção disponíveis no console.";
+    private string _selectedModuleState = "Em breve";
+    private string _selectedModuleAction = "Ver detalhes";
+    private string _selectedModulePageKey = string.Empty;
+    private bool _selectedModuleCanOpen;
     private string _systemVersion = "-";
     private string _systemChannel = "-";
     private string _systemSource = "-";
@@ -111,6 +117,27 @@ public sealed class MainWindowViewModel : ObservableObject
         RefreshDowntimeHistoryCommand = new RelayCommand(RefreshDowntimeHistoryAsync);
         RefreshAlertsCommand = new RelayCommand(RefreshAlertsAsync);
         RefreshReportCommand = new RelayCommand(RefreshReportAsync);
+        SelectModuleCommand = new RelayCommand(parameter =>
+        {
+            if (parameter is ModuleCard module)
+            {
+                SelectedModuleTitle = module.Title;
+                SelectedModuleDescription = module.Description;
+                SelectedModuleState = module.State;
+                SelectedModulePageKey = module.PageKey;
+                SelectedModuleCanOpen = !string.IsNullOrWhiteSpace(module.PageKey);
+                SelectedModuleAction = SelectedModuleCanOpen ? "Abrir módulo" : "Planejado";
+            }
+
+            return Task.CompletedTask;
+        });
+        OpenSelectedModuleCommand = new RelayCommand(async _ =>
+        {
+            if (!string.IsNullOrWhiteSpace(SelectedModulePageKey))
+            {
+                await NavigateToPageAsync(SelectedModulePageKey);
+            }
+        });
         NavigateCommand = new RelayCommand(async parameter =>
         {
             if (parameter is not string pageKey)
@@ -118,37 +145,7 @@ public sealed class MainWindowViewModel : ObservableObject
                 return;
             }
 
-            if (pageKey == "Exit")
-            {
-                await LogoutAsync();
-                return;
-            }
-
-            CurrentPage = pageKey;
-            if (pageKey == "Overview")
-            {
-                await LoadMachineOverviewAsync();
-            }
-            else if (pageKey == "Status")
-            {
-                await RefreshStatusAsync();
-            }
-            else if (pageKey == "ProductionHistory")
-            {
-                await EnsureProductionHistoryAsync();
-            }
-            else if (pageKey == "DowntimeHistory")
-            {
-                await EnsureDowntimeHistoryAsync();
-            }
-            else if (pageKey == "Alerts")
-            {
-                await EnsureAlertsAsync();
-            }
-            else if (pageKey == "Report")
-            {
-                await EnsureReportAsync();
-            }
+            await NavigateToPageAsync(pageKey);
         });
 
         NavigationItems = new ObservableCollection<NavigationItem>
@@ -180,6 +177,15 @@ public sealed class MainWindowViewModel : ObservableObject
         ReportPeriodOptions = new ObservableCollection<string> { "Hoje", "Última hora", "Mês atual" };
         ReportRows = new ObservableCollection<ReportPreviewRow>();
         ModuleCards = CreateModuleCards();
+        if (ModuleCards.Count > 0)
+        {
+            SelectedModuleTitle = ModuleCards[0].Title;
+            SelectedModuleDescription = ModuleCards[0].Description;
+            SelectedModuleState = ModuleCards[0].State;
+            SelectedModulePageKey = ModuleCards[0].PageKey;
+            SelectedModuleCanOpen = !string.IsNullOrWhiteSpace(ModuleCards[0].PageKey);
+            SelectedModuleAction = SelectedModuleCanOpen ? "Abrir módulo" : "Planejado";
+        }
         HelpTopics = CreateHelpTopics();
         ShiftFilters = new ObservableCollection<string> { "Turno atual", "Hoje", "Últimas 24 horas" };
         LineFilters = new ObservableCollection<string> { "Todas as linhas", "Linha Principal", "Preparação", "Célula A" };
@@ -216,6 +222,8 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand RefreshDowntimeHistoryCommand { get; }
     public ICommand RefreshAlertsCommand { get; }
     public ICommand RefreshReportCommand { get; }
+    public ICommand SelectModuleCommand { get; }
+    public ICommand OpenSelectedModuleCommand { get; }
     public ICommand LoginCommand { get; }
     public ICommand LogoutCommand { get; }
     public bool IsAuthenticated => _session is not null;
@@ -315,6 +323,12 @@ public sealed class MainWindowViewModel : ObservableObject
     public string SelectedReportMachineLabel { get => _selectedReportMachineLabel; private set => SetProperty(ref _selectedReportMachineLabel, value); }
     public string SelectedReportPeriodLabel { get => _selectedReportPeriodLabel; private set => SetProperty(ref _selectedReportPeriodLabel, value); }
     public string ReportStatusLabel { get => _reportStatusLabel; private set => SetProperty(ref _reportStatusLabel, value); }
+    public string SelectedModuleTitle { get => _selectedModuleTitle; private set => SetProperty(ref _selectedModuleTitle, value); }
+    public string SelectedModuleDescription { get => _selectedModuleDescription; private set => SetProperty(ref _selectedModuleDescription, value); }
+    public string SelectedModuleState { get => _selectedModuleState; private set => SetProperty(ref _selectedModuleState, value); }
+    public string SelectedModuleAction { get => _selectedModuleAction; private set => SetProperty(ref _selectedModuleAction, value); }
+    public string SelectedModulePageKey { get => _selectedModulePageKey; private set => SetProperty(ref _selectedModulePageKey, value); }
+    public bool SelectedModuleCanOpen { get => _selectedModuleCanOpen; private set => SetProperty(ref _selectedModuleCanOpen, value); }
 
     public string LoginUsername
     {
@@ -591,6 +605,41 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    private async Task NavigateToPageAsync(string pageKey)
+    {
+        if (pageKey == "Exit")
+        {
+            await LogoutAsync();
+            return;
+        }
+
+        CurrentPage = pageKey;
+        if (pageKey == "Overview")
+        {
+            await LoadMachineOverviewAsync();
+        }
+        else if (pageKey == "Status")
+        {
+            await RefreshStatusAsync();
+        }
+        else if (pageKey == "ProductionHistory")
+        {
+            await EnsureProductionHistoryAsync();
+        }
+        else if (pageKey == "DowntimeHistory")
+        {
+            await EnsureDowntimeHistoryAsync();
+        }
+        else if (pageKey == "Alerts")
+        {
+            await EnsureAlertsAsync();
+        }
+        else if (pageKey == "Report")
+        {
+            await EnsureReportAsync();
+        }
+    }
+
     private async Task RefreshStatusAsync()
     {
         if (IsLoadingStatus) return;
@@ -738,16 +787,19 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         return new ObservableCollection<ModuleCard>
         {
-            new("TAGs", "Cadastro e organização dos pontos monitorados.", "Planejado"),
-            new("Weintek HTTP", "Conexão com IHMs e leitura por API local.", "Planejado"),
-            new("Alertas", "Regras de notificação e acompanhamento operacional.", "Planejado"),
-            new("Máquinas", "Cadastro das máquinas e agrupamento por linha.", "API inicial"),
-            new("Logs", "Acesso aos registros do AnalictY Server.", "Planejado"),
-            new("Turnos", "Janelas de produção e calendário operacional.", "Planejado"),
-            new("Dashboards", "Painéis nativos para acompanhamento da fábrica.", "Planejado"),
-            new("Telegram", "Canal de avisos para equipes configuradas.", "Planejado"),
-            new("Banco de Dados", "Status e rotinas do banco local.", "Planejado"),
-            new("Atualizações", "Verificação e aplicação de versões futuras.", "Planejado")
+            new("Sistema", "Base operacional do AnalictY Server e saúde geral do ambiente.", "Disponível", "Status"),
+            new("TAGs", "Cadastro e organização dos pontos monitorados.", "Planejado", string.Empty),
+            new("Weintek HTTP", "Conexão com IHMs e leitura por API local.", "Planejado", string.Empty),
+            new("Alertas", "Regras de notificação e acompanhamento operacional.", "Disponível", "Alerts"),
+            new("Máquinas", "Cadastro das máquinas e agrupamento por linha.", "Disponível", "Overview"),
+            new("Logs", "Acesso aos registros do AnalictY Server.", "Planejado", string.Empty),
+            new("Turnos", "Janelas de produção e calendário operacional.", "Planejado", string.Empty),
+            new("Dashboards", "Painéis nativos para acompanhamento da fábrica.", "Disponível", "Overview"),
+            new("Relatório", "Pré-visualização e geração de relatórios operacionais.", "Disponível", "Report"),
+            new("Telegram", "Canal de avisos para equipes configuradas.", "Disponível", "Alerts"),
+            new("Banco de Dados", "Status e rotinas do banco local.", "Planejado", string.Empty),
+            new("Atualizações", "Verificação e aplicação de versões futuras.", "Planejado", string.Empty),
+            new("Auditoria", "Trilha de ações administrativas e eventos do console.", "Planejado", string.Empty)
         };
     }
 
