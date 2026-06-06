@@ -13,12 +13,6 @@ namespace AnalictY.Manager.Views
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            if (NavigationService != null && NavigationService.CanGoBack)
-            {
-                NavigationService.GoBack();
-                return;
-            }
-
             var parent = VisualTreeHelper.GetParent(this);
             while (parent != null && parent is not ConfigPage)
             {

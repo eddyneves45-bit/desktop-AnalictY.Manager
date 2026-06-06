@@ -16,7 +16,7 @@
                         <Button Width="40" Height="40" Margin="0,0,16,0"
                                 Background="Transparent" BorderThickness="0"
                                 Cursor="Hand" Click="BackButton_Click">
-                            <Path Data="M19 12H5M12 19l-7-7 7-7" 
+                            <Path Data="M6 6L18 18M18 6L6 18" 
                                   Stroke="#6B7280" StrokeThickness="2" 
                                   Fill="Transparent" 
                                   Width="20" Height="20" Stretch="Uniform"/>

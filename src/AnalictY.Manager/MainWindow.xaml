@@ -427,7 +427,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="#101820">
+            <Border Grid.Column="0" Background="{StaticResource SidebarBrush}">
                 <DockPanel Margin="12,14">
                     <StackPanel DockPanel.Dock="Top">
                         <Grid Margin="8,0,8,18">
@@ -611,8 +611,8 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0"
-                        Background="{StaticResource CardBrush}"
-                        BorderBrush="{StaticResource BorderBrushSoft}"
+                        Background="{StaticResource SidebarBrush}"
+                        BorderBrush="#2A3848"
                         BorderThickness="0,0,0,1">
                     <Grid Margin="30,0">
                         <Grid.ColumnDefinitions>
@@ -623,10 +623,10 @@
                             <TextBlock Text="{Binding CurrentPageTitle}"
                                        FontSize="22"
                                        FontWeight="SemiBold"
-                                       Foreground="{StaticResource ContentTextBrush}" />
+                                       Foreground="#F8FAFC" />
                             <TextBlock Text="{Binding CurrentPageSubtitle}"
                                        FontSize="13"
-                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Foreground="#AAB7C5"
                                        Margin="0,4,0,0" />
                         </StackPanel>
 
@@ -640,7 +640,7 @@
                                     MinWidth="0"
                                     Margin="0,0,16,0" />
                             <TextBlock Text="AnalictY Manager"
-                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Foreground="#AAB7C5"
                                        FontWeight="SemiBold"
                                        Margin="0,0,18,0" />
                             <Ellipse Width="10" Height="10" Margin="0,0,8,0">
@@ -656,7 +656,7 @@
                                 </Ellipse.Style>
                             </Ellipse>
                             <TextBlock Text="{Binding ServerStatus}"
-                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Foreground="#AAB7C5"
                                        FontWeight="SemiBold" />
                         </StackPanel>
                     </Grid>
