@@ -6,8 +6,8 @@ namespace AnalictY.Manager.Services;
 
 public sealed class DatabaseService
 {
-    private static readonly Uri DatabaseStatusEndpoint = new("http://127.0.0.1:5000/api/database/status");
-    private static readonly Uri DatabaseTablesEndpoint = new("http://127.0.0.1:5000/api/database/tables");
+    private static readonly Uri DatabaseStatusEndpoint = new("http://127.0.0.1:5000/api/admin/database/status");
+    private static readonly Uri DatabaseConnectionsEndpoint = new("http://127.0.0.1:5000/api/database-browser/connections");
     private readonly HttpClient _httpClient;
 
     public DatabaseService(HttpClient httpClient)
@@ -19,72 +19,41 @@ public sealed class DatabaseService
     {
         try
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync(DatabaseStatusEndpoint, cancellationToken);
-
+            using var response = await _httpClient.GetAsync(DatabaseStatusEndpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return new DatabaseStatus
-                {
-                    Type = "Desconhecido",
-                    Status = "Offline",
-                    Path = "Desconhecido",
-                    Error = $"Erro HTTP {(int)response.StatusCode}"
-                };
+                return Offline($"Erro HTTP {(int)response.StatusCode}");
             }
 
-            var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            var dbStatus = JsonSerializer.Deserialize<DatabaseStatus>(body, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var root = document.RootElement;
 
-            return dbStatus ?? new DatabaseStatus
+            return new DatabaseStatus
             {
-                Type = "Desconhecido",
-                Status = "Offline",
-                Path = "Desconhecido",
-                Error = "Resposta inválida"
+                Type = ReadString(root, "provider") ?? "SQLite",
+                Status = ReadString(root, "status") ?? "Desconhecido",
+                Path = ReadString(root, "databaseFile") ?? "Desconhecido",
+                Size = ReadString(root, "size") ?? "-",
+                Tables = ReadString(root, "tables") ?? "-",
+                Records = ReadString(root, "records") ?? "-",
+                LastWrite = FormatDate(ReadString(root, "lastWriteAt") ?? "-")
             };
         }
         catch (OperationCanceledException)
         {
-            return new DatabaseStatus
-            {
-                Type = "Desconhecido",
-                Status = "Offline",
-                Path = "Desconhecido",
-                Error = "Tempo esgotado"
-            };
+            return Offline("Tempo esgotado");
         }
         catch (HttpRequestException)
         {
-            return new DatabaseStatus
-            {
-                Type = "Desconhecido",
-                Status = "Offline",
-                Path = "Desconhecido",
-                Error = "Servidor não disponível"
-            };
+            return Offline("Servidor nao disponivel");
         }
         catch (JsonException ex)
         {
-            return new DatabaseStatus
-            {
-                Type = "Desconhecido",
-                Status = "Offline",
-                Path = "Desconhecido",
-                Error = $"Erro ao processar resposta: {ex.Message}"
-            };
+            return Offline($"Erro ao processar resposta: {ex.Message}");
         }
         catch (Exception ex)
         {
-            return new DatabaseStatus
-            {
-                Type = "Desconhecido",
-                Status = "Offline",
-                Path = "Desconhecido",
-                Error = $"Erro: {ex.Message}"
-            };
+            return Offline($"Erro: {ex.Message}");
         }
     }
 
@@ -92,60 +61,97 @@ public sealed class DatabaseService
     {
         try
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync(DatabaseTablesEndpoint, cancellationToken);
-
+            using var response = await _httpClient.GetAsync(DatabaseConnectionsEndpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return new DatabaseTablesResult
-                {
-                    Tables = [],
-                    Error = $"Erro HTTP {(int)response.StatusCode}"
-                };
+                return new DatabaseTablesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
             }
 
-            var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            var tablesResult = JsonSerializer.Deserialize<DatabaseTablesResult>(body, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var items = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray()
+                    .Select(item => $"{ReadString(item, "provider") ?? "Banco"} - {ReadString(item, "name") ?? "-"} ({ReadString(item, "database") ?? "-"})")
+                    .ToList()
+                : [];
 
-            return tablesResult ?? new DatabaseTablesResult
-            {
-                Tables = [],
-                Error = "Resposta inválida"
-            };
+            return new DatabaseTablesResult { Tables = items };
         }
         catch (OperationCanceledException)
         {
-            return new DatabaseTablesResult
-            {
-                Tables = [],
-                Error = "Tempo esgotado"
-            };
+            return new DatabaseTablesResult { Error = "Tempo esgotado" };
         }
         catch (HttpRequestException)
         {
-            return new DatabaseTablesResult
-            {
-                Tables = [],
-                Error = "Servidor não disponível"
-            };
+            return new DatabaseTablesResult { Error = "Servidor nao disponivel" };
         }
         catch (JsonException ex)
         {
-            return new DatabaseTablesResult
-            {
-                Tables = [],
-                Error = $"Erro ao processar resposta: {ex.Message}"
-            };
+            return new DatabaseTablesResult { Error = $"Erro ao processar resposta: {ex.Message}" };
         }
         catch (Exception ex)
         {
-            return new DatabaseTablesResult
+            return new DatabaseTablesResult { Error = $"Erro: {ex.Message}" };
+        }
+    }
+
+    private static DatabaseStatus Offline(string error)
+    {
+        return new DatabaseStatus
+        {
+            Type = "Desconhecido",
+            Status = "Offline",
+            Path = "Desconhecido",
+            Error = error
+        };
+    }
+
+    private static string? ReadString(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryGetProperty(element, name, out var value))
             {
-                Tables = [],
-                Error = $"Erro: {ex.Message}"
+                continue;
+            }
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.String => value.GetString(),
+                JsonValueKind.Number => value.ToString(),
+                JsonValueKind.True => "true",
+                JsonValueKind.False => "false",
+                _ => null
             };
         }
+
+        return null;
+    }
+
+    private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            value = default;
+            return false;
+        }
+
+        foreach (var property in element.EnumerateObject())
+        {
+            if (string.Equals(property.Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                value = property.Value;
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
+    }
+
+    private static string FormatDate(string value)
+    {
+        return DateTimeOffset.TryParse(value, out var date)
+            ? date.LocalDateTime.ToString("dd/MM/yyyy HH:mm:ss")
+            : value;
     }
 }

@@ -5,6 +5,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using AnalictY.Manager.ViewModels;
+using AnalictY.Manager.Services;
+using AnalictY.Manager.Infrastructure;
 
 namespace AnalictY.Manager.Views
 {
@@ -16,7 +18,9 @@ namespace AnalictY.Manager.Views
         public ConfigPage()
         {
             InitializeComponent();
-            _viewModel = new ConfigPageViewModel();
+            var httpClient = AppServices.HttpClient;
+            var configService = new ConfigService(httpClient);
+            _viewModel = new ConfigPageViewModel(configService);
             DataContext = _viewModel;
             Loaded += ConfigPage_Loaded;
         }

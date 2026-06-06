@@ -2,16 +2,39 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using AnalictY.Manager.Infrastructure;
+using AnalictY.Manager.Models;
+using AnalictY.Manager.Services;
 
 namespace AnalictY.Manager.ViewModels;
 
 public sealed class ProtocolsViewModel : ObservableObject
 {
+    private readonly ConfigService _configService;
     private bool _isMqttSelected = true;
     private bool _isOpcUaSelected = false;
+    private bool _isLoading;
 
-    public ProtocolsViewModel()
+    // MQTT Properties
+    private string _mqttStatus = "Carregando...";
+    private string _mqttClients = "-";
+    private string _mqttTopics = "-";
+    private string _mqttMessagesPerSecond = "-";
+    private string _mqttPort = "-";
+    private string _mqttHost = "-";
+    private string _mqttSsl = "-";
+
+    // OPC UA Properties
+    private string _opcUaStatus = "Carregando...";
+    private string _opcUaServers = "-";
+    private string _opcUaEndpoints = "-";
+    private string _opcUaNodes = "-";
+    private string _opcUaPort = "-";
+    private string _opcUaSecurity = "-";
+    private string _opcUaDiscovery = "-";
+
+    public ProtocolsViewModel(ConfigService configService)
     {
+        _configService = configService;
         MqttTopicsList = new ObservableCollection<ProtocolMqttTopicRow>();
         MqttClientsList = new ObservableCollection<ProtocolMqttClientRow>();
         OpcUaServersList = new ObservableCollection<OpcUaServerRow>();
@@ -30,8 +53,9 @@ public sealed class ProtocolsViewModel : ObservableObject
             return Task.CompletedTask;
         });
 
-        InitializeMqttData();
-        InitializeOpcUaData();
+        RefreshCommand = new RelayCommand(async _ => await LoadDataAsync());
+
+        _ = LoadDataAsync();
     }
 
     public bool IsMqttSelected
@@ -46,23 +70,97 @@ public sealed class ProtocolsViewModel : ObservableObject
         set => SetProperty(ref _isOpcUaSelected, value);
     }
 
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
+    }
+
     // MQTT Properties
-    public string MqttStatus { get; } = "Online";
-    public string MqttClients { get; } = "12";
-    public string MqttTopics { get; } = "45";
-    public string MqttMessagesPerSecond { get; } = "234";
-    public string MqttPort { get; } = "1883";
-    public string MqttHost { get; } = "0.0.0.0";
-    public string MqttSsl { get; } = "Desabilitado";
+    public string MqttStatus
+    {
+        get => _mqttStatus;
+        set => SetProperty(ref _mqttStatus, value);
+    }
+
+    public string MqttClients
+    {
+        get => _mqttClients;
+        set => SetProperty(ref _mqttClients, value);
+    }
+
+    public string MqttTopics
+    {
+        get => _mqttTopics;
+        set => SetProperty(ref _mqttTopics, value);
+    }
+
+    public string MqttMessagesPerSecond
+    {
+        get => _mqttMessagesPerSecond;
+        set => SetProperty(ref _mqttMessagesPerSecond, value);
+    }
+
+    public string MqttPort
+    {
+        get => _mqttPort;
+        set => SetProperty(ref _mqttPort, value);
+    }
+
+    public string MqttHost
+    {
+        get => _mqttHost;
+        set => SetProperty(ref _mqttHost, value);
+    }
+
+    public string MqttSsl
+    {
+        get => _mqttSsl;
+        set => SetProperty(ref _mqttSsl, value);
+    }
 
     // OPC UA Properties
-    public string OpcUaStatus { get; } = "Online";
-    public string OpcUaServers { get; } = "3";
-    public string OpcUaEndpoints { get; } = "5";
-    public string OpcUaNodes { get; } = "1,234";
-    public string OpcUaPort { get; } = "4840";
-    public string OpcUaSecurity { get; } = "None";
-    public string OpcUaDiscovery { get; } = "Habilitado";
+    public string OpcUaStatus
+    {
+        get => _opcUaStatus;
+        set => SetProperty(ref _opcUaStatus, value);
+    }
+
+    public string OpcUaServers
+    {
+        get => _opcUaServers;
+        set => SetProperty(ref _opcUaServers, value);
+    }
+
+    public string OpcUaEndpoints
+    {
+        get => _opcUaEndpoints;
+        set => SetProperty(ref _opcUaEndpoints, value);
+    }
+
+    public string OpcUaNodes
+    {
+        get => _opcUaNodes;
+        set => SetProperty(ref _opcUaNodes, value);
+    }
+
+    public string OpcUaPort
+    {
+        get => _opcUaPort;
+        set => SetProperty(ref _opcUaPort, value);
+    }
+
+    public string OpcUaSecurity
+    {
+        get => _opcUaSecurity;
+        set => SetProperty(ref _opcUaSecurity, value);
+    }
+
+    public string OpcUaDiscovery
+    {
+        get => _opcUaDiscovery;
+        set => SetProperty(ref _opcUaDiscovery, value);
+    }
 
     public ObservableCollection<ProtocolMqttTopicRow> MqttTopicsList { get; private set; }
     public ObservableCollection<ProtocolMqttClientRow> MqttClientsList { get; private set; }
@@ -71,45 +169,118 @@ public sealed class ProtocolsViewModel : ObservableObject
 
     public ICommand SelectMqttCommand { get; }
     public ICommand SelectOpcUaCommand { get; }
+    public ICommand RefreshCommand { get; }
 
-    private void InitializeMqttData()
+    private async Task LoadDataAsync()
     {
-        MqttTopicsList = new ObservableCollection<ProtocolMqttTopicRow>
+        IsLoading = true;
+        try
         {
-            new("analicty/machines/+/status", "1", "8"),
-            new("analicty/machines/+/production", "0", "12"),
-            new("analicty/machines/+/alarms", "2", "5"),
-            new("analicty/servers/+/metrics", "1", "4"),
-            new("analicty/tags/+/value", "0", "16")
-        };
-
-        MqttClientsList = new ObservableCollection<ProtocolMqttClientRow>
+            await LoadMqttDataAsync();
+            await LoadOpcUaDataAsync();
+        }
+        finally
         {
-            new("client_001", "192.168.1.10", "Sim", "3"),
-            new("client_002", "192.168.1.11", "Sim", "5"),
-            new("client_003", "192.168.1.12", "Não", "2"),
-            new("client_004", "192.168.1.13", "Sim", "4"),
-            new("client_005", "192.168.1.14", "Sim", "6")
-        };
+            IsLoading = false;
+        }
     }
 
-    private void InitializeOpcUaData()
+    private async Task LoadMqttDataAsync()
     {
-        OpcUaServersList = new ObservableCollection<OpcUaServerRow>
+        var connectionsResult = await _configService.GetMqttConnectionsAsync();
+        if (connectionsResult.Error != null)
         {
-            new("AnalictY Server", "opc.tcp://localhost:4840", "Online"),
-            new("PLC Siemens", "opc.tcp://192.168.1.50:4840", "Online"),
-            new("PLC Rockwell", "opc.tcp://192.168.1.51:4840", "Offline")
-        };
+            MqttStatus = "Erro";
+            return;
+        }
 
-        OpcUaNodesList = new ObservableCollection<OpcUaNodeRow>
+        if (connectionsResult.Connections.Count > 0)
         {
-            new("ns=2;s=Machine1.Status", "Machine1 Status", "Boolean", "Good"),
-            new("ns=2;s=Machine1.Production", "Machine1 Production", "Int32", "Good"),
-            new("ns=2;s=Machine1.Temperature", "Machine1 Temperature", "Float", "Good"),
-            new("ns=2;s=Machine2.Status", "Machine2 Status", "Boolean", "Good"),
-            new("ns=2;s=Machine2.Production", "Machine2 Production", "Int32", "Good")
-        };
+            var firstConnection = connectionsResult.Connections[0];
+            MqttStatus = connectionsResult.Connections.Count == 1
+                ? "1 conexao cadastrada"
+                : $"{connectionsResult.Connections.Count} conexoes cadastradas";
+            MqttHost = firstConnection.Host;
+            MqttPort = firstConnection.Port;
+            MqttClients = connectionsResult.Connections.Count.ToString();
+        }
+        else
+        {
+            MqttStatus = "Nenhuma conexão";
+        }
+
+        var topicsResult = await _configService.GetMqttTopicsAsync();
+        if (topicsResult.Error == null)
+        {
+            MqttTopics = topicsResult.Topics.Count.ToString();
+            MqttTopicsList.Clear();
+            foreach (var topic in topicsResult.Topics)
+            {
+                MqttTopicsList.Add(new ProtocolMqttTopicRow(topic.Topic, topic.Qos, topic.Subscribers));
+            }
+        }
+
+        var clientsResult = await _configService.GetMqttClientsAsync();
+        if (clientsResult.Error == null)
+        {
+            MqttClientsList.Clear();
+            foreach (var client in clientsResult.Clients)
+            {
+                MqttClientsList.Add(new ProtocolMqttClientRow(client.ClientId, client.Ip, client.Connected, client.Topics));
+            }
+        }
+    }
+
+    private async Task LoadOpcUaDataAsync()
+    {
+        var connectionsResult = await _configService.GetOpcUaConnectionsAsync();
+        if (connectionsResult.Error != null)
+        {
+            OpcUaStatus = "Erro";
+            return;
+        }
+
+        if (connectionsResult.Connections.Count > 0)
+        {
+            var firstConnection = connectionsResult.Connections[0];
+            OpcUaStatus = connectionsResult.Connections.Count == 1
+                ? "1 conexao cadastrada"
+                : $"{connectionsResult.Connections.Count} conexoes cadastradas";
+            OpcUaServers = connectionsResult.Connections.Count.ToString();
+            OpcUaEndpoints = connectionsResult.Connections.Count.ToString();
+            
+            // Extract port from endpoint if possible
+            var endpointParts = firstConnection.Endpoint.Split(':');
+            if (endpointParts.Length > 1)
+            {
+                OpcUaPort = endpointParts[^1];
+            }
+        }
+        else
+        {
+            OpcUaStatus = "Nenhuma conexão";
+        }
+
+        OpcUaServersList.Clear();
+        foreach (var connection in connectionsResult.Connections)
+        {
+            OpcUaServersList.Add(new OpcUaServerRow(connection.Name, connection.Endpoint, connection.Status));
+        }
+
+        // Try to browse nodes from first connection
+        if (connectionsResult.Connections.Count > 0)
+        {
+            var browseResult = await _configService.BrowseOpcUaAsync(connectionsResult.Connections[0].Id);
+            if (browseResult.Error == null)
+            {
+                OpcUaNodes = browseResult.Nodes.Count.ToString();
+                OpcUaNodesList.Clear();
+                foreach (var node in browseResult.Nodes.Take(50)) // Limit to 50 for performance
+                {
+                    OpcUaNodesList.Add(new OpcUaNodeRow(node.NodeId, node.Name, node.Type, node.Quality));
+                }
+            }
+        }
     }
 }
 

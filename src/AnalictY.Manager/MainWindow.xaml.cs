@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Media;
+using AnalictY.Manager.Infrastructure;
 using AnalictY.Manager.Services;
 using AnalictY.Manager.ViewModels;
 using AnalictY.Manager.Views;
@@ -24,6 +25,7 @@ public partial class MainWindow : Window
             UseCookies = true
         };
         var apiClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+        AppServices.Configure(apiClient);
 
         var machineOverviewService = new MachineOverviewService(apiClient);
         var healthService = new HealthService(apiClient);
@@ -31,6 +33,7 @@ public partial class MainWindow : Window
         var logsService = new LogsService(apiClient);
         var updatesService = new UpdatesService(apiClient);
         var databaseService = new DatabaseService(apiClient);
+        var adminApiService = new AdminApiService(apiClient);
 
         var viewModel = new MainWindowViewModel(
             new AuthService(apiClient, cookieContainer),
@@ -44,15 +47,16 @@ public partial class MainWindow : Window
         DataContext = viewModel;
         LoginPasswordBox.Password = viewModel.LoginPassword;
 
-        _adminDashboardViewModel = new AdminDashboardViewModel(healthService, versionService);
+        _adminDashboardViewModel = new AdminDashboardViewModel(adminApiService);
         AdminDashboardViewHost.DataContext = _adminDashboardViewModel;
         ServerViewHost.DataContext = new ServerViewModel(healthService, versionService);
         LogsViewHost.DataContext = new LogsViewModel(logsService);
         UpdatesViewHost.DataContext = new UpdatesViewModel(updatesService, versionService);
-        DatabaseViewHost.DataContext = new DatabaseViewModel(databaseService);
+        var configService = new ConfigService(apiClient);
+        DatabaseViewHost.DataContext = new DatabaseViewModel(databaseService, configService);
         RuntimeViewHost.DataContext = new RuntimeViewModel();
-        TagsViewHost.DataContext = new TagsViewModel();
-        ProtocolsViewHost.DataContext = new ProtocolsViewModel();
+        TagsViewHost.DataContext = new TagsViewModel(configService);
+        ProtocolsViewHost.DataContext = new ProtocolsViewModel(configService);
         ServicesViewHost.DataContext = new ServicesViewModel();
         EventsViewHost.DataContext = new EventsViewModel();
         BackupViewHost.DataContext = new BackupViewModel();

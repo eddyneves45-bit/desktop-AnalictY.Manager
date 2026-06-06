@@ -84,7 +84,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _currentServerTime = "-";
     private string _loginServerUrl = "http://localhost:5000";
     private string _loginUsername = "admin";
-    private string _loginPassword = "admin";
+    private string _loginPassword = "Rs26051986@";
     private string _loginError = string.Empty;
     private string _loginButtonText = "Conectar";
     private bool _isLoginModalOpen;
@@ -482,30 +482,6 @@ public sealed class MainWindowViewModel : ObservableObject
 
         try
         {
-            if (LoginUsername.Trim().Equals("admin", StringComparison.OrdinalIgnoreCase) &&
-                LoginPassword == "admin")
-            {
-                _session = new AuthSession(
-                    new AuthUser(
-                        "dev-admin",
-                        "admin",
-                        "admin@analicty.local",
-                        "admin",
-                        new[] { "manager:dev" },
-                        false,
-                        false),
-                    null,
-                    false);
-                LoginPassword = string.Empty;
-                IsLoginModalOpen = false;
-                CurrentPage = "AdminDashboard";
-                OnPropertyChanged(nameof(IsAuthenticated));
-                OnPropertyChanged(nameof(AuthenticatedUserDisplay));
-                OnPropertyChanged(nameof(AuthenticatedUserRole));
-                await LoadMachineOverviewAsync();
-                return;
-            }
-
             using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
             AuthResult result = await _authService.LoginAsync(LoginUsername.Trim(), LoginPassword, timeout.Token);
             if (!result.Success || result.Session is null)

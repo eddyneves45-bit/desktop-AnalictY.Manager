@@ -1933,7 +1933,7 @@
                                             BorderThickness="1"
                                             Padding="16"
                                             Margin="0,22,0,0">
-                                        <TextBlock Text="Conteúdo nativo reservado para a próxima etapa. Nenhuma API, banco ou atualização real foi implementada aqui."
+                                        <TextBlock Text="O módulo de Relatórios depende do AnalictY Server. Certifique-se de que o servidor está em execução e que os endpoints de relatórios estão configurados."
                                                    TextWrapping="Wrap"
                                                    Foreground="#475569" />
                                     </Border>

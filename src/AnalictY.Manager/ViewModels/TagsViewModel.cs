@@ -1,34 +1,43 @@
 using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Input;
 using AnalictY.Manager.Infrastructure;
+using AnalictY.Manager.Models;
+using AnalictY.Manager.Services;
 
 namespace AnalictY.Manager.ViewModels;
 
 public sealed class TagsViewModel : ObservableObject
 {
+    private readonly ConfigService _configService;
+    private bool _isLoading;
     private string _selectedMachine = "Todas";
     private string _selectedDriver = "Todos";
     private string _searchText = string.Empty;
-    private string _totalTags = "156";
-    private string _activeTags = "142";
-    private string _staleTags = "8";
-    private string _errorTags = "6";
+    private string _totalTags = "-";
+    private string _activeTags = "-";
+    private string _staleTags = "-";
+    private string _errorTags = "-";
+    private string _statusMessage = "Carregando tags...";
+    private string _errorMessage = string.Empty;
 
-    public TagsViewModel()
+    public TagsViewModel(ConfigService configService)
     {
-        Machines = new ObservableCollection<string> { "Todas", "Máquina 01", "Máquina 02", "Prensa Joelho 08", "Célula A" };
-        Drivers = new ObservableCollection<string> { "Todos", "OPC UA", "MQTT", "HTTP", "Modbus" };
+        _configService = configService;
+        LoadTagsCommand = new RelayCommand(async _ => await LoadTagsAsync());
+        RefreshCommand = new RelayCommand(async _ => await LoadTagsAsync());
 
-        TagRows = new ObservableCollection<TagRow>
-        {
-            new("M01_Producao_Contador", "Máquina 01", "OPC UA", "ns=2;s=Producao.Contador", "1.250", "Good", "2s atrás"),
-            new("M01_Status_Maquina", "Máquina 01", "OPC UA", "ns=2;s=Status.Maquina", "1 (Ligado)", "Good", "2s atrás"),
-            new("M02_Producao_Contador", "Máquina 02", "MQTT", "fabrica/m02/producao", "980", "Good", "3s atrás"),
-            new("PJ08_Ciclo", "Prensa Joelho 08", "HTTP", "/api/weintek/pj08", "56", "Good", "1s atrás"),
-            new("CA_Temperatura_Zona1", "Célula A", "Modbus", "40001", "72.5", "Good", "4s atrás"),
-            new("M01_Pressao_Sistema", "Máquina 01", "OPC UA", "ns=2;s=Pressao.Sistema", "4.2", "Good", "2s atrás"),
-            new("M02_Velocidade_Rotacao", "Máquina 02", "MQTT", "fabrica/m02/velocidade", "1450", "Good", "3s atrás"),
-            new("PJ08_Force_Ciclo", "Prensa Joelho 08", "HTTP", "/api/weintek/pj08/force", "85", "Good", "1s atrás")
-        };
+        Machines = new ObservableCollection<string> { "Todas" };
+        Drivers = new ObservableCollection<string> { "Todos", "OPC UA", "MQTT", "HTTP", "Modbus" };
+        TagRows = new ObservableCollection<TagRow>();
+
+        _ = LoadTagsAsync();
+    }
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
     }
 
     public string SelectedMachine
@@ -73,9 +82,93 @@ public sealed class TagsViewModel : ObservableObject
         set => SetProperty(ref _errorTags, value);
     }
 
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
+    }
+
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        set => SetProperty(ref _errorMessage, value);
+    }
+
     public ObservableCollection<string> Machines { get; }
     public ObservableCollection<string> Drivers { get; }
     public ObservableCollection<TagRow> TagRows { get; }
+    public ICommand LoadTagsCommand { get; }
+    public ICommand RefreshCommand { get; }
+
+    private async Task LoadTagsAsync()
+    {
+        IsLoading = true;
+        StatusMessage = "Carregando tags...";
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            // Load machine folders
+            var foldersResult = await _configService.GetMachineFoldersAsync();
+            if (foldersResult.Error == null)
+            {
+                Machines.Clear();
+                Machines.Add("Todas");
+                foreach (var folder in foldersResult.Folders)
+                {
+                    Machines.Add(folder);
+                }
+            }
+
+            // Load tags
+            var tagsResult = await _configService.GetTagsAsync();
+            if (tagsResult.Error != null)
+            {
+                ErrorMessage = tagsResult.Error;
+                StatusMessage = "Erro ao carregar tags.";
+                return;
+            }
+
+            TagRows.Clear();
+            foreach (var tag in tagsResult.Tags)
+            {
+                TagRows.Add(new TagRow
+                {
+                    Name = tag.Name,
+                    Machine = "Desconhecido",
+                    Driver = "Desconhecido",
+                    Address = tag.Address,
+                    Value = "-",
+                    Quality = "Good",
+                    UpdatedAt = "-"
+                });
+            }
+
+            TotalTags = tagsResult.Tags.Count.ToString();
+            ActiveTags = tagsResult.Tags.Count.ToString();
+            StaleTags = "0";
+            ErrorTags = "0";
+            StatusMessage = $"{tagsResult.Tags.Count} tags carregadas.";
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            StatusMessage = "Erro ao carregar tags.";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
 }
 
-public sealed record TagRow(string Name, string Machine, string Driver, string Address, string Value, string Quality, string UpdatedAt);
+public sealed class TagRow
+{
+    public string Name { get; set; } = string.Empty;
+    public string Machine { get; set; } = string.Empty;
+    public string Driver { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string Quality { get; set; } = string.Empty;
+    public string UpdatedAt { get; set; } = string.Empty;
+}
