@@ -63,25 +63,26 @@ namespace AnalictY.Manager.Views
 
         private void NavigateToPage(string target)
         {
-            Page? page = target switch
+            FrameworkElement? page = target switch
             {
                 "opc-browser" => new OpcBrowserPage(),
                 "mqtt-monitor" => new MqttMonitorPage(),
                 "database-browser" => new DatabaseBrowserPage(),
                 "connections" => new ConnectionsPage(),
-                "weintek-browser" => new WeintekBrowserPage(),
+                "weintek-browser" => new WeintekPage(),
                 "tags" => new TagsPage(),
                 "machines" => new MachinesPage(),
                 "shifts" => new ShiftsPage(),
                 "simulator" => new SimulatorPage(),
                 "production-diagnostics" => new ProductionDiagnosticsPage(),
-                "alerts" => new AlertsConfigPage(),
-                "telegram-notifications" => new TelegramNotificationsPage(),
+                "alerts" => new AlertsPage(),
+                "telegram-notifications" => new TelegramPage(),
                 "dashboards" => new DashboardsPage(),
                 "logs" => new LogsPage(),
                 "local-server" => new LocalServerPage(),
                 "users" => new UsersPage(),
                 "audit" => new AuditPage(),
+                "downtime-reasons" => new DowntimeReasonsPage(),
                 _ => null
             };
 

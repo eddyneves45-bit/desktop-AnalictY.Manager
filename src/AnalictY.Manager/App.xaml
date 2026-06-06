@@ -1,7 +1,8 @@
 <Application x:Class="AnalictY.Manager.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:AnalictY.Manager">
+             xmlns:local="clr-namespace:AnalictY.Manager"
+             xmlns:converters="clr-namespace:AnalictY.Manager.Converters">
     <Application.Resources>
         <!-- Main Theme Colors - Industrial Dark Mode -->
         <SolidColorBrush x:Key="SurfaceBrush" Color="#243447" />
@@ -196,5 +197,12 @@
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Padding" Value="8,6" />
         </Style>
+
+        <!-- Value Converters -->
+        <converters:BoolToFolderIconConverter x:Key="BoolToFolderIcon"/>
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNo"/>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
     </Application.Resources>
 </Application>

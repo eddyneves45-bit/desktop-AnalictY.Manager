@@ -70,7 +70,7 @@ public sealed class OpcUaViewModel : ObservableObject
                 ServerRows.Add(new OpcServerRow(
                     conn.Name,
                     conn.IsActive ? conn.Status : "Desativado",
-                    conn.Endpoint,
+                    conn.ServerUrl,
                     conn.Id));
             }
 
@@ -127,7 +127,7 @@ public sealed class OpcUaViewModel : ObservableObject
 
         try
         {
-            var result = await _configService.BrowseOpcUaAsync(SelectedServer.Id);
+            var result = await _configService.BrowseOpcUaAsync(int.Parse(SelectedServer.Id));
             if (!string.IsNullOrWhiteSpace(result.Error))
             {
                 StatusMessage = $"Erro ao procurar nos: {result.Error}";

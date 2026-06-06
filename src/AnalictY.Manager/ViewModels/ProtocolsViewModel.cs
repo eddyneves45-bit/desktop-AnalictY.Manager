@@ -200,8 +200,8 @@ public sealed class ProtocolsViewModel : ObservableObject
             MqttStatus = connectionsResult.Connections.Count == 1
                 ? "1 conexao cadastrada"
                 : $"{connectionsResult.Connections.Count} conexoes cadastradas";
-            MqttHost = firstConnection.Host;
-            MqttPort = firstConnection.Port;
+            MqttHost = firstConnection.BrokerHost;
+            MqttPort = firstConnection.BrokerPort;
             MqttClients = connectionsResult.Connections.Count.ToString();
         }
         else
@@ -209,7 +209,8 @@ public sealed class ProtocolsViewModel : ObservableObject
             MqttStatus = "Nenhuma conexão";
         }
 
-        var topicsResult = await _configService.GetMqttTopicsAsync();
+        int connectionId = connectionsResult.Connections.Count > 0 && int.TryParse(connectionsResult.Connections[0].Id, out var id) ? id : 0;
+        var topicsResult = await _configService.GetMqttTopicsAsync(connectionId);
         if (topicsResult.Error == null)
         {
             MqttTopics = topicsResult.Topics.Count.ToString();
@@ -220,7 +221,7 @@ public sealed class ProtocolsViewModel : ObservableObject
             }
         }
 
-        var clientsResult = await _configService.GetMqttClientsAsync();
+        var clientsResult = await _configService.GetMqttClientsAsync(connectionId);
         if (clientsResult.Error == null)
         {
             MqttClientsList.Clear();
@@ -248,9 +249,9 @@ public sealed class ProtocolsViewModel : ObservableObject
                 : $"{connectionsResult.Connections.Count} conexoes cadastradas";
             OpcUaServers = connectionsResult.Connections.Count.ToString();
             OpcUaEndpoints = connectionsResult.Connections.Count.ToString();
-            
+
             // Extract port from endpoint if possible
-            var endpointParts = firstConnection.Endpoint.Split(':');
+            var endpointParts = firstConnection.ServerUrl.Split(':');
             if (endpointParts.Length > 1)
             {
                 OpcUaPort = endpointParts[^1];
@@ -264,13 +265,13 @@ public sealed class ProtocolsViewModel : ObservableObject
         OpcUaServersList.Clear();
         foreach (var connection in connectionsResult.Connections)
         {
-            OpcUaServersList.Add(new OpcUaServerRow(connection.Name, connection.Endpoint, connection.Status));
+            OpcUaServersList.Add(new OpcUaServerRow(connection.Name, connection.ServerUrl, connection.Status));
         }
 
         // Try to browse nodes from first connection
         if (connectionsResult.Connections.Count > 0)
         {
-            var browseResult = await _configService.BrowseOpcUaAsync(connectionsResult.Connections[0].Id);
+            var browseResult = await _configService.BrowseOpcUaAsync(int.Parse(connectionsResult.Connections[0].Id));
             if (browseResult.Error == null)
             {
                 OpcUaNodes = browseResult.Nodes.Count.ToString();

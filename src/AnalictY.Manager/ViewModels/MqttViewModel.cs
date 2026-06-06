@@ -100,16 +100,17 @@ public sealed class MqttViewModel : ObservableObject
             var connections = await _configService.GetMqttConnectionsAsync();
             var activeConnection = connections.Connections.FirstOrDefault(connection => connection.IsActive) ??
                 connections.Connections.FirstOrDefault();
-            Port = activeConnection?.Port ?? "1883";
+            Port = activeConnection?.BrokerPort ?? "1883";
 
-            var topics = await _configService.GetMqttTopicsAsync();
+            int connectionId = int.TryParse(activeConnection?.Id, out var id) ? id : 0;
+            var topics = await _configService.GetMqttTopicsAsync(connectionId);
             TopicRows.Clear();
             foreach (var topic in topics.Topics)
             {
                 TopicRows.Add(new MqttTopicRow(topic.Topic, $"QoS {topic.Qos}", topic.Subscribers, "-"));
             }
 
-            var clients = await _configService.GetMqttClientsAsync();
+            var clients = await _configService.GetMqttClientsAsync(connectionId);
             ClientRows.Clear();
             foreach (var client in clients.Clients)
             {

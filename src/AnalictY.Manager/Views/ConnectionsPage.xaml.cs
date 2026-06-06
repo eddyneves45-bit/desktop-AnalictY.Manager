@@ -119,7 +119,7 @@ namespace AnalictY.Manager.Views
                 HostTextBox.Text = string.IsNullOrWhiteSpace(connection.Host) ? ReadHost(connection.Address) : connection.Host;
                 PortTextBox.Text = string.IsNullOrWhiteSpace(connection.Port) ? ReadPort(connection.Address, "22") : connection.Port;
                 SetCombo(ProtocolComboBox, connection.Protocol);
-                PrivateKeyPathTextBox.Text = connection.PrivateKeyPath;
+                FtpPrivateKeyPathTextBox.Text = connection.PrivateKeyPath;
                 DirectoryTextBox.Text = string.IsNullOrWhiteSpace(connection.Directory) ? "/" : connection.Directory;
                 FrequencyTextBox.Text = string.IsNullOrWhiteSpace(connection.Frequency) ? "manual" : connection.Frequency;
                 DataTypeTextBox.Text = string.IsNullOrWhiteSpace(connection.DataType) ? "production" : connection.DataType;
@@ -212,6 +212,7 @@ namespace AnalictY.Manager.Views
                 ? Visibility.Visible
                 : Visibility.Collapsed;
             MysqlActions.Visibility = selectedType is "MySQL" or "SQL Server" ? Visibility.Visible : Visibility.Collapsed;
+            FtpActions.Visibility = selectedType == "FTP/SFTP" ? Visibility.Visible : Visibility.Collapsed;
 
             if (_isEditMode)
             {
@@ -262,6 +263,7 @@ namespace AnalictY.Manager.Views
             _viewModel.EditSecurityMode = ComboValue(SecurityModeComboBox) ?? "None";
             _viewModel.EditCertificatePath = CertificatePathTextBox.Text;
             _viewModel.EditPrivateKeyPath = PrivateKeyPathTextBox.Text;
+            _viewModel.EditFtpPrivateKeyPath = FtpPrivateKeyPathTextBox.Text;
             _viewModel.EditUpdateInterval = UpdateIntervalTextBox.Text;
             _viewModel.EditClientId = ClientIdTextBox.Text;
             _viewModel.EditTlsEnabled = TlsCheckBox.IsChecked == true;
@@ -323,6 +325,7 @@ namespace AnalictY.Manager.Views
             SecurityModeComboBox.SelectedIndex = 0;
             CertificatePathTextBox.Text = string.Empty;
             PrivateKeyPathTextBox.Text = string.Empty;
+            FtpPrivateKeyPathTextBox.Text = string.Empty;
             UpdateIntervalTextBox.Text = "1000";
             ClientIdTextBox.Text = string.Empty;
             TopicsTextBox.Text = string.Empty;
@@ -377,6 +380,61 @@ namespace AnalictY.Manager.Views
                 _viewModel.SelectedConnection = _selectedConnection;
                 await _viewModel.InitMysqlAsync();
                 ShowOperationNotification("Banco inicializado");
+            }
+        }
+
+        private async void TestFtp_Click(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            ErrorBorder.Visibility = Visibility.Collapsed;
+            _viewModel.ErrorMessage = string.Empty;
+
+            _viewModel.EditName = NameTextBox.Text;
+            _viewModel.EditHost = HostTextBox.Text;
+            _viewModel.EditPort = PortTextBox.Text;
+            _viewModel.EditUsername = UsernameTextBox.Text;
+            _viewModel.EditPassword = _passwordHasPlaceholder && PasswordBox.Password == PasswordPlaceholder ? string.Empty : PasswordBox.Password;
+            _viewModel.EditProtocol = ComboValue(ProtocolComboBox) ?? "SFTP";
+            _viewModel.EditDirectory = DirectoryTextBox.Text;
+            _viewModel.EditPrivateKeyPath = FtpPrivateKeyPathTextBox.Text;
+
+            await _viewModel.TestFtpAsync();
+
+            if (string.IsNullOrWhiteSpace(_viewModel.ErrorMessage))
+            {
+                ShowNotification("Teste FTP", _viewModel.StatusMessage);
+            }
+            else
+            {
+                ShowError(_viewModel.ErrorMessage);
+                ShowNotification("Falha no teste", _viewModel.ErrorMessage);
+            }
+        }
+
+        private async void SendFtp_Click(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            ErrorBorder.Visibility = Visibility.Collapsed;
+            _viewModel.ErrorMessage = string.Empty;
+
+            await _viewModel.SendFtpNowAsync();
+
+            if (string.IsNullOrWhiteSpace(_viewModel.ErrorMessage))
+            {
+                ShowNotification("Envio FTP", _viewModel.StatusMessage);
+            }
+            else
+            {
+                ShowError(_viewModel.ErrorMessage);
+                ShowNotification("Falha no envio", _viewModel.ErrorMessage);
             }
         }
 

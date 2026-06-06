@@ -7,19 +7,19 @@ using AnalictY.Manager.ViewModels;
 
 namespace AnalictY.Manager.Views;
 
-public partial class UsersPage : UserControl
+public partial class WeintekPage : UserControl
 {
-    private UsersViewModel? _viewModel;
+    private WeintekViewModel? _viewModel;
 
-    public UsersPage()
+    public WeintekPage()
     {
         InitializeComponent();
-        _viewModel = new UsersViewModel(new ConfigService(AppServices.HttpClient));
+        _viewModel = new WeintekViewModel(new ConfigService(AppServices.HttpClient));
         DataContext = _viewModel;
-        Loaded += UsersPage_Loaded;
+        Loaded += WeintekPage_Loaded;
     }
 
-    private async void UsersPage_Loaded(object sender, RoutedEventArgs e)
+    private async void WeintekPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (_viewModel != null)
         {

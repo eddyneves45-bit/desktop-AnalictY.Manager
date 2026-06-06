@@ -7,19 +7,19 @@ using AnalictY.Manager.ViewModels;
 
 namespace AnalictY.Manager.Views;
 
-public partial class UsersPage : UserControl
+public partial class TelegramPage : UserControl
 {
-    private UsersViewModel? _viewModel;
+    private TelegramViewModel? _viewModel;
 
-    public UsersPage()
+    public TelegramPage()
     {
         InitializeComponent();
-        _viewModel = new UsersViewModel(new ConfigService(AppServices.HttpClient));
+        _viewModel = new TelegramViewModel(new ConfigService(AppServices.HttpClient));
         DataContext = _viewModel;
-        Loaded += UsersPage_Loaded;
+        Loaded += TelegramPage_Loaded;
     }
 
-    private async void UsersPage_Loaded(object sender, RoutedEventArgs e)
+    private async void TelegramPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (_viewModel != null)
         {

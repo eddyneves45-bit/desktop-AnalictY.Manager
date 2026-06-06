@@ -183,7 +183,13 @@
                     <ScrollViewer Grid.Row="1" MaxHeight="560" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
                             <TextBlock Text="Tipo de Conexao" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox x:Name="TypeComboBox" ItemsSource="{Binding ConnectionTypes}" Style="{StaticResource ReadableCombo}" SelectionChanged="TypeComboBox_SelectionChanged"/>
+                            <ComboBox x:Name="TypeComboBox" Style="{StaticResource ReadableCombo}" SelectionChanged="TypeComboBox_SelectionChanged">
+                                <ComboBoxItem Content="OPC UA"/>
+                                <ComboBoxItem Content="MQTT"/>
+                                <ComboBoxItem Content="MySQL"/>
+                                <ComboBoxItem Content="SQL Server"/>
+                                <ComboBoxItem Content="FTP/SFTP"/>
+                            </ComboBox>
 
                             <TextBlock Text="Nome" Style="{StaticResource FieldLabel}"/>
                             <TextBox x:Name="NameTextBox" Style="{StaticResource TextInput}"/>
@@ -273,9 +279,12 @@
                                 <ComboBox x:Name="ProtocolComboBox" Style="{StaticResource ReadableCombo}">
                                     <ComboBoxItem Content="SFTP"/>
                                     <ComboBoxItem Content="FTP"/>
+                                    <ComboBoxItem Content="FTPS"/>
                                 </ComboBox>
                                 <TextBlock Text="Diretorio destino" Style="{StaticResource FieldLabel}"/>
                                 <TextBox x:Name="DirectoryTextBox" Style="{StaticResource TextInput}" Text="/"/>
+                                <TextBlock Text="Chave privada (SFTP)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="FtpPrivateKeyPathTextBox" Style="{StaticResource TextInput}"/>
                                 <TextBlock Text="Frequencia" Style="{StaticResource FieldLabel}"/>
                                 <TextBox x:Name="FrequencyTextBox" Style="{StaticResource TextInput}" Text="manual"/>
                                 <TextBlock Text="Tipo de dados" Style="{StaticResource FieldLabel}"/>
@@ -304,6 +313,11 @@
                                 <Button Content="Definir Local" Style="{StaticResource SecondaryButton}" Click="SetMysqlLocal_Click"/>
                                 <Button Content="Definir Remoto" Style="{StaticResource SecondaryButton}" Click="SetMysqlRemote_Click"/>
                                 <Button Content="Inicializar" Style="{StaticResource SecondaryButton}" Click="InitMysql_Click"/>
+                            </StackPanel>
+
+                            <StackPanel x:Name="FtpActions" Orientation="Horizontal" Margin="0,0,0,16" Visibility="Collapsed">
+                                <Button Content="Testar Conexao" Style="{StaticResource SecondaryButton}" Click="TestFtp_Click"/>
+                                <Button Content="Enviar Agora" Style="{StaticResource SecondaryButton}" Click="SendFtp_Click"/>
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>

@@ -36,6 +36,19 @@ public sealed class ConfigService
     private static readonly Uri TagsUpdateEndpoint = new(ApiBaseUri, "/api/config/tags/{id}");
     private static readonly Uri TagsDeleteEndpoint = new(ApiBaseUri, "/api/config/tags/{id}");
     private static readonly Uri MachineFoldersEndpoint = new(ApiBaseUri, "/api/machine-folders");
+    private static readonly Uri MachinesEndpoint = new(ApiBaseUri, "/api/machines");
+    private static readonly Uri WeintekEndpoint = new(ApiBaseUri, "/api/config/weintek");
+    private static readonly Uri WeintekBrowserEndpoint = new(ApiBaseUri, "/api/config/weintek/browser");
+    private static readonly Uri WeintekTokenEndpoint = new(ApiBaseUri, "/api/config/weintek/token");
+    private static readonly Uri AlertsEndpoint = new(ApiBaseUri, "/api/alerts");
+    private static readonly Uri AlertRulesEndpoint = new(ApiBaseUri, "/api/alert-rules");
+    private static readonly Uri AlertsRetentionEndpoint = new(ApiBaseUri, "/api/alerts/retention");
+    private static readonly Uri UsersEndpoint = new(ApiBaseUri, "/api/users");
+    private static readonly Uri AuditLogsEndpoint = new(ApiBaseUri, "/api/audit/logs");
+    private static readonly Uri RecentLogsEndpoint = new(ApiBaseUri, "/api/logs/recent");
+    private static readonly Uri DowntimesEndpoint = new(ApiBaseUri, "/api/downtimes");
+    private static readonly Uri DowntimeReasonsCatalogEndpoint = new(ApiBaseUri, "/api/downtime-reasons/catalog");
+    private static readonly Uri DowntimeRetentionEndpoint = new(ApiBaseUri, "/api/downtimes/retention");
     private static readonly Uri ShiftsEndpoint = new(ApiBaseUri, "/api/config/shifts");
     private static readonly Uri ShiftsUpdateEndpoint = new(ApiBaseUri, "/api/config/shifts");
     private static readonly Uri ShiftsDeleteEndpoint = new(ApiBaseUri, "/api/config/shifts/{id}");
@@ -50,13 +63,12 @@ public sealed class ConfigService
     private static readonly Uri TelegramRecipientsDeleteEndpoint = new(ApiBaseUri, "/api/notifications/telegram/recipients/{id}");
     private static readonly Uri TelegramTestEndpoint = new(ApiBaseUri, "/api/notifications/telegram/test");
     private static readonly Uri TelegramCandidatesEndpoint = new(ApiBaseUri, "/api/notifications/telegram/candidates");
-    private static readonly Uri WeintekEndpoint = new(ApiBaseUri, "/api/config/weintek");
-    private static readonly Uri WeintekUpdateEndpoint = new(ApiBaseUri, "/api/config/weintek");
-    private static readonly Uri WeintekBrowserEndpoint = new(ApiBaseUri, "/api/config/weintek/browser");
-    private static readonly Uri WeintekTokenEndpoint = new(ApiBaseUri, "/api/config/weintek/token");
-    private static readonly Uri WeintekTokenDeleteEndpoint = new(ApiBaseUri, "/api/config/weintek/token");
-    private static readonly Uri WeintekTagsEndpoint = new(ApiBaseUri, "/api/config/weintek/tags");
     private static readonly Uri FtpExportEndpoint = new(ApiBaseUri, "/api/config/ftp-export");
+    private static readonly Uri FtpTestEndpoint = new(ApiBaseUri, "/api/config/ftp-export/test-request");
+    private static readonly Uri FtpSendNowEndpoint = new(ApiBaseUri, "/api/config/ftp-export/send-now");
+    private static readonly Uri MqttCertUploadEndpoint = new(ApiBaseUri, "/api/config/mqtt/certificates/upload");
+    private static readonly Uri TagDeleteEndpoint = new(ApiBaseUri, "/api/config/tags");
+    private static readonly Uri DatabaseBrowserConnectionsEndpoint = new(ApiBaseUri, "/api/database-browser/connections");
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly HttpClient _httpClient;
@@ -98,13 +110,12 @@ public sealed class ConfigService
         }
     }
 
-    public async Task<OpcUaBrowseResult> BrowseOpcUaAsync(string connectionId, CancellationToken cancellationToken = default)
+    public async Task<OpcUaBrowseResult> BrowseOpcUaAsync(int connectionId, string nodeId = "", CancellationToken cancellationToken = default)
     {
         try
         {
-            var endpoint = string.IsNullOrWhiteSpace(connectionId)
-                ? OpcUaBrowseEndpoint
-                : new Uri(ApiBaseUri, $"/api/config/opcua/browse?connection_id={Uri.EscapeDataString(connectionId)}");
+            var nodeIdParam = string.IsNullOrWhiteSpace(nodeId) ? "" : $"&node_id={Uri.EscapeDataString(nodeId)}";
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/opcua/browse?connection_id={connectionId}{nodeIdParam}");
             using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -298,11 +309,12 @@ public sealed class ConfigService
         }
     }
 
-    public async Task<MqttTopicsResult> GetMqttTopicsAsync(CancellationToken cancellationToken = default)
+    public async Task<MqttTopicsResult> GetMqttTopicsAsync(int connectionId, CancellationToken cancellationToken = default)
     {
         try
         {
-            using var response = await _httpClient.GetAsync(MqttTopicsEndpoint, cancellationToken);
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mqtt/cache/topics?connection_id={connectionId}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 return new MqttTopicsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
@@ -330,11 +342,12 @@ public sealed class ConfigService
         }
     }
 
-    public async Task<MqttClientsResult> GetMqttClientsAsync(CancellationToken cancellationToken = default)
+    public async Task<MqttClientsResult> GetMqttClientsAsync(int connectionId, CancellationToken cancellationToken = default)
     {
         try
         {
-            using var response = await _httpClient.GetAsync(MqttClientsEndpoint, cancellationToken);
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mqtt/clients?connection_id={connectionId}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 return new MqttClientsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
@@ -359,6 +372,109 @@ public sealed class ConfigService
         catch (JsonException ex)
         {
             return new MqttClientsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> PublishMqttAsync(int connectionId, string topic, string payload, int qos, bool retain, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payloadObj = new
+            {
+                connection_id = connectionId,
+                topic,
+                payload,
+                qos,
+                retain
+            };
+
+            var json = JsonSerializer.Serialize(payloadObj, JsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(MqttPublishEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Mensagem publicada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> SubscribeMqttAsync(int connectionId, string topic, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payloadObj = new
+            {
+                connection_id = connectionId,
+                topic
+            };
+
+            var json = JsonSerializer.Serialize(payloadObj, JsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(MqttSubscribeEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Tópico inscrito com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UnsubscribeMqttAsync(int connectionId, string topic, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payloadObj = new
+            {
+                connection_id = connectionId,
+                topic
+            };
+
+            var json = JsonSerializer.Serialize(payloadObj, JsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(MqttUnsubscribeEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Tópico removido com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteTagAsync(int tagId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(TagDeleteEndpoint, $"/{tagId}");
+            using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("TAG excluída com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
         }
     }
 
@@ -618,6 +734,141 @@ public sealed class ConfigService
         }
     }
 
+    // FTP/SFTP
+    public async Task<FtpExportResult> GetFtpExportAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(FtpExportEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new FtpExportResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var element = document.RootElement;
+
+            return new FtpExportResult
+            {
+                Enabled = ReadBool(element, "enabled"),
+                Name = ReadString(element, "name") ?? "Exportacao FTP/SFTP",
+                Protocol = ReadString(element, "protocol") ?? "SFTP",
+                Host = ReadString(element, "host") ?? string.Empty,
+                Port = ReadString(element, "port") ?? string.Empty,
+                Username = ReadString(element, "username") ?? string.Empty,
+                PasswordConfigured = ReadBool(element, "password_configured"),
+                PrivateKeyPath = ReadString(element, "private_key_path") ?? string.Empty,
+                Directory = ReadString(element, "destination_path", "directory") ?? string.Empty,
+                Frequency = ReadString(element, "frequency") ?? "manual",
+                DataType = ReadString(element, "data_type") ?? "production",
+                FileFormat = ReadString(element, "file_format") ?? "CSV"
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            return new FtpExportResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new FtpExportResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new FtpExportResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> UpdateFtpExportAsync(FtpExportRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, FtpExportEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Configuração FTP/SFTP salva com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestFtpExportAsync(FtpExportRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, FtpTestEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Teste de conexão FTP/SFTP realizado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> SendFtpNowAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.PostAsync(FtpSendNowEndpoint, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Envio FTP/SFTP iniciado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    // MQTT Certificate Upload
+    public async Task<OperationResult> UploadMqttCertificateAsync(byte[] fileBytes, string kind, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new ByteArrayContent(fileBytes), "file", "cert.pem");
+            content.Add(new StringContent(kind), "kind");
+
+            using var response = await _httpClient.PostAsync(MqttCertUploadEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var path = ReadString(document.RootElement, "path") ?? string.Empty;
+            return OperationResult.CreateSuccess($"Certificado importado: {path}");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
     // Tags
     public async Task<TagsResult> GetTagsAsync(CancellationToken cancellationToken = default)
     {
@@ -663,6 +914,94 @@ public sealed class ConfigService
         }
     }
 
+    public async Task<OperationResult> CreateTagAsync(TagRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                tag_name = request.TagName,
+                data_type = request.DataType,
+                driver_type = request.DriverType,
+                address = request.Address,
+                opcua_connection_id = request.OpcUaConnectionId,
+                poll_interval_ms = request.PollIntervalMs,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(TagsEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("TAG criada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateTagAsync(int tagId, TagRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                tag_name = request.TagName,
+                data_type = request.DataType,
+                driver_type = request.DriverType,
+                address = request.Address,
+                opcua_connection_id = request.OpcUaConnectionId,
+                poll_interval_ms = request.PollIntervalMs,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(TagsEndpoint, $"/{tagId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("TAG atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
     public async Task<MachineFoldersResult> GetMachineFoldersAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -675,8 +1014,8 @@ public sealed class ConfigService
 
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
             var folders = document.RootElement.ValueKind == JsonValueKind.Array
-                ? document.RootElement.EnumerateArray().Select(item => ReadString(item) ?? "-").ToList()
-                : new List<string>();
+                ? document.RootElement.EnumerateArray().Select(ParseMachineFolder).ToList()
+                : new List<MachineFolder>();
 
             return new MachineFoldersResult { Folders = folders };
         }
@@ -691,6 +1030,260 @@ public sealed class ConfigService
         catch (JsonException ex)
         {
             return new MachineFoldersResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    private MachineFolder ParseMachineFolder(JsonElement element)
+    {
+        var id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number
+            ? idProp.GetInt32()
+            : 0;
+
+        var name = TryGetProperty(element, "name", out var nameProp)
+            ? ReadString(nameProp) ?? string.Empty
+            : string.Empty;
+
+        var parentFolderId = TryGetProperty(element, "parent_folder_id", out var parentProp) && parentProp.ValueKind == JsonValueKind.Number
+            ? parentProp.GetInt32() as int?
+            : null;
+
+        var isSector = TryGetProperty(element, "is_sector", out var sectorProp) && sectorProp.ValueKind == JsonValueKind.True
+            ? true
+            : false;
+
+        return new MachineFolder
+        {
+            Id = id,
+            Name = name,
+            ParentFolderId = parentFolderId,
+            IsSector = isSector
+        };
+    }
+
+    // Machines
+    public async Task<OperationResult> CreateMachineAsync(MachineRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                code = request.Code,
+                cost_center = request.CostCenter,
+                location = request.Location,
+                folder_id = request.FolderId,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(MachinesEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Máquina criada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateMachineAsync(int machineId, MachineRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                code = request.Code,
+                cost_center = request.CostCenter,
+                location = request.Location,
+                folder_id = request.FolderId,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(MachinesEndpoint, $"/{machineId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Máquina atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteMachineAsync(int machineId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(MachinesEndpoint, $"/{machineId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Máquina excluída com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> CreateMachineFolderAsync(MachineFolderRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                parent_folder_id = request.ParentFolderId,
+                is_sector = request.IsSector
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(MachineFoldersEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Pasta criada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateMachineFolderAsync(int folderId, MachineFolderRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                parent_folder_id = request.ParentFolderId,
+                is_sector = request.IsSector
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(MachineFoldersEndpoint, $"/{folderId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Pasta atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteMachineFolderAsync(int folderId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(MachineFoldersEndpoint, $"/{folderId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Pasta excluída com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
         }
     }
 
@@ -726,6 +1319,519 @@ public sealed class ConfigService
         }
     }
 
+    // Weintek
+    public async Task<WeintekConfig> GetWeintekConfigAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(WeintekEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new WeintekConfig();
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            return ParseWeintekConfig(document.RootElement);
+        }
+        catch
+        {
+            return new WeintekConfig();
+        }
+    }
+
+    public async Task<OperationResult> UpdateWeintekConfigAsync(WeintekConfig config, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = config.Name,
+                gateway = config.Gateway,
+                fhdx_ip = config.FhdxIp,
+                endpoint_path = config.EndpointPath,
+                enabled = config.Enabled,
+                enforce_source_ip = config.EnforceSourceIp,
+                gateway_token_required = config.GatewayTokenRequired
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PutAsync(WeintekEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Configuração Weintek salva com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<WeintekBrowserResult> GetWeintekBrowserAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(WeintekBrowserEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new WeintekBrowserResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var tags = TryGetProperty(document.RootElement, "tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array
+                ? tagsProp.EnumerateArray().Select(ParseDiscoveredTag).ToList()
+                : new List<DiscoveredTag>();
+
+            return new WeintekBrowserResult { Tags = tags };
+        }
+        catch (OperationCanceledException)
+        {
+            return new WeintekBrowserResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new WeintekBrowserResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new WeintekBrowserResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> GenerateWeintekTokenAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.PostAsync(WeintekTokenEndpoint, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Token gerado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> RevokeWeintekTokenAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, WeintekTokenEndpoint);
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Token revogado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> CreateWeintekTagAsync(string tagName, string address, string dataType, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                tag_name = tagName,
+                address = address,
+                data_type = dataType,
+                persistence_mode = "telemetry"
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(WeintekEndpoint, "/tags");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("TAG criada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    private WeintekConfig ParseWeintekConfig(JsonElement element)
+    {
+        return new WeintekConfig
+        {
+            Name = TryGetProperty(element, "name", out var nameProp) ? ReadString(nameProp) ?? string.Empty : string.Empty,
+            Gateway = TryGetProperty(element, "gateway", out var gatewayProp) ? ReadString(gatewayProp) ?? string.Empty : string.Empty,
+            FhdxIp = TryGetProperty(element, "fhdx_ip", out var fhdxProp) ? ReadString(fhdxProp) ?? string.Empty : string.Empty,
+            EndpointPath = TryGetProperty(element, "endpoint_path", out var pathProp) ? ReadString(pathProp) ?? string.Empty : string.Empty,
+            Enabled = TryGetProperty(element, "enabled", out var enabledProp) && enabledProp.ValueKind == JsonValueKind.True,
+            EnforceSourceIp = TryGetProperty(element, "enforce_source_ip", out var enforceProp) && enforceProp.ValueKind == JsonValueKind.True,
+            GatewayTokenRequired = TryGetProperty(element, "gateway_token_required", out var tokenReqProp) && tokenReqProp.ValueKind == JsonValueKind.True,
+            TokenConfigured = TryGetProperty(element, "token_configured", out var tokenConfigProp) && tokenConfigProp.ValueKind == JsonValueKind.True,
+            TokenPrefix = TryGetProperty(element, "token_prefix", out var tokenPrefixProp) ? ReadString(tokenPrefixProp) : null,
+            TokenCreatedAt = TryGetProperty(element, "token_created_at", out var tokenCreatedProp) ? ReadString(tokenCreatedProp) : null,
+            LastAccessAt = TryGetProperty(element, "last_access_at", out var lastAccessProp) ? ReadString(lastAccessProp) : null,
+            LastSourceIp = TryGetProperty(element, "last_source_ip", out var lastIpProp) ? ReadString(lastIpProp) : null
+        };
+    }
+
+    private DiscoveredTag ParseDiscoveredTag(JsonElement element)
+    {
+        return new DiscoveredTag
+        {
+            Gateway = TryGetProperty(element, "gateway", out var gatewayProp) ? ReadString(gatewayProp) ?? string.Empty : string.Empty,
+            CostCenter = TryGetProperty(element, "cost_center", out var costProp) ? ReadString(costProp) ?? string.Empty : string.Empty,
+            Machine = TryGetProperty(element, "machine", out var machineProp) ? ReadString(machineProp) ?? string.Empty : string.Empty,
+            Tag = TryGetProperty(element, "tag", out var tagProp) ? ReadString(tagProp) ?? string.Empty : string.Empty,
+            Address = TryGetProperty(element, "address", out var addressProp) ? ReadString(addressProp) ?? string.Empty : string.Empty,
+            Value = TryGetProperty(element, "value", out var valueProp) ? valueProp : null,
+            DataType = TryGetProperty(element, "data_type", out var dataTypeProp) ? ReadString(dataTypeProp) ?? string.Empty : string.Empty,
+            FirstSeen = TryGetProperty(element, "first_seen", out var firstSeenProp) ? ReadString(firstSeenProp) ?? string.Empty : string.Empty,
+            LastSeen = TryGetProperty(element, "last_seen", out var lastSeenProp) ? ReadString(lastSeenProp) ?? string.Empty : string.Empty,
+            SourceIp = TryGetProperty(element, "source_ip", out var sourceIpProp) ? ReadString(sourceIpProp) ?? string.Empty : string.Empty,
+            Created = TryGetProperty(element, "created", out var createdProp) && createdProp.ValueKind == JsonValueKind.True
+        };
+    }
+
+    // Alerts
+    public async Task<AlertsResult> GetAlertsAsync(int limit = 20, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri($"{AlertsEndpoint}?limit={limit}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new AlertsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var alerts = TryGetProperty(document.RootElement, "alerts", out var alertsProp) && alertsProp.ValueKind == JsonValueKind.Array
+                ? alertsProp.EnumerateArray().Select(ParseAlertItem).ToList()
+                : new List<AlertItem>();
+
+            return new AlertsResult { Alerts = alerts };
+        }
+        catch (OperationCanceledException)
+        {
+            return new AlertsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new AlertsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new AlertsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<AlertRulesResult> GetAlertRulesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(AlertRulesEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new AlertRulesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var rules = TryGetProperty(document.RootElement, "rules", out var rulesProp) && rulesProp.ValueKind == JsonValueKind.Array
+                ? rulesProp.EnumerateArray().Select(ParseAlertRule).ToList()
+                : new List<AlertRule>();
+
+            return new AlertRulesResult { Rules = rules };
+        }
+        catch (OperationCanceledException)
+        {
+            return new AlertRulesResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new AlertRulesResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new AlertRulesResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> CreateAlertRuleAsync(AlertRuleRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                tag_config_id = request.TagConfigId,
+                @operator = request.Operator,
+                limit_value = request.LimitValue,
+                severity = request.Severity,
+                message = request.Message,
+                telegram_connection_id = request.TelegramConnectionId,
+                telegram_recipient_ids = request.TelegramRecipientIds,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(AlertRulesEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Regra de alerta criada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateAlertRuleAsync(int ruleId, AlertRuleRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                tag_config_id = request.TagConfigId,
+                @operator = request.Operator,
+                limit_value = request.LimitValue,
+                severity = request.Severity,
+                message = request.Message,
+                telegram_connection_id = request.TelegramConnectionId,
+                telegram_recipient_ids = request.TelegramRecipientIds,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(AlertRulesEndpoint, $"/{ruleId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Regra de alerta atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteAlertRuleAsync(int ruleId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(AlertRulesEndpoint, $"/{ruleId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Regra de alerta excluída com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> AcknowledgeAlertAsync(int alertId, string acknowledgedBy, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(AlertsEndpoint, $"/{alertId}/acknowledge?acknowledged_by={acknowledgedBy}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Alerta reconhecido com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateAlertRetentionAsync(int retentionDays, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new { retention_days = retentionDays };
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PutAsync(AlertsRetentionEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Retenção de alertas atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    private AlertItem ParseAlertItem(JsonElement element)
+    {
+        return new AlertItem
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            AlertType = TryGetProperty(element, "alertType", out var alertTypeProp) ? ReadString(alertTypeProp) ?? string.Empty : string.Empty,
+            Severity = TryGetProperty(element, "severity", out var severityProp) ? ReadString(severityProp) ?? string.Empty : string.Empty,
+            Title = TryGetProperty(element, "title", out var titleProp) ? ReadString(titleProp) ?? string.Empty : string.Empty,
+            Message = TryGetProperty(element, "message", out var messageProp) ? ReadString(messageProp) ?? string.Empty : string.Empty,
+            MachineId = TryGetProperty(element, "machineId", out var machineIdProp) ? ReadString(machineIdProp) : null,
+            Metadata = TryGetProperty(element, "metadata", out var metadataProp) ? ReadString(metadataProp) : null,
+            IsAcknowledged = TryGetProperty(element, "isAcknowledged", out var ackProp) && ackProp.ValueKind == JsonValueKind.True,
+            AcknowledgedBy = TryGetProperty(element, "acknowledgedBy", out var ackByProp) ? ReadString(ackByProp) : null,
+            AcknowledgedAt = TryGetProperty(element, "acknowledgedAt", out var ackAtProp) ? ReadString(ackAtProp) : null,
+            CreatedAt = TryGetProperty(element, "createdAt", out var createdAtProp) ? ReadString(createdAtProp) ?? string.Empty : string.Empty
+        };
+    }
+
+    private AlertRule ParseAlertRule(JsonElement element)
+    {
+        return new AlertRule
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Name = TryGetProperty(element, "name", out var nameProp) ? ReadString(nameProp) ?? string.Empty : string.Empty,
+            TagConfigId = TryGetProperty(element, "tagConfigId", out var tagConfigIdProp) && tagConfigIdProp.ValueKind == JsonValueKind.Number ? tagConfigIdProp.GetInt32() : 0,
+            TagName = TryGetProperty(element, "tagName", out var tagNameProp) ? ReadString(tagNameProp) : null,
+            Operator = TryGetProperty(element, "operator", out var operatorProp) ? ReadString(operatorProp) ?? ">" : ">",
+            LimitValue = TryGetProperty(element, "limitValue", out var limitProp) && limitProp.ValueKind == JsonValueKind.Number ? limitProp.GetDouble() : 0,
+            Severity = TryGetProperty(element, "severity", out var severityProp) ? ReadString(severityProp) ?? "medium" : "medium",
+            Message = TryGetProperty(element, "message", out var messageProp) ? ReadString(messageProp) ?? string.Empty : string.Empty,
+            TelegramConnectionId = TryGetProperty(element, "telegramConnectionId", out var telegramConnProp) && telegramConnProp.ValueKind == JsonValueKind.Number ? telegramConnProp.GetInt32() as int? : null,
+            TelegramRecipientIds = TryGetProperty(element, "telegramRecipientIds", out var recipProp) && recipProp.ValueKind == JsonValueKind.Array
+                ? recipProp.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.Number ? x.GetInt32() : 0).ToList()
+                : new List<int>(),
+            IsActive = TryGetProperty(element, "isActive", out var activeProp) && activeProp.ValueKind == JsonValueKind.True
+        };
+    }
+
     // Telegram
     public async Task<TelegramStatusResult> GetTelegramStatusAsync(CancellationToken cancellationToken = default)
     {
@@ -759,46 +1865,810 @@ public sealed class ConfigService
         }
     }
 
-    // FTP Export
-    public async Task<FtpExportResult> GetFtpExportAsync(CancellationToken cancellationToken = default)
+    public async Task<TelegramConnectionsResult> GetTelegramConnectionsAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            using var response = await _httpClient.GetAsync(FtpExportEndpoint, cancellationToken);
+            using var response = await _httpClient.GetAsync(TelegramConnectionsEndpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return new FtpExportResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+                return new TelegramConnectionsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
             }
 
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
-            return new FtpExportResult
-            {
-                Enabled = ReadBool(document.RootElement, "enabled"),
-                Name = ReadString(document.RootElement, "name") ?? "Exportacao FTP/SFTP",
-                Protocol = ReadString(document.RootElement, "protocol") ?? "SFTP",
-                Host = ReadString(document.RootElement, "host") ?? string.Empty,
-                Port = ReadString(document.RootElement, "port") ?? string.Empty,
-                Username = ReadString(document.RootElement, "username") ?? string.Empty,
-                PasswordConfigured = ReadBool(document.RootElement, "passwordConfigured", "password_configured"),
-                PrivateKeyPath = ReadString(document.RootElement, "privateKeyPath", "private_key_path") ?? string.Empty,
-                Directory = ReadString(document.RootElement, "directory", "destinationPath", "destination_path") ?? string.Empty,
-                Frequency = ReadString(document.RootElement, "frequency") ?? "manual",
-                DataType = ReadString(document.RootElement, "dataType", "data_type") ?? "production",
-                FileFormat = ReadString(document.RootElement, "fileFormat", "file_format") ?? "CSV"
-            };
+            var connections = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseTelegramConnection).ToList()
+                : new List<TelegramConnection>();
+
+            return new TelegramConnectionsResult { Connections = connections };
         }
         catch (OperationCanceledException)
         {
-            return new FtpExportResult { Error = "Tempo esgotado" };
+            return new TelegramConnectionsResult { Error = "Tempo esgotado" };
         }
         catch (HttpRequestException)
         {
-            return new FtpExportResult { Error = "Servidor não disponível" };
+            return new TelegramConnectionsResult { Error = "Servidor não disponível" };
         }
         catch (JsonException ex)
         {
-            return new FtpExportResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+            return new TelegramConnectionsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
         }
+    }
+
+    public async Task<TelegramRecipientsResult> GetTelegramRecipientsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(TelegramRecipientsEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new TelegramRecipientsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var recipients = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseTelegramRecipient).ToList()
+                : new List<TelegramRecipient>();
+
+            return new TelegramRecipientsResult { Recipients = recipients };
+        }
+        catch (OperationCanceledException)
+        {
+            return new TelegramRecipientsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new TelegramRecipientsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new TelegramRecipientsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> CreateTelegramConnectionAsync(TelegramConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                bot_token = request.BotToken,
+                default_chat_id = request.DefaultChatId,
+                cooldown_minutes = request.CooldownMinutes,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(TelegramConnectionsCreateEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Conexão Telegram criada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateTelegramConnectionAsync(int connectionId, TelegramConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                name = request.Name,
+                bot_token = request.BotToken,
+                default_chat_id = request.DefaultChatId,
+                cooldown_minutes = request.CooldownMinutes,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(TelegramConnectionsUpdateEndpoint.ToString().Replace("{id}", connectionId.ToString()));
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Conexão Telegram atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteTelegramConnectionAsync(int connectionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(TelegramConnectionsDeleteEndpoint.ToString().Replace("{id}", connectionId.ToString()));
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Conexão Telegram excluída com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> CreateTelegramRecipientAsync(TelegramRecipientRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                connection_id = request.ConnectionId,
+                name = request.Name,
+                chat_id = request.ChatId,
+                destination_type = request.DestinationType,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(TelegramRecipientsCreateEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Destinatário Telegram criado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateTelegramRecipientAsync(int recipientId, TelegramRecipientRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                connection_id = request.ConnectionId,
+                name = request.Name,
+                chat_id = request.ChatId,
+                destination_type = request.DestinationType,
+                is_active = request.IsActive
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(TelegramRecipientsUpdateEndpoint.ToString().Replace("{id}", recipientId.ToString()));
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Destinatário Telegram atualizado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteTelegramRecipientAsync(int recipientId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(TelegramRecipientsDeleteEndpoint.ToString().Replace("{id}", recipientId.ToString()));
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Destinatário Telegram excluído com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestTelegramAsync(int? connectionId = null, int? recipientId = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                connection_id = connectionId,
+                recipient_id = recipientId,
+                message = "Teste de notificação iioT AnalictY"
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(TelegramTestEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Teste Telegram enviado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    private TelegramConnection ParseTelegramConnection(JsonElement element)
+    {
+        return new TelegramConnection
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Name = TryGetProperty(element, "name", out var nameProp) ? ReadString(nameProp) ?? string.Empty : string.Empty,
+            BotTokenConfigured = TryGetProperty(element, "bot_token_configured", out var tokenConfigProp) && tokenConfigProp.ValueKind == JsonValueKind.True,
+            BotTokenMasked = TryGetProperty(element, "bot_token_masked", out var tokenMaskedProp) ? ReadString(tokenMaskedProp) : null,
+            DefaultChatId = TryGetProperty(element, "default_chat_id", out var chatIdProp) ? ReadString(chatIdProp) : null,
+            IsActive = TryGetProperty(element, "is_active", out var activeProp) && activeProp.ValueKind == JsonValueKind.True,
+            CooldownMinutes = TryGetProperty(element, "cooldown_minutes", out var cooldownProp) && cooldownProp.ValueKind == JsonValueKind.Number ? cooldownProp.GetInt32() : 15,
+            Recipients = TryGetProperty(element, "recipients", out var recipProp) && recipProp.ValueKind == JsonValueKind.Number ? recipProp.GetInt32() : 0,
+            ActiveRecipients = TryGetProperty(element, "active_recipients", out var activeRecipProp) && activeRecipProp.ValueKind == JsonValueKind.Number ? activeRecipProp.GetInt32() : 0
+        };
+    }
+
+    private TelegramRecipient ParseTelegramRecipient(JsonElement element)
+    {
+        return new TelegramRecipient
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            ConnectionId = TryGetProperty(element, "connection_id", out var connIdProp) && connIdProp.ValueKind == JsonValueKind.Number ? connIdProp.GetInt32() : 0,
+            Name = TryGetProperty(element, "name", out var nameProp) ? ReadString(nameProp) ?? string.Empty : string.Empty,
+            ChatId = TryGetProperty(element, "chat_id", out var chatIdProp) ? ReadString(chatIdProp) ?? string.Empty : string.Empty,
+            DestinationType = TryGetProperty(element, "destination_type", out var destTypeProp) ? ReadString(destTypeProp) ?? string.Empty : string.Empty,
+            IsActive = TryGetProperty(element, "is_active", out var activeProp) && activeProp.ValueKind == JsonValueKind.True
+        };
+    }
+
+    // Users
+    public async Task<UsersResult> GetUsersAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(UsersEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new UsersResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var users = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseUser).ToList()
+                : new List<User>();
+
+            return new UsersResult { Users = users };
+        }
+        catch (OperationCanceledException)
+        {
+            return new UsersResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new UsersResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new UsersResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> CreateUserAsync(UserRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                username = request.Username,
+                email = request.Email,
+                password = request.Password,
+                role = request.Role,
+                is_active = request.IsActive,
+                permissions = request.Role == "custom" ? request.Permissions : new List<string>(),
+                mfa_required = request.MfaRequired
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PostAsync(UsersEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Usuário criado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateUserAsync(int userId, UserRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                email = request.Email,
+                password = string.IsNullOrWhiteSpace(request.Password) ? null : request.Password,
+                role = request.Role,
+                is_active = request.IsActive,
+                permissions = request.Role == "custom" ? request.Permissions : new List<string>(),
+                mfa_required = request.MfaRequired
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(UsersEndpoint, $"/{userId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Usuário atualizado com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(UsersEndpoint, $"/{userId}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Usuário excluído com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    private User ParseUser(JsonElement element)
+    {
+        return new User
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Username = TryGetProperty(element, "username", out var usernameProp) ? ReadString(usernameProp) ?? string.Empty : string.Empty,
+            Email = TryGetProperty(element, "email", out var emailProp) ? ReadString(emailProp) ?? string.Empty : string.Empty,
+            Role = TryGetProperty(element, "role", out var roleProp) ? ReadString(roleProp) ?? "user" : "user",
+            Permissions = TryGetProperty(element, "permissions", out var permProp) && permProp.ValueKind == JsonValueKind.Array
+                ? permProp.EnumerateArray().Select(x => x.ValueKind == JsonValueKind.String ? x.GetString() ?? string.Empty : string.Empty).ToList()
+                : new List<string>(),
+            IsActive = TryGetProperty(element, "is_active", out var activeProp) && activeProp.ValueKind == JsonValueKind.True,
+            MfaRequired = TryGetProperty(element, "mfa_required", out var mfaReqProp) && mfaReqProp.ValueKind == JsonValueKind.True,
+            MfaEnabled = TryGetProperty(element, "mfa_enabled", out var mfaEnabledProp) && mfaEnabledProp.ValueKind == JsonValueKind.True
+        };
+    }
+
+    // Audit
+    public async Task<AuditLogsResult> GetAuditLogsAsync(int take = 200, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri($"{AuditLogsEndpoint}?take={take}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new AuditLogsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var logs = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseAuditLog).ToList()
+                : new List<AuditLog>();
+
+            return new AuditLogsResult { Logs = logs };
+        }
+        catch (OperationCanceledException)
+        {
+            return new AuditLogsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new AuditLogsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new AuditLogsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    private AuditLog ParseAuditLog(JsonElement element)
+    {
+        return new AuditLog
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Username = TryGetProperty(element, "username", out var usernameProp) ? ReadString(usernameProp) ?? string.Empty : string.Empty,
+            Role = TryGetProperty(element, "role", out var roleProp) ? ReadString(roleProp) ?? string.Empty : string.Empty,
+            Action = TryGetProperty(element, "action", out var actionProp) ? ReadString(actionProp) ?? string.Empty : string.Empty,
+            Path = TryGetProperty(element, "path", out var pathProp) ? ReadString(pathProp) ?? string.Empty : string.Empty,
+            EntityType = TryGetProperty(element, "entityType", out var entityTypeProp) ? ReadString(entityTypeProp) : null,
+            EntityId = TryGetProperty(element, "entityId", out var entityIdProp) ? ReadString(entityIdProp) : null,
+            StatusCode = TryGetProperty(element, "statusCode", out var statusCodeProp) && statusCodeProp.ValueKind == JsonValueKind.Number ? statusCodeProp.GetInt32() : 0,
+            IpAddress = TryGetProperty(element, "ipAddress", out var ipAddressProp) ? ReadString(ipAddressProp) : null,
+            CreatedAt = TryGetProperty(element, "createdAt", out var createdAtProp) ? ReadString(createdAtProp) ?? string.Empty : string.Empty
+        };
+    }
+
+    // Logs
+    public async Task<RecentLogsResult> GetRecentLogsAsync(int take = 300, string? level = null, string? search = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var queryParams = $"take={take}";
+            if (!string.IsNullOrWhiteSpace(level) && level != "Todos")
+            {
+                queryParams += $"&level={level}";
+            }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                queryParams += $"&search={search}";
+            }
+
+            var endpoint = new Uri($"{RecentLogsEndpoint}?{queryParams}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new RecentLogsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var logs = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseRecentLog).ToList()
+                : new List<RecentLog>();
+
+            return new RecentLogsResult { Logs = logs };
+        }
+        catch (OperationCanceledException)
+        {
+            return new RecentLogsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new RecentLogsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new RecentLogsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    private RecentLog ParseRecentLog(JsonElement element)
+    {
+        return new RecentLog
+        {
+            Timestamp = TryGetProperty(element, "timestamp", out var timestampProp) ? ReadString(timestampProp) ?? string.Empty : string.Empty,
+            Level = TryGetProperty(element, "level", out var levelProp) ? ReadString(levelProp) ?? string.Empty : string.Empty,
+            Category = TryGetProperty(element, "category", out var categoryProp) ? ReadString(categoryProp) ?? string.Empty : string.Empty,
+            Message = TryGetProperty(element, "message", out var messageProp) ? ReadString(messageProp) ?? string.Empty : string.Empty,
+            Exception = TryGetProperty(element, "exception", out var exceptionProp) ? ReadString(exceptionProp) : null
+        };
+    }
+
+    // Downtime Reasons
+    public async Task<DowntimesResult> GetDowntimesAsync(string? machineId = null, string? from = null, string? to = null, int limit = 30, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var queryParams = $"limit={limit}";
+            if (!string.IsNullOrWhiteSpace(machineId)) queryParams += $"&machine_id={machineId}";
+            if (!string.IsNullOrWhiteSpace(from)) queryParams += $"&from={from}";
+            if (!string.IsNullOrWhiteSpace(to)) queryParams += $"&to={to}";
+
+            var endpoint = new Uri($"{DowntimesEndpoint}?{queryParams}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new DowntimesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var downtimes = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseDowntime).ToList()
+                : new List<Downtime>();
+
+            return new DowntimesResult { Downtimes = downtimes };
+        }
+        catch (OperationCanceledException)
+        {
+            return new DowntimesResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new DowntimesResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new DowntimesResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<DowntimeReasonsResult> GetDowntimeReasonsCatalogAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(DowntimeReasonsCatalogEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new DowntimeReasonsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var reasons = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseDowntimeReason).ToList()
+                : new List<DowntimeReason>();
+
+            return new DowntimeReasonsResult { Reasons = reasons };
+        }
+        catch (OperationCanceledException)
+        {
+            return new DowntimeReasonsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new DowntimeReasonsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new DowntimeReasonsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> ClassifyDowntimeAsync(int downtimeId, int? reasonId, string? informedReason, string? observation, string acknowledgedBy, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new
+            {
+                reason_id = reasonId,
+                motivo_informado = informedReason,
+                observacao = observation,
+                reconhecida_por = acknowledgedBy
+            };
+
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            var endpoint = new Uri(DowntimesEndpoint, $"/{downtimeId}/classify");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = content
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Parada classificada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateDowntimeRetentionAsync(int retentionDays, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = new { retention_days = retentionDays };
+            var json = JsonSerializer.Serialize(payload, JsonOptions);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.PutAsync(DowntimeRetentionEndpoint, content, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorText = await response.Content.ReadAsStringAsync(cancellationToken);
+                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
+            }
+
+            return OperationResult.CreateSuccess("Retenção de paradas atualizada com sucesso");
+        }
+        catch (OperationCanceledException)
+        {
+            return OperationResult.CreateFailed("Tempo esgotado");
+        }
+        catch (HttpRequestException)
+        {
+            return OperationResult.CreateFailed("Servidor não disponível");
+        }
+        catch (JsonException ex)
+        {
+            return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    private Downtime ParseDowntime(JsonElement element)
+    {
+        return new Downtime
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            DowntimeId = TryGetProperty(element, "downtime_id", out var downtimeIdProp) && downtimeIdProp.ValueKind == JsonValueKind.Number ? downtimeIdProp.GetInt32() as int? : null,
+            MachineId = TryGetProperty(element, "machine_id", out var machineIdProp) ? ReadString(machineIdProp) ?? string.Empty : string.Empty,
+            MachineName = TryGetProperty(element, "machine_name", out var machineNameProp) ? ReadString(machineNameProp) : null,
+            MachineCode = TryGetProperty(element, "machine_code", out var machineCodeProp) ? ReadString(machineCodeProp) : null,
+            StartTime = TryGetProperty(element, "start_time", out var startTimeProp) ? ReadString(startTimeProp) ?? string.Empty : string.Empty,
+            EndTime = TryGetProperty(element, "end_time", out var endTimeProp) ? ReadString(endTimeProp) : null,
+            DurationSeconds = TryGetProperty(element, "duration_seconds", out var durationProp) && durationProp.ValueKind == JsonValueKind.Number ? durationProp.GetInt32() as int? : null,
+            StatusOrigin = TryGetProperty(element, "status_origin", out var statusOriginProp) && statusOriginProp.ValueKind == JsonValueKind.Number ? statusOriginProp.GetInt32() as int? : null,
+            StatusOriginDescription = TryGetProperty(element, "status_origin_description", out var statusOriginDescProp) ? ReadString(statusOriginDescProp) : null,
+            CanClassify = TryGetProperty(element, "can_classify", out var canClassifyProp) && canClassifyProp.ValueKind == JsonValueKind.True,
+            ReasonId = TryGetProperty(element, "reason_id", out var reasonIdProp) && reasonIdProp.ValueKind == JsonValueKind.Number ? reasonIdProp.GetInt32() as int? : null,
+            Reason = TryGetProperty(element, "reason", out var reasonProp) ? ReadString(reasonProp) : null,
+            Category = TryGetProperty(element, "category", out var categoryProp) ? ReadString(categoryProp) : null,
+            InformedReason = TryGetProperty(element, "informed_reason", out var informedReasonProp) ? ReadString(informedReasonProp) : null,
+            Observation = TryGetProperty(element, "observation", out var observationProp) ? ReadString(observationProp) : null,
+            AcknowledgedBy = TryGetProperty(element, "acknowledged_by", out var ackByProp) ? ReadString(ackByProp) : null
+        };
+    }
+
+    private DowntimeReason ParseDowntimeReason(JsonElement element)
+    {
+        return new DowntimeReason
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Code = TryGetProperty(element, "code", out var codeProp) ? ReadString(codeProp) ?? string.Empty : string.Empty,
+            Description = TryGetProperty(element, "description", out var descProp) ? ReadString(descProp) ?? string.Empty : string.Empty,
+            Category = TryGetProperty(element, "category", out var categoryProp) ? ReadString(categoryProp) : null
+        };
     }
 
     public async Task<OperationResult> SaveFtpExportAsync(FtpExportRequest request, CancellationToken cancellationToken = default)
@@ -818,24 +2688,6 @@ public sealed class ConfigService
             }
 
             return OperationResult.CreateSuccess("Configuracao FTP/SFTP atualizada com sucesso");
-        }
-        catch (Exception ex)
-        {
-            return OperationResult.CreateFailed($"Erro: {ex.Message}");
-        }
-    }
-
-    public async Task<OperationResult> TestFtpExportAsync(CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            using var response = await _httpClient.PostAsync(new Uri(ApiBaseUri, "/api/config/ftp-export/test"), null, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
-            }
-
-            return OperationResult.CreateSuccess("Conexao FTP/SFTP estabelecida com sucesso");
         }
         catch (Exception ex)
         {
@@ -906,7 +2758,7 @@ public sealed class ConfigService
         {
             id,
             name = string.IsNullOrWhiteSpace(request.Name) ? "OPC UA" : request.Name.Trim(),
-            server_url = request.Endpoint.Trim(),
+            server_url = request.ServerUrl.Trim(),
             security_policy = securityPolicy,
             security_mode = securityMode,
             username = request.Username ?? string.Empty,
@@ -925,8 +2777,8 @@ public sealed class ConfigService
             id,
             name = request.Name,
             client_id = request.ClientId ?? string.Empty,
-            broker_host = request.Host,
-            broker_port = ParsePort(request.Port, 1883),
+            broker_host = request.BrokerHost,
+            broker_port = ParsePort(request.BrokerPort, 1883),
             username = request.Username ?? string.Empty,
             password = request.Password ?? string.Empty,
             tls_enabled = request.TlsEnabled,
@@ -955,7 +2807,7 @@ public sealed class ConfigService
             is_primary = request.IsPrimary,
             is_local = request.IsLocal || string.Equals(request.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
                        string.Equals(request.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase),
-            provider = string.IsNullOrWhiteSpace(request.Type) ? "MySQL" : request.Type
+            provider = string.IsNullOrWhiteSpace(request.Provider) ? "MySQL" : request.Provider
         };
     }
 
@@ -994,7 +2846,7 @@ public sealed class ConfigService
         {
             Id = ReadString(element, "id") ?? string.Empty,
             Name = ReadString(element, "name") ?? string.Empty,
-            Endpoint = ReadString(element, "endpoint", "serverUrl", "server_url") ?? string.Empty,
+            ServerUrl = ReadString(element, "endpoint", "serverUrl", "server_url") ?? string.Empty,
             SecurityPolicy = ReadString(element, "securityPolicy", "security_policy") ?? "None",
             SecurityMode = ReadString(element, "securityMode", "security_mode") ?? "None",
             Username = ReadString(element, "username") ?? string.Empty,
@@ -1024,8 +2876,8 @@ public sealed class ConfigService
             Id = ReadString(element, "id") ?? string.Empty,
             Name = ReadString(element, "name") ?? string.Empty,
             ClientId = ReadString(element, "clientId", "client_id") ?? string.Empty,
-            Host = ReadString(element, "host", "brokerHost", "broker_host") ?? string.Empty,
-            Port = ReadString(element, "port", "brokerPort", "broker_port") ?? string.Empty,
+            BrokerHost = ReadString(element, "host", "brokerHost", "broker_host") ?? string.Empty,
+            BrokerPort = ReadString(element, "port", "brokerPort", "broker_port") ?? string.Empty,
             Username = ReadString(element, "username") ?? string.Empty,
             TlsEnabled = ReadBool(element, "tlsEnabled", "tls_enabled"),
             CaCertPath = ReadString(element, "caCertPath", "ca_cert_path") ?? string.Empty,
@@ -1080,7 +2932,7 @@ public sealed class ConfigService
             Host = ReadString(element, "host") ?? string.Empty,
             Port = ReadString(element, "port") ?? string.Empty,
             Database = ReadString(element, "database") ?? string.Empty,
-            Type = ReadString(element, "type", "provider") ?? "MySQL",
+            Provider = ReadString(element, "type", "provider") ?? "MySQL",
             Username = ReadString(element, "username", "user") ?? string.Empty,
             PoolSize = ReadString(element, "poolSize", "pool_size") ?? "10",
             IsActive = ReadBoolDefaultTrue(element, "isActive", "is_active"),
@@ -1222,6 +3074,251 @@ public sealed class ConfigService
         }
 
         return true;
+    }
+
+    // Database Browser
+    public async Task<DatabaseConnectionsResult> GetDatabaseConnectionsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(DatabaseBrowserConnectionsEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new DatabaseConnectionsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var connections = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseDatabaseConnection).ToList()
+                : new List<DatabaseConnection>();
+
+            return new DatabaseConnectionsResult { Connections = connections };
+        }
+        catch (OperationCanceledException)
+        {
+            return new DatabaseConnectionsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new DatabaseConnectionsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new DatabaseConnectionsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<DatabasesResult> GetDatabasesAsync(int connectionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/database-browser/connections/{connectionId}/databases");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new DatabasesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var databases = ReadArray(document.RootElement, "databases")
+                .Select(item => new DatabaseInfo
+                {
+                    Name = ReadString(item, "name") ?? string.Empty,
+                    IsDefault = ReadBool(item, "is_default", "isDefault")
+                })
+                .ToList();
+
+            return new DatabasesResult { Databases = databases };
+        }
+        catch (OperationCanceledException)
+        {
+            return new DatabasesResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new DatabasesResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new DatabasesResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<TablesResult> GetTablesAsync(int connectionId, string database, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/database-browser/connections/{connectionId}/tables?database={Uri.EscapeDataString(database)}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new TablesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var tables = ReadArray(document.RootElement, "tables")
+                .Select(ParseTableInfo)
+                .ToList();
+
+            return new TablesResult { Tables = tables };
+        }
+        catch (OperationCanceledException)
+        {
+            return new TablesResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new TablesResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new TablesResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<ColumnsResult> GetColumnsAsync(int connectionId, string database, string schema, string table, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/database-browser/connections/{connectionId}/columns?database={Uri.EscapeDataString(database)}&schema={Uri.EscapeDataString(schema)}&table={Uri.EscapeDataString(table)}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ColumnsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var columns = ReadArray(document.RootElement, "columns")
+                .Select(ParseColumnInfo)
+                .ToList();
+
+            return new ColumnsResult { Columns = columns };
+        }
+        catch (OperationCanceledException)
+        {
+            return new ColumnsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new ColumnsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new ColumnsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<RowsResult> GetRowsAsync(int connectionId, string database, string schema, string table, int limit, int offset, string? search = null, int? machineId = null, string? machineCode = null, string? costCenter = null, string? dateFrom = null, string? dateTo = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var queryParams = new List<string>
+            {
+                $"database={Uri.EscapeDataString(database)}",
+                $"schema={Uri.EscapeDataString(schema)}",
+                $"table={Uri.EscapeDataString(table)}",
+                $"limit={limit}",
+                $"offset={offset}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(search))
+                queryParams.Add($"q={Uri.EscapeDataString(search)}");
+            if (machineId.HasValue)
+                queryParams.Add($"machine_id={machineId.Value}");
+            if (!string.IsNullOrWhiteSpace(machineCode))
+                queryParams.Add($"machine_code={Uri.EscapeDataString(machineCode)}");
+            if (!string.IsNullOrWhiteSpace(costCenter))
+                queryParams.Add($"cost_center={Uri.EscapeDataString(costCenter)}");
+            if (!string.IsNullOrWhiteSpace(dateFrom))
+                queryParams.Add($"date_from={Uri.EscapeDataString(dateFrom)}");
+            if (!string.IsNullOrWhiteSpace(dateTo))
+                queryParams.Add($"date_to={Uri.EscapeDataString(dateTo)}");
+
+            var endpoint = new Uri(ApiBaseUri, $"/api/database-browser/connections/{connectionId}/rows?{string.Join('&', queryParams)}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new RowsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var columns = ReadArray(document.RootElement, "columns")
+                .Select(item => ReadString(item) ?? string.Empty)
+                .ToList();
+
+            var rows = ReadArray(document.RootElement, "rows")
+                .Select(item => item.ValueKind == JsonValueKind.Object
+                    ? item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValue(p.Value))
+                    : new Dictionary<string, object>())
+                .ToList();
+
+            return new RowsResult { Columns = columns, Rows = rows };
+        }
+        catch (OperationCanceledException)
+        {
+            return new RowsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new RowsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new RowsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    private DatabaseConnection ParseDatabaseConnection(JsonElement element)
+    {
+        return new DatabaseConnection
+        {
+            Id = TryGetProperty(element, "id", out var idValue) && idValue.ValueKind == JsonValueKind.Number ? idValue.GetInt32() : 0,
+            Name = ReadString(element, "name") ?? string.Empty,
+            Provider = ReadString(element, "provider") ?? string.Empty,
+            Host = ReadString(element, "host") ?? string.Empty,
+            Port = ReadString(element, "port") ?? string.Empty,
+            Database = ReadString(element, "database") ?? string.Empty,
+            IsActive = ReadBool(element, "is_active", "isActive"),
+            IsPrimary = ReadBool(element, "is_primary", "isPrimary"),
+            IsLocal = ReadBool(element, "is_local", "isLocal")
+        };
+    }
+
+    private TableInfo ParseTableInfo(JsonElement element)
+    {
+        return new TableInfo
+        {
+            Schema = ReadString(element, "schema") ?? string.Empty,
+            Name = ReadString(element, "name") ?? string.Empty,
+            Type = ReadString(element, "type") ?? string.Empty,
+            Rows = TryGetProperty(element, "rows", out var rowsValue) && rowsValue.ValueKind == JsonValueKind.Number ? rowsValue.GetInt32() : null
+        };
+    }
+
+    private ColumnInfo ParseColumnInfo(JsonElement element)
+    {
+        return new ColumnInfo
+        {
+            Name = ReadString(element, "name") ?? string.Empty,
+            DataType = ReadString(element, "data_type", "dataType") ?? string.Empty,
+            FullType = ReadString(element, "full_type", "fullType") ?? string.Empty,
+            Nullable = ReadBool(element, "nullable"),
+            Key = ReadString(element, "key") ?? string.Empty,
+            Ordinal = TryGetProperty(element, "ordinal", out var ordValue) && ordValue.ValueKind == JsonValueKind.Number ? ordValue.GetInt32() : 0
+        };
+    }
+
+    private object? GetJsonValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.TryGetInt64(out var longVal) ? longVal : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            _ => element.ToString()
+        };
     }
 
     private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)

@@ -1,9 +1,8 @@
 using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Input;
 using AnalictY.Manager.Infrastructure;
-using AnalictY.Manager.Models;
 using AnalictY.Manager.Services;
+using AnalictY.Manager.Models;
 
 namespace AnalictY.Manager.ViewModels;
 
@@ -11,75 +10,53 @@ public sealed class TagsViewModel : ObservableObject
 {
     private readonly ConfigService _configService;
     private bool _isLoading;
-    private string _selectedMachine = "Todas";
-    private string _selectedDriver = "Todos";
-    private string _searchText = string.Empty;
-    private string _totalTags = "-";
-    private string _activeTags = "-";
-    private string _staleTags = "-";
-    private string _errorTags = "-";
-    private string _statusMessage = "Carregando tags...";
+    private string _statusMessage = "Carregando TAGs...";
     private string _errorMessage = string.Empty;
+    private string _search = string.Empty;
+    private Tag? _selectedTag;
+
+    // Form fields
+    private string _tagName = string.Empty;
+    private string _dataType = "Double";
+    private string _driverType = "OPCUA";
+    private string _address = string.Empty;
+    private int _opcuaConnectionId;
+    private int _pollIntervalMs = 1000;
+    private bool _isActive = true;
 
     public TagsViewModel(ConfigService configService)
     {
         _configService = configService;
-        LoadTagsCommand = new RelayCommand(async _ => await LoadTagsAsync());
-        RefreshCommand = new RelayCommand(async _ => await LoadTagsAsync());
+        RefreshCommand = new RelayCommand(Refresh);
+        CreateCommand = new RelayCommand(OpenCreateModal);
+        EditCommand = new RelayCommand(OpenEditModal);
+        DeleteCommand = new RelayCommand(DeleteTag);
+        SaveCommand = new RelayCommand(SaveTag);
 
-        Machines = new ObservableCollection<string> { "Todas" };
-        Drivers = new ObservableCollection<string> { "Todos", "OPC UA", "MQTT", "HTTP", "Modbus" };
-        TagRows = new ObservableCollection<TagRow>();
-
-        _ = LoadTagsAsync();
+        Tags = new ObservableCollection<Tag>();
+        FilteredTags = new ObservableCollection<Tag>();
     }
+
+    public ObservableCollection<Tag> Tags { get; }
+    public ObservableCollection<Tag> FilteredTags { get; }
+
+    public ICommand RefreshCommand { get; }
+    public ICommand CreateCommand { get; }
+    public ICommand EditCommand { get; }
+    public ICommand DeleteCommand { get; }
+    public ICommand SaveCommand { get; }
+
+    private async Task OnRefreshAsync()
+    {
+        await LoadAsync();
+    }
+
+    public Task Refresh() => OnRefreshAsync();
 
     public bool IsLoading
     {
         get => _isLoading;
         set => SetProperty(ref _isLoading, value);
-    }
-
-    public string SelectedMachine
-    {
-        get => _selectedMachine;
-        set => SetProperty(ref _selectedMachine, value);
-    }
-
-    public string SelectedDriver
-    {
-        get => _selectedDriver;
-        set => SetProperty(ref _selectedDriver, value);
-    }
-
-    public string SearchText
-    {
-        get => _searchText;
-        set => SetProperty(ref _searchText, value);
-    }
-
-    public string TotalTags
-    {
-        get => _totalTags;
-        set => SetProperty(ref _totalTags, value);
-    }
-
-    public string ActiveTags
-    {
-        get => _activeTags;
-        set => SetProperty(ref _activeTags, value);
-    }
-
-    public string StaleTags
-    {
-        get => _staleTags;
-        set => SetProperty(ref _staleTags, value);
-    }
-
-    public string ErrorTags
-    {
-        get => _errorTags;
-        set => SetProperty(ref _errorTags, value);
     }
 
     public string StatusMessage
@@ -94,81 +71,238 @@ public sealed class TagsViewModel : ObservableObject
         set => SetProperty(ref _errorMessage, value);
     }
 
-    public ObservableCollection<string> Machines { get; }
-    public ObservableCollection<string> Drivers { get; }
-    public ObservableCollection<TagRow> TagRows { get; }
-    public ICommand LoadTagsCommand { get; }
-    public ICommand RefreshCommand { get; }
+    public string Search
+    {
+        get => _search;
+        set
+        {
+            if (SetProperty(ref _search, value))
+            {
+                FilterTags();
+            }
+        }
+    }
 
-    private async Task LoadTagsAsync()
+    public Tag? SelectedTag
+    {
+        get => _selectedTag;
+        set => SetProperty(ref _selectedTag, value);
+    }
+
+    // Form fields
+    public string TagName
+    {
+        get => _tagName;
+        set => SetProperty(ref _tagName, value);
+    }
+
+    public string DataType
+    {
+        get => _dataType;
+        set => SetProperty(ref _dataType, value);
+    }
+
+    public string DriverType
+    {
+        get => _driverType;
+        set => SetProperty(ref _driverType, value);
+    }
+
+    public string Address
+    {
+        get => _address;
+        set => SetProperty(ref _address, value);
+    }
+
+    public int OpcUaConnectionId
+    {
+        get => _opcuaConnectionId;
+        set => SetProperty(ref _opcuaConnectionId, value);
+    }
+
+    public int PollIntervalMs
+    {
+        get => _pollIntervalMs;
+        set => SetProperty(ref _pollIntervalMs, value);
+    }
+
+    public bool IsActive
+    {
+        get => _isActive;
+        set => SetProperty(ref _isActive, value);
+    }
+
+    public bool IsEditing => SelectedTag != null;
+
+    public async Task LoadAsync()
     {
         IsLoading = true;
-        StatusMessage = "Carregando tags...";
         ErrorMessage = string.Empty;
+        StatusMessage = "Carregando TAGs...";
 
         try
         {
-            // Load machine folders
-            var foldersResult = await _configService.GetMachineFoldersAsync();
-            if (foldersResult.Error == null)
+            var result = await _configService.GetTagsAsync();
+            if (!string.IsNullOrWhiteSpace(result.Error))
             {
-                Machines.Clear();
-                Machines.Add("Todas");
-                foreach (var folder in foldersResult.Folders)
-                {
-                    Machines.Add(folder);
-                }
-            }
-
-            // Load tags
-            var tagsResult = await _configService.GetTagsAsync();
-            if (tagsResult.Error != null)
-            {
-                ErrorMessage = tagsResult.Error;
-                StatusMessage = "Erro ao carregar tags.";
+                ErrorMessage = result.Error;
+                StatusMessage = "Erro ao carregar TAGs.";
                 return;
             }
 
-            TagRows.Clear();
-            foreach (var tag in tagsResult.Tags)
+            Tags.Clear();
+            foreach (var tag in result.Tags)
             {
-                TagRows.Add(new TagRow
-                {
-                    Name = tag.Name,
-                    Machine = "Desconhecido",
-                    Driver = "Desconhecido",
-                    Address = tag.Address,
-                    Value = "-",
-                    Quality = "Good",
-                    UpdatedAt = "-"
-                });
+                Tags.Add(tag);
             }
 
-            TotalTags = tagsResult.Tags.Count.ToString();
-            ActiveTags = tagsResult.Tags.Count.ToString();
-            StaleTags = "0";
-            ErrorTags = "0";
-            StatusMessage = $"{tagsResult.Tags.Count} tags carregadas.";
+            FilterTags();
+            StatusMessage = $"{Tags.Count} TAG(s) carregada(s).";
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            StatusMessage = "Erro ao carregar tags.";
         }
         finally
         {
             IsLoading = false;
         }
     }
-}
 
-public sealed class TagRow
-{
-    public string Name { get; set; } = string.Empty;
-    public string Machine { get; set; } = string.Empty;
-    public string Driver { get; set; } = string.Empty;
-    public string Address { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
-    public string Quality { get; set; } = string.Empty;
-    public string UpdatedAt { get; set; } = string.Empty;
+    private void FilterTags()
+    {
+        var filtered = string.IsNullOrWhiteSpace(_search)
+            ? Tags.ToList()
+            : Tags.Where(t =>
+                (t.Name?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.Address?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (t.DataType?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false))
+            .ToList();
+
+        FilteredTags.Clear();
+        foreach (var tag in filtered)
+        {
+            FilteredTags.Add(tag);
+        }
+    }
+
+    public Task OpenCreateModal()
+    {
+        SelectedTag = null;
+        TagName = string.Empty;
+        DataType = "Double";
+        DriverType = "OPCUA";
+        Address = string.Empty;
+        OpcUaConnectionId = 0;
+        PollIntervalMs = 1000;
+        IsActive = true;
+
+        OnPropertyChanged(nameof(IsEditing));
+        return Task.CompletedTask;
+    }
+
+    public Task OpenEditModal()
+    {
+        if (SelectedTag == null) return Task.CompletedTask;
+
+        TagName = SelectedTag.Name ?? string.Empty;
+        DataType = SelectedTag.DataType ?? "Double";
+        DriverType = "OPCUA";
+        Address = SelectedTag.Address ?? string.Empty;
+        OpcUaConnectionId = 0;
+        PollIntervalMs = 1000;
+        IsActive = true;
+
+        OnPropertyChanged(nameof(IsEditing));
+        return Task.CompletedTask;
+    }
+
+    public async Task SaveTag()
+    {
+        if (string.IsNullOrWhiteSpace(TagName) || string.IsNullOrWhiteSpace(Address))
+        {
+            ErrorMessage = "Preencha nome e endereço.";
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var request = new TagRequest
+            {
+                TagName = TagName,
+                DataType = DataType,
+                DriverType = DriverType,
+                Address = Address,
+                OpcUaConnectionId = OpcUaConnectionId,
+                PollIntervalMs = PollIntervalMs,
+                IsActive = IsActive
+            };
+
+            OperationResult result;
+            if (IsEditing && SelectedTag != null)
+            {
+                result = await _configService.UpdateTagAsync(int.Parse(SelectedTag.Id), request);
+            }
+            else
+            {
+                result = await _configService.CreateTagAsync(request);
+            }
+
+            if (result.Success)
+            {
+                StatusMessage = IsEditing ? "TAG atualizada com sucesso." : "TAG criada com sucesso.";
+                await LoadAsync();
+                await OpenCreateModal();
+            }
+            else
+            {
+                ErrorMessage = result.Message ?? "Erro ao salvar TAG.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    public async Task DeleteTag()
+    {
+        if (SelectedTag == null)
+        {
+            ErrorMessage = "Selecione uma TAG para excluir.";
+            return;
+        }
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var result = await _configService.DeleteTagAsync(int.Parse(SelectedTag.Id));
+            if (result.Success)
+            {
+                StatusMessage = "TAG excluída com sucesso.";
+                await LoadAsync();
+            }
+            else
+            {
+                ErrorMessage = result.Message ?? "Erro ao excluir TAG.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
 }

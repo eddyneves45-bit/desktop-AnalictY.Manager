@@ -7,19 +7,27 @@ using AnalictY.Manager.ViewModels;
 
 namespace AnalictY.Manager.Views;
 
-public partial class AuditPage : Page
+public partial class AuditPage : UserControl
 {
-    private readonly AuditPageViewModel _viewModel;
+    private AuditViewModel? _viewModel;
 
     public AuditPage()
     {
         InitializeComponent();
-        _viewModel = new AuditPageViewModel(new AuditService(AppServices.HttpClient));
+        _viewModel = new AuditViewModel(new ConfigService(AppServices.HttpClient));
         DataContext = _viewModel;
-        Loaded += async (_, _) => await _viewModel.LoadAsync();
+        Loaded += AuditPage_Loaded;
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs e)
+    private async void AuditPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel != null)
+        {
+            await _viewModel.LoadAsync();
+        }
+    }
+
+    private void NavigateBackButton_Click(object sender, RoutedEventArgs e)
     {
         var parent = VisualTreeHelper.GetParent(this);
         while (parent != null && parent is not ConfigPage)
@@ -31,5 +39,11 @@ public partial class AuditPage : Page
         {
             configPage.ReturnToCards();
         }
+    }
+
+    private void ShowError(string message)
+    {
+        ErrorText.Text = message;
+        ErrorBorder.Visibility = Visibility.Visible;
     }
 }

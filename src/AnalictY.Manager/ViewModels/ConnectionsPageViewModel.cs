@@ -140,6 +140,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
     private string _editSecurityMode = "None";
     private string _editCertificatePath = string.Empty;
     private string _editPrivateKeyPath = string.Empty;
+    private string _editFtpPrivateKeyPath = string.Empty;
     private string _editUpdateInterval = "1000";
     private string _editClientId = string.Empty;
     private bool _editTlsEnabled;
@@ -210,6 +211,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
     public string EditSecurityMode { get => _editSecurityMode; set => SetProperty(ref _editSecurityMode, value); }
     public string EditCertificatePath { get => _editCertificatePath; set => SetProperty(ref _editCertificatePath, value); }
     public string EditPrivateKeyPath { get => _editPrivateKeyPath; set => SetProperty(ref _editPrivateKeyPath, value); }
+    public string EditFtpPrivateKeyPath { get => _editFtpPrivateKeyPath; set => SetProperty(ref _editFtpPrivateKeyPath, value); }
     public string EditUpdateInterval { get => _editUpdateInterval; set => SetProperty(ref _editUpdateInterval, value); }
     public string EditClientId { get => _editClientId; set => SetProperty(ref _editClientId, value); }
     public bool EditTlsEnabled { get => _editTlsEnabled; set => SetProperty(ref _editTlsEnabled, value); }
@@ -271,7 +273,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
             {
                 Id = item.Id,
                 Name = item.Name,
-                Address = item.Endpoint,
+                Address = item.ServerUrl,
                 Details = $"Driver OPC UA - {item.SecurityPolicy}/{item.SecurityMode}",
                 Status = item.IsActive ? NormalizeStatus(item.Status) : "Desativado",
                 Type = "OPC UA",
@@ -301,12 +303,12 @@ public sealed class ConnectionsPageViewModel : ObservableObject
             {
                 Id = item.Id,
                 Name = item.Name,
-                Address = $"{item.Host}:{item.Port}",
+                Address = $"{item.BrokerHost}:{item.BrokerPort}",
                 Details = "Broker MQTT",
                 Status = item.IsActive ? NormalizeStatus(item.Status) : "Desativado",
                 Type = "MQTT",
-                Host = item.Host,
-                Port = item.Port,
+                Host = item.BrokerHost,
+                Port = item.BrokerPort,
                 ClientId = item.ClientId,
                 Username = item.Username,
                 TlsEnabled = item.TlsEnabled,
@@ -332,13 +334,13 @@ public sealed class ConnectionsPageViewModel : ObservableObject
         foreach (var item in result.Connections)
         {
             var role = item.IsPrimary ? "Principal" : item.IsLocal ? "Local" : "Remoto";
-            var connectionType = IsSqlServer(item.Type) ? "SQL Server" : "MySQL";
+            var connectionType = IsSqlServer(item.Provider) ? "SQL Server" : "MySQL";
             MysqlConnections.Add(new ConnectionRow
             {
                 Id = item.Id,
                 Name = item.Name,
                 Address = $"{item.Host}:{item.Port}/{item.Database}",
-                Details = $"{item.Type} - {role}",
+                Details = $"{item.Provider} - {role}",
                 Status = item.IsActive ? NormalizeStatus(item.Status) : "Desativado",
                 Type = connectionType,
                 Host = item.Host,
@@ -554,7 +556,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
                 "OPC UA" => await _configService.TestOpcUaEndpointAsync(SelectedConnection.Address),
                 "MQTT" => await _configService.TestMqttAsync(SelectedConnection.Id),
                 "MySQL" or "SQL Server" => await _configService.TestMysqlByIdAsync(SelectedConnection.Id),
-                "FTP/SFTP" => await _configService.TestFtpExportAsync(),
+                "FTP/SFTP" => await _configService.TestFtpExportAsync(BuildFtpRequest()),
                 _ => OperationResult.CreateFailed("Tipo de conexão não suportado para teste")
             };
 
@@ -734,8 +736,35 @@ public sealed class ConnectionsPageViewModel : ObservableObject
     public async Task InitMysqlAsync()
     {
         if (SelectedConnection?.Type != "MySQL") return;
-        
+
         var result = await _configService.InitMysqlAsync(SelectedConnection.Id);
+        if (result.Success)
+        {
+            StatusMessage = result.Message;
+        }
+        else
+        {
+            ErrorMessage = result.Message;
+        }
+    }
+
+    public async Task TestFtpAsync()
+    {
+        var request = BuildFtpRequest();
+        var result = await _configService.TestFtpExportAsync(request);
+        if (result.Success)
+        {
+            StatusMessage = result.Message;
+        }
+        else
+        {
+            ErrorMessage = result.Message;
+        }
+    }
+
+    public async Task SendFtpNowAsync()
+    {
+        var result = await _configService.SendFtpNowAsync();
         if (result.Success)
         {
             StatusMessage = result.Message;
@@ -749,7 +778,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
     private OpcUaConnectionRequest BuildOpcUaRequest() => new()
     {
         Name = EditName,
-        Endpoint = EditEndpoint,
+        ServerUrl = EditEndpoint,
         SecurityPolicy = EditSecurityPolicy,
         SecurityMode = EditSecurityMode,
         Username = EditUsername,
@@ -764,8 +793,8 @@ public sealed class ConnectionsPageViewModel : ObservableObject
     {
         Name = EditName,
         ClientId = EditClientId,
-        Host = EditHost,
-        Port = EditPort,
+        BrokerHost = EditHost,
+        BrokerPort = EditPort,
         Username = EditUsername,
         Password = EditPassword,
         TlsEnabled = EditTlsEnabled,
@@ -783,7 +812,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
         Host = EditHost,
         Port = string.IsNullOrWhiteSpace(EditPort) ? (provider == "SQLServer" ? "1433" : "3306") : EditPort,
         Database = EditDatabase,
-        Type = provider,
+        Provider = provider,
         Username = EditUsername,
         Password = EditPassword,
         PoolSize = EditPoolSize,
@@ -801,7 +830,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
         Port = string.IsNullOrWhiteSpace(EditPort) ? (EditProtocol == "FTP" ? "21" : "22") : EditPort,
         Username = EditUsername,
         Password = EditPassword,
-        PrivateKeyPath = EditPrivateKeyPath,
+        PrivateKeyPath = EditFtpPrivateKeyPath,
         Directory = EditDirectory,
         Frequency = EditFrequency,
         DataType = EditDataType,

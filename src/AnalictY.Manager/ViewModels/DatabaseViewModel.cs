@@ -186,7 +186,7 @@ public sealed class DatabaseViewModel : ObservableObject
                     Host = connection.Host,
                     Port = connection.Port,
                     Database = connection.Database,
-                    Type = connection.Type,
+                    Type = connection.Provider,
                     IsPrimary = connection.IsPrimary ? "Sim" : "Não",
                     IsLocal = connection.IsLocal ? "Sim" : "Não",
                     IsRemote = connection.IsRemote ? "Sim" : "Não",

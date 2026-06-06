@@ -5,30 +5,68 @@ using AnalictY.Manager.Infrastructure;
 using AnalictY.Manager.Services;
 using AnalictY.Manager.ViewModels;
 
-namespace AnalictY.Manager.Views
+namespace AnalictY.Manager.Views;
+
+public partial class MqttMonitorPage : UserControl
 {
-    public partial class MqttMonitorPage : Page
+    private MqttMonitorViewModel? _viewModel;
+
+    public MqttMonitorPage()
     {
-        public MqttMonitorPage()
+        InitializeComponent();
+        _viewModel = new MqttMonitorViewModel(new ConfigService(AppServices.HttpClient));
+        DataContext = _viewModel;
+        Loaded += MqttMonitorPage_Loaded;
+    }
+
+    private async void MqttMonitorPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel != null)
         {
-            InitializeComponent();
-            MqttViewHost.DataContext = new MqttViewModel(
-                new AdminApiService(AppServices.HttpClient),
-                new ConfigService(AppServices.HttpClient));
+            await _viewModel.LoadAsync();
+        }
+    }
+
+    private void NavigateBackButton_Click(object sender, RoutedEventArgs e)
+    {
+        var parent = VisualTreeHelper.GetParent(this);
+        while (parent != null && parent is not ConfigPage)
+        {
+            parent = VisualTreeHelper.GetParent(parent);
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        if (parent is ConfigPage configPage)
         {
-            var parent = VisualTreeHelper.GetParent(this);
-            while (parent != null && parent is not ConfigPage)
-            {
-                parent = VisualTreeHelper.GetParent(parent);
-            }
+            configPage.ReturnToCards();
+        }
+    }
 
-            if (parent is ConfigPage configPage)
+    private void ConnectionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_viewModel != null && sender is ComboBox comboBox)
+        {
+            if (comboBox.SelectedValue is int connectionId)
             {
-                configPage.ReturnToCards();
+                _viewModel.SelectedConnectionId = connectionId;
             }
         }
+    }
+
+    private void CloseNotification_Click(object sender, RoutedEventArgs e)
+    {
+        NotificationOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowError(string message)
+    {
+        ErrorText.Text = message;
+        ErrorBorder.Visibility = Visibility.Visible;
+    }
+
+    private void ShowNotification(string title, string message)
+    {
+        NotificationTitle.Text = title;
+        NotificationMessage.Text = message;
+        NotificationOverlay.Visibility = Visibility.Visible;
     }
 }
