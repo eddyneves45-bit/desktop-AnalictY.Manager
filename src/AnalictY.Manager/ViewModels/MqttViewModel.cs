@@ -2,55 +2,39 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using AnalictY.Manager.Infrastructure;
+using AnalictY.Manager.Services;
 
 namespace AnalictY.Manager.ViewModels;
 
 public sealed class MqttViewModel : ObservableObject
 {
-    private string _status = "Em execução";
+    private readonly AdminApiService _adminApiService;
+    private readonly ConfigService _configService;
+    private string _status = "Aguardando";
     private string _port = "1883";
-    private string _connectedClients = "3";
-    private string _topics = "24";
-    private string _messagesReceived = "1,234";
-    private string _messagesSent = "856";
-    private string _retained = "12";
+    private string _connectedClients = "0";
+    private string _topics = "0";
+    private string _messagesReceived = "0";
+    private string _messagesSent = "0";
+    private string _retained = "0";
 
     public MqttViewModel()
+        : this(new AdminApiService(AppServices.HttpClient), new ConfigService(AppServices.HttpClient))
     {
-        OpenDashboardCommand = new RelayCommand(_ =>
-        {
-            MessageBox.Show("Dashboard MQTT será aberto quando o endpoint estiver disponível.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-            return Task.CompletedTask;
-        });
-        ClearRetainedCommand = new RelayCommand(_ =>
-        {
-            MessageBox.Show("Limpeza de mensagens retidas será conectada ao Broker quando o endpoint estiver disponível.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-            return Task.CompletedTask;
-        });
-        RestartBrokerCommand = new RelayCommand(_ =>
-        {
-            MessageBox.Show("Reinício do Broker exigirá confirmação futura e integração com o serviço.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-            return Task.CompletedTask;
-        });
+    }
 
-        TopicRows = new ObservableCollection<MqttTopicRow>
-        {
-            new("fabrica/m01/producao", "QoS 1", "142", "85"),
-            new("fabrica/m01/status", "QoS 0", "56", "0"),
-            new("fabrica/m02/producao", "QoS 1", "98", "42"),
-            new("fabrica/m02/status", "QoS 0", "23", "0"),
-            new("fabrica/pj08/ciclo", "QoS 1", "67", "31"),
-            new("fabrica/celula-a/temperatura", "QoS 0", "12", "0"),
-            new("analicty/commands", "QoS 2", "8", "Retained"),
-            new("analicty/status", "QoS 1", "15", "Retained")
-        };
+    public MqttViewModel(AdminApiService adminApiService, ConfigService configService)
+    {
+        _adminApiService = adminApiService;
+        _configService = configService;
+        OpenDashboardCommand = new RelayCommand(LoadAsync);
+        ClearRetainedCommand = new RelayCommand(ShowNotImplementedAsync);
+        RestartBrokerCommand = new RelayCommand(ShowProtectedActionAsync);
 
-        ClientRows = new ObservableCollection<MqttClientRow>
-        {
-            new("manager-01", "192.168.1.100", "Connected", "5m"),
-            new("hmi-panel-02", "192.168.1.101", "Connected", "12m"),
-            new("external-api", "192.168.1.50", "Connected", "2m")
-        };
+        TopicRows = new ObservableCollection<MqttTopicRow>();
+        ClientRows = new ObservableCollection<MqttClientRow>();
+
+        _ = LoadAsync();
     }
 
     public string Status
@@ -100,6 +84,55 @@ public sealed class MqttViewModel : ObservableObject
     public ICommand RestartBrokerCommand { get; }
     public ObservableCollection<MqttTopicRow> TopicRows { get; }
     public ObservableCollection<MqttClientRow> ClientRows { get; }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var status = await _adminApiService.GetMqttAsync();
+            Status = status.Status;
+            ConnectedClients = status.ClientsConnected;
+            Topics = status.Topics;
+            MessagesReceived = status.MessagesReceivedPerSecond;
+            MessagesSent = status.MessagesSentPerSecond;
+            Retained = status.Retained;
+
+            var connections = await _configService.GetMqttConnectionsAsync();
+            var activeConnection = connections.Connections.FirstOrDefault(connection => connection.IsActive) ??
+                connections.Connections.FirstOrDefault();
+            Port = activeConnection?.Port ?? "1883";
+
+            var topics = await _configService.GetMqttTopicsAsync();
+            TopicRows.Clear();
+            foreach (var topic in topics.Topics)
+            {
+                TopicRows.Add(new MqttTopicRow(topic.Topic, $"QoS {topic.Qos}", topic.Subscribers, "-"));
+            }
+
+            var clients = await _configService.GetMqttClientsAsync();
+            ClientRows.Clear();
+            foreach (var client in clients.Clients)
+            {
+                ClientRows.Add(new MqttClientRow(client.ClientId, client.Ip, client.Connected, client.Topics));
+            }
+        }
+        catch (Exception ex)
+        {
+            Status = $"Erro: {ex.Message}";
+        }
+    }
+
+    private static Task ShowNotImplementedAsync()
+    {
+        MessageBox.Show("Limpeza de mensagens retidas ainda depende de endpoint seguro no AnalictY Server.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+        return Task.CompletedTask;
+    }
+
+    private static Task ShowProtectedActionAsync()
+    {
+        MessageBox.Show("Reinicio do broker sera habilitado somente com confirmacao administrativa.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+        return Task.CompletedTask;
+    }
 }
 
 public sealed record MqttTopicRow(string Topic, string Qos, string Subscribers, string Retained);

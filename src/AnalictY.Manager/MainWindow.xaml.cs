@@ -24,7 +24,11 @@ public partial class MainWindow : Window
             CookieContainer = cookieContainer,
             UseCookies = true
         };
-        var apiClient = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(10) };
+        var csrfHandler = new CsrfHeaderHandler(cookieContainer)
+        {
+            InnerHandler = handler
+        };
+        var apiClient = new HttpClient(csrfHandler) { Timeout = TimeSpan.FromSeconds(10) };
         AppServices.Configure(apiClient);
 
         var machineOverviewService = new MachineOverviewService(apiClient);
@@ -124,19 +128,24 @@ public partial class MainWindow : Window
 
     private void ApplyTheme(bool isDarkTheme)
     {
-        SetBrush("SurfaceBrush", isDarkTheme ? "#101820" : "#F3F5F7");
-        SetBrush("CardBrush", isDarkTheme ? "#17212B" : "#FFFFFF");
-        SetBrush("ContentTextBrush", isDarkTheme ? "#F8FAFC" : "#18212B");
-        SetBrush("MutedTextBrush", isDarkTheme ? "#AAB7C5" : "#64707D");
-        SetBrush("BorderBrushSoft", isDarkTheme ? "#2A3848" : "#DDE4EA");
-        SetBrush("SidebarBrush", isDarkTheme ? "#0B1220" : "#FFFFFF");
-        SetBrush("SidebarPanelBrush", isDarkTheme ? "#17212B" : "#F8FAFC");
-        SetBrush("LoginBgBrush", isDarkTheme ? "#101820" : "#EEF3F7");
-        SetBrush("LoginPanelBrush", isDarkTheme ? "#17212B" : "#FFFFFF");
-        SetBrush("LoginFieldBrush", isDarkTheme ? "#162431" : "#F8FAFC");
-        SetBrush("LoginPrimaryTextBrush", isDarkTheme ? "#F8FAFC" : "#111827");
-        SetBrush("LoginMutedTextBrush", isDarkTheme ? "#AAB7C5" : "#5B6877");
-        SetBrush("LoginBorderBrush", isDarkTheme ? "#334456" : "#CBD5E1");
+        SetBrush("SurfaceBrush", isDarkTheme ? "#243447" : "#F3F5F7");
+        SetBrush("CardBrush", isDarkTheme ? "#30465F" : "#FFFFFF");
+        SetBrush("InnerCardBrush", isDarkTheme ? "#283B50" : "#F8FAFC");
+        SetBrush("InputBrush", isDarkTheme ? "#344C66" : "#F8FAFC");
+        SetBrush("ContentTextBrush", isDarkTheme ? "#F4F8FC" : "#18212B");
+        SetBrush("MutedTextBrush", isDarkTheme ? "#C1CDDA" : "#64707D");
+        SetBrush("FadedTextBrush", isDarkTheme ? "#98A8BA" : "#8A95A3");
+        SetBrush("BorderBrush", isDarkTheme ? "#506A86" : "#CBD5E1");
+        SetBrush("BorderBrushSoft", isDarkTheme ? "#4A617B" : "#DDE4EA");
+        SetBrush("SidebarBrush", isDarkTheme ? "#172539" : "#FFFFFF");
+        SetBrush("SidebarPanelBrush", isDarkTheme ? "#26384D" : "#F8FAFC");
+        SetBrush("SecondaryButtonBrush", isDarkTheme ? "#36516E" : "#F8FAFC");
+        SetBrush("LoginBgBrush", isDarkTheme ? "#243447" : "#EEF3F7");
+        SetBrush("LoginPanelBrush", isDarkTheme ? "#30465F" : "#FFFFFF");
+        SetBrush("LoginFieldBrush", isDarkTheme ? "#344C66" : "#F8FAFC");
+        SetBrush("LoginPrimaryTextBrush", isDarkTheme ? "#F4F8FC" : "#111827");
+        SetBrush("LoginMutedTextBrush", isDarkTheme ? "#C1CDDA" : "#5B6877");
+        SetBrush("LoginBorderBrush", isDarkTheme ? "#506A86" : "#CBD5E1");
         Background = (Brush)FindResource("SurfaceBrush");
     }
 

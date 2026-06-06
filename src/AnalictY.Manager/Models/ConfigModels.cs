@@ -12,7 +12,28 @@ public sealed class OpcUaConnection
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Endpoint { get; set; } = string.Empty;
+    public string SecurityPolicy { get; set; } = "None";
+    public string SecurityMode { get; set; } = "None";
+    public string Username { get; set; } = string.Empty;
+    public string CertificatePath { get; set; } = string.Empty;
+    public string PrivateKeyPath { get; set; } = string.Empty;
+    public string UpdateInterval { get; set; } = "1000";
+    public bool IsActive { get; set; } = true;
     public string Status { get; set; } = "Desconhecido";
+}
+
+public sealed class OpcUaConnectionRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Endpoint { get; set; } = string.Empty;
+    public string SecurityPolicy { get; set; } = "None";
+    public string SecurityMode { get; set; } = "None";
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public string? CertificatePath { get; set; }
+    public string? PrivateKeyPath { get; set; }
+    public string UpdateInterval { get; set; } = "1000";
+    public bool IsActive { get; set; } = true;
 }
 
 public sealed class OpcUaBrowseResult
@@ -40,9 +61,35 @@ public sealed class MqttConnection
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
     public string Host { get; set; } = string.Empty;
     public string Port { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public bool TlsEnabled { get; set; }
+    public string CaCertPath { get; set; } = string.Empty;
+    public string ClientCertPath { get; set; } = string.Empty;
+    public string ClientKeyPath { get; set; } = string.Empty;
+    public string Topics { get; set; } = string.Empty;
+    public string Qos { get; set; } = "0";
+    public bool IsActive { get; set; } = true;
     public string Status { get; set; } = "Desconhecido";
+}
+
+public sealed class MqttConnectionRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
+    public string Host { get; set; } = string.Empty;
+    public string Port { get; set; } = string.Empty;
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public bool TlsEnabled { get; set; }
+    public string? CaCertPath { get; set; }
+    public string? ClientCertPath { get; set; }
+    public string? ClientKeyPath { get; set; }
+    public string Topics { get; set; } = string.Empty;
+    public string Qos { get; set; } = "0";
+    public bool IsActive { get; set; } = true;
 }
 
 public sealed class MqttTopicsResult
@@ -87,10 +134,28 @@ public sealed class MysqlConnection
     public string Port { get; set; } = string.Empty;
     public string Database { get; set; } = string.Empty;
     public string Type { get; set; } = "MySQL";
+    public string Username { get; set; } = string.Empty;
+    public string PoolSize { get; set; } = "10";
+    public bool IsActive { get; set; } = true;
     public bool IsPrimary { get; set; }
     public bool IsLocal { get; set; }
     public bool IsRemote { get; set; }
     public string Status { get; set; } = "Desconhecido";
+}
+
+public sealed class MysqlConnectionRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string Host { get; set; } = string.Empty;
+    public string Port { get; set; } = string.Empty;
+    public string Database { get; set; } = string.Empty;
+    public string Type { get; set; } = "MySQL";
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public string PoolSize { get; set; } = "10";
+    public bool IsActive { get; set; } = true;
+    public bool IsPrimary { get; set; }
+    public bool IsLocal { get; set; }
 }
 
 // Tags
@@ -143,11 +208,34 @@ public sealed class TelegramStatusResult
 public sealed class FtpExportResult
 {
     public bool Enabled { get; set; }
+    public string Name { get; set; } = "Exportacao FTP/SFTP";
+    public string Protocol { get; set; } = "SFTP";
     public string Host { get; set; } = string.Empty;
     public string Port { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
+    public bool PasswordConfigured { get; set; }
+    public string PrivateKeyPath { get; set; } = string.Empty;
     public string Directory { get; set; } = string.Empty;
+    public string Frequency { get; set; } = "manual";
+    public string DataType { get; set; } = "production";
+    public string FileFormat { get; set; } = "CSV";
     public string? Error { get; set; }
+}
+
+public sealed class FtpExportRequest
+{
+    public string Name { get; set; } = "Exportacao FTP/SFTP";
+    public bool Enabled { get; set; } = true;
+    public string Protocol { get; set; } = "SFTP";
+    public string Host { get; set; } = string.Empty;
+    public string Port { get; set; } = "22";
+    public string? Username { get; set; }
+    public string? Password { get; set; }
+    public string? PrivateKeyPath { get; set; }
+    public string Directory { get; set; } = "/";
+    public string Frequency { get; set; } = "manual";
+    public string DataType { get; set; } = "production";
+    public string FileFormat { get; set; } = "CSV";
 }
 
 // Operation Result

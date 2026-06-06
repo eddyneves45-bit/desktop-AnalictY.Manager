@@ -9,41 +9,100 @@
       FontFamily="Segoe UI">
 
     <Page.Resources>
-        <Style x:Key="SectionCard" TargetType="Border">
+        <Style x:Key="WhiteCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E5E7EB"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="Padding" Value="20"/>
-            <Setter Property="Margin" Value="0,0,0,18"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#EF4444"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E5E7EB"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="BlueButton" TargetType="Button">
+            <Setter Property="Background" Value="#1D4ED8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="TextInput" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+
+        <Style x:Key="ReadableComboItem" TargetType="ComboBoxItem">
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+
+        <Style x:Key="ReadableCombo" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ReadableComboItem}"/>
         </Style>
 
         <DataTemplate x:Key="ConnectionRowTemplate">
-            <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,0,0,10" Background="#F9FAFB">
+            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,0,0,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="1.2*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel>
-                        <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" Foreground="#111827"/>
-                        <TextBlock Text="{Binding Details}" FontSize="12" Foreground="#64748B" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding Name}" Foreground="#111827" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding Details}" Foreground="#64748B" FontSize="12" Margin="0,4,0,0"/>
                     </StackPanel>
 
-                    <TextBlock Grid.Column="1" Text="{Binding Address}" FontSize="14" Foreground="#334155"
-                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1" Text="{Binding Address}" Foreground="#475569" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
 
-                    <TextBlock Grid.Column="2" Text="{Binding Status}" FontSize="13" FontWeight="SemiBold"
-                               Foreground="#059669" VerticalAlignment="Center"/>
+                    <Border Grid.Column="2" Background="#DCFCE7" BorderBrush="#86EFAC" BorderThickness="1" CornerRadius="4" Padding="8,4"
+                            HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Status}" Foreground="#047857" FontSize="12" FontWeight="SemiBold"/>
+                    </Border>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal">
-                        <Button Content="Testar" Padding="14,7" Margin="0,0,8,0"
-                                Background="#EEF2FF" Foreground="#1E40AF" BorderBrush="#CBD5E1" Cursor="Hand"/>
-                        <Button Content="Editar" Padding="14,7"
-                                Background="#F8FAFC" Foreground="#334155" BorderBrush="#CBD5E1" Cursor="Hand"/>
+                        <Button Content="Testar" Style="{StaticResource BlueButton}" Click="TestConnection_Click" Tag="{Binding}"/>
+                        <Button Content="Editar" Style="{StaticResource SecondaryButton}" Click="EditConnection_Click" Tag="{Binding}"/>
+                        <Button Content="Excluir" Style="{StaticResource SecondaryButton}" Click="DeleteConnection_Click" Tag="{Binding}"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -53,65 +112,219 @@
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24">
-                <Grid Margin="0,0,0,24">
+                <Grid Margin="0,0,0,18">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-                    <StackPanel Orientation="Horizontal">
-                        <Button Width="40" Height="40" Margin="0,0,16,0"
-                                Background="Transparent" BorderThickness="0"
-                                Cursor="Hand" Click="BackButton_Click">
-                            <Path Data="M6 6L18 18M18 6L6 18"
-                                  Stroke="#6B7280" StrokeThickness="2"
-                                  Fill="Transparent"
-                                  Width="20" Height="20" Stretch="Uniform"/>
-                        </Button>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Conexoes" FontSize="28" FontWeight="Bold" Foreground="#111827"/>
-                            <TextBlock Text="{Binding StatusMessage}" FontSize="14" Foreground="#64748B" Margin="0,4,0,0"/>
-                        </StackPanel>
+                    <Button Width="40" Height="40" Margin="0,0,16,0" Background="Transparent" BorderThickness="0" Click="BackButton_Click">
+                        <Path Data="M6 6L18 18M18 6L6 18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
+                    </Button>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Conexoes" Foreground="#111827" FontSize="28" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" FontSize="14" Margin="0,4,0,0"/>
                     </StackPanel>
-
-                    <Button Grid.Column="1" Content="Atualizar" Command="{Binding RefreshCommand}"
-                            Background="#E7252A" Foreground="White" BorderThickness="0"
-                            Padding="18,10" VerticalAlignment="Center" Cursor="Hand"/>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Content="Nova Conexao" Style="{StaticResource PrimaryButton}" Click="NewConnection_Click" Margin="0,0,12,0"/>
+                        <Button Content="Atualizar" Style="{StaticResource BlueButton}" Command="{Binding RefreshCommand}"/>
+                    </StackPanel>
                 </Grid>
 
-                <Border Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" CornerRadius="10"
-                        Padding="14" Margin="0,0,0,18">
-                    <TextBlock Text="{Binding ErrorMessage}" Foreground="#991B1B" FontWeight="SemiBold"/>
+                <Border x:Name="ErrorBorder" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8"
+                        Padding="14" Margin="0,0,0,14" Visibility="Collapsed">
+                    <TextBlock x:Name="ErrorText" Foreground="#DC2626" FontWeight="SemiBold" TextWrapping="Wrap"/>
                 </Border>
 
-                <Border Style="{StaticResource SectionCard}">
-                    <StackPanel>
-                        <TextBlock Text="OPC UA" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,14"/>
-                        <ItemsControl ItemsSource="{Binding OpcUaConnections}" ItemTemplate="{StaticResource ConnectionRowTemplate}"/>
-                    </StackPanel>
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="SearchBox" Style="{StaticResource TextInput}" Margin="0" TextChanged="SearchBox_TextChanged"/>
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding TypeFilters}" Margin="12,0,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding}" Style="{StaticResource SecondaryButton}" Click="FilterButton_Click" Tag="{Binding}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
                 </Border>
 
-                <Border Style="{StaticResource SectionCard}">
+                <Border Style="{StaticResource WhiteCard}">
                     <StackPanel>
-                        <TextBlock Text="MQTT" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,14"/>
-                        <ItemsControl ItemsSource="{Binding MqttConnections}" ItemTemplate="{StaticResource ConnectionRowTemplate}"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Style="{StaticResource SectionCard}">
-                    <StackPanel>
-                        <TextBlock Text="MySQL" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,14"/>
-                        <ItemsControl ItemsSource="{Binding MysqlConnections}" ItemTemplate="{StaticResource ConnectionRowTemplate}"/>
-                    </StackPanel>
-                </Border>
-
-                <Border Style="{StaticResource SectionCard}">
-                    <StackPanel>
-                        <TextBlock Text="FTP / SFTP" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,14"/>
-                        <ItemsControl ItemsSource="{Binding FtpConnections}" ItemTemplate="{StaticResource ConnectionRowTemplate}"/>
+                        <TextBlock Text="Todas as Conexoes" Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,14"/>
+                        <ItemsControl ItemsSource="{Binding AllConnections}" ItemTemplate="{StaticResource ConnectionRowTemplate}"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
+
+        <Grid x:Name="EditDialogOverlay" Background="#66000000" Visibility="Collapsed">
+            <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="10" Padding="28"
+                    Width="720" MaxHeight="720" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock x:Name="DialogTitle" Text="Nova Conexao" Foreground="#111827" FontSize="22" FontWeight="Bold" Margin="0,0,0,18"/>
+
+                    <ScrollViewer Grid.Row="1" MaxHeight="560" VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Tipo de Conexao" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox x:Name="TypeComboBox" ItemsSource="{Binding ConnectionTypes}" Style="{StaticResource ReadableCombo}" SelectionChanged="TypeComboBox_SelectionChanged"/>
+
+                            <TextBlock Text="Nome" Style="{StaticResource FieldLabel}"/>
+                            <TextBox x:Name="NameTextBox" Style="{StaticResource TextInput}"/>
+
+                            <StackPanel x:Name="OpcUaFields" Visibility="Collapsed">
+                                <TextBlock Text="Endpoint OPC UA" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="EndpointTextBox" Style="{StaticResource TextInput}" Text="opc.tcp://localhost:4840"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Security Policy" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="SecurityPolicyComboBox" Style="{StaticResource ReadableCombo}">
+                                            <ComboBoxItem Content="None"/>
+                                            <ComboBoxItem Content="Basic256Sha256"/>
+                                            <ComboBoxItem Content="Basic256"/>
+                                            <ComboBoxItem Content="Basic128Rsa15"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Security Mode" Style="{StaticResource FieldLabel}"/>
+                                        <ComboBox x:Name="SecurityModeComboBox" Style="{StaticResource ReadableCombo}">
+                                            <ComboBoxItem Content="None"/>
+                                            <ComboBoxItem Content="Sign"/>
+                                            <ComboBoxItem Content="SignAndEncrypt"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="Certificado" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="CertificatePathTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Chave privada" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="PrivateKeyPathTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Intervalo de atualizacao (ms)" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="UpdateIntervalTextBox" Style="{StaticResource TextInput}" Text="1000"/>
+                            </StackPanel>
+
+                            <StackPanel x:Name="HostPortFields" Visibility="Collapsed">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="120"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Host / Servidor" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="HostTextBox" Style="{StaticResource TextInput}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Porta" Style="{StaticResource FieldLabel}"/>
+                                        <TextBox x:Name="PortTextBox" Style="{StaticResource TextInput}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+
+                            <StackPanel x:Name="DatabaseFields" Visibility="Collapsed">
+                                <TextBlock Text="Banco de dados" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="DatabaseTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Pool de conexoes" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="PoolSizeTextBox" Style="{StaticResource TextInput}" Text="10"/>
+                            </StackPanel>
+
+                            <StackPanel x:Name="MqttFields" Visibility="Collapsed">
+                                <TextBlock Text="Client ID" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="ClientIdTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Topicos" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="TopicsTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="QoS" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="QosComboBox" Style="{StaticResource ReadableCombo}">
+                                    <ComboBoxItem Content="0"/>
+                                    <ComboBoxItem Content="1"/>
+                                    <ComboBoxItem Content="2"/>
+                                </ComboBox>
+                                <CheckBox x:Name="TlsCheckBox" Content="Usar TLS" Foreground="#111827" Margin="0,0,0,12"/>
+                                <TextBlock Text="CA Cert" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="CaCertPathTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Client Cert" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="ClientCertPathTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Client Key" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="ClientKeyPathTextBox" Style="{StaticResource TextInput}"/>
+                            </StackPanel>
+
+                            <StackPanel x:Name="FtpFields" Visibility="Collapsed">
+                                <TextBlock Text="Protocolo" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="ProtocolComboBox" Style="{StaticResource ReadableCombo}">
+                                    <ComboBoxItem Content="SFTP"/>
+                                    <ComboBoxItem Content="FTP"/>
+                                </ComboBox>
+                                <TextBlock Text="Diretorio destino" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="DirectoryTextBox" Style="{StaticResource TextInput}" Text="/"/>
+                                <TextBlock Text="Frequencia" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="FrequencyTextBox" Style="{StaticResource TextInput}" Text="manual"/>
+                                <TextBlock Text="Tipo de dados" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="DataTypeTextBox" Style="{StaticResource TextInput}" Text="production"/>
+                                <TextBlock Text="Formato" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox x:Name="FileFormatComboBox" Style="{StaticResource ReadableCombo}">
+                                    <ComboBoxItem Content="CSV"/>
+                                    <ComboBoxItem Content="JSON"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel x:Name="CredentialFields" Visibility="Collapsed">
+                                <TextBlock Text="Usuario" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="UsernameTextBox" Style="{StaticResource TextInput}"/>
+                                <TextBlock Text="Senha" Style="{StaticResource FieldLabel}"/>
+                                <PasswordBox x:Name="PasswordBox" Background="White" Foreground="#111827" BorderBrush="#CBD5E1" BorderThickness="1"
+                                             Padding="10,8" FontSize="14" Margin="0,0,0,6" GotKeyboardFocus="PasswordBox_GotKeyboardFocus"/>
+                                <TextBlock Text="Senha salva aparece como pontos. Para editar, salvar ou testar, informe a senha correta novamente."
+                                           Foreground="#64748B" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                            </StackPanel>
+
+                            <CheckBox x:Name="ActiveCheckBox" Content="Ativar conexao" Foreground="#111827" IsChecked="True" Margin="0,0,0,16"/>
+
+                            <StackPanel x:Name="MysqlActions" Orientation="Horizontal" Margin="0,0,0,16" Visibility="Collapsed">
+                                <Button Content="Definir Principal" Style="{StaticResource SecondaryButton}" Click="SetMysqlPrimary_Click"/>
+                                <Button Content="Definir Local" Style="{StaticResource SecondaryButton}" Click="SetMysqlLocal_Click"/>
+                                <Button Content="Definir Remoto" Style="{StaticResource SecondaryButton}" Click="SetMysqlRemote_Click"/>
+                                <Button Content="Inicializar" Style="{StaticResource SecondaryButton}" Click="InitMysql_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+                        <Button Content="Cancelar" Style="{StaticResource SecondaryButton}" Click="CancelEdit_Click"/>
+                        <Button Content="Salvar" Style="{StaticResource PrimaryButton}" Click="SaveConnection_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="NotificationOverlay" Background="#66000000" Visibility="Collapsed">
+            <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="10" Padding="26"
+                    Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock x:Name="NotificationTitle" Text="Aviso" Foreground="#111827" FontSize="22" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <TextBlock x:Name="NotificationMessage" Foreground="#475569" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,22"/>
+                    <Button Content="OK" Width="100" HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}" Click="CloseNotification_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>

@@ -10,25 +10,31 @@
         MinHeight="650"
         Width="1280"
         MinWidth="1120"
-        Background="#F3F5F7"
+        Background="{StaticResource SurfaceBrush}"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <SolidColorBrush x:Key="SidebarBrush" Color="#111827" />
-        <SolidColorBrush x:Key="SidebarPanelBrush" Color="#1F2937" />
-        <SolidColorBrush x:Key="SurfaceBrush" Color="#F3F5F7" />
-        <SolidColorBrush x:Key="CardBrush" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="ContentTextBrush" Color="#18212B" />
-        <SolidColorBrush x:Key="MutedTextBrush" Color="#64707D" />
-        <SolidColorBrush x:Key="BorderBrushSoft" Color="#DDE4EA" />
-        <SolidColorBrush x:Key="LoginBgBrush" Color="#101820" />
-        <SolidColorBrush x:Key="LoginPanelBrush" Color="#17212B" />
-        <SolidColorBrush x:Key="LoginFieldBrush" Color="#162431" />
-        <SolidColorBrush x:Key="LoginPrimaryTextBrush" Color="#F8FAFC" />
-        <SolidColorBrush x:Key="LoginMutedTextBrush" Color="#AAB7C5" />
-        <SolidColorBrush x:Key="LoginBorderBrush" Color="#334456" />
-        <SolidColorBrush x:Key="PrimaryRedBrush" Color="#DC2626" />
-        <SolidColorBrush x:Key="PrimaryRedDarkBrush" Color="#B91C1C" />
+        <!-- Industrial Dark Mode Theme -->
+        <SolidColorBrush x:Key="SidebarBrush" Color="#172539" />
+        <SolidColorBrush x:Key="SidebarPanelBrush" Color="#26384D" />
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#243447" />
+        <SolidColorBrush x:Key="CardBrush" Color="#30465F" />
+        <SolidColorBrush x:Key="InnerCardBrush" Color="#283B50" />
+        <SolidColorBrush x:Key="InputBrush" Color="#344C66" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#506A86" />
+        <SolidColorBrush x:Key="ContentTextBrush" Color="#F4F8FC" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#C1CDDA" />
+        <SolidColorBrush x:Key="FadedTextBrush" Color="#98A8BA" />
+        <SolidColorBrush x:Key="BorderBrushSoft" Color="#4A617B" />
+        <SolidColorBrush x:Key="LoginBgBrush" Color="#243447" />
+        <SolidColorBrush x:Key="LoginPanelBrush" Color="#30465F" />
+        <SolidColorBrush x:Key="LoginFieldBrush" Color="#344C66" />
+        <SolidColorBrush x:Key="LoginPrimaryTextBrush" Color="#F4F8FC" />
+        <SolidColorBrush x:Key="LoginMutedTextBrush" Color="#C1CDDA" />
+        <SolidColorBrush x:Key="LoginBorderBrush" Color="#506A86" />
+        <SolidColorBrush x:Key="PrimaryRedBrush" Color="#E7252A" />
+        <SolidColorBrush x:Key="PrimaryRedDarkBrush" Color="#C41F24" />
+        <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#36516E" />
         <SolidColorBrush x:Key="RunningBrush" Color="#16A34A" />
         <SolidColorBrush x:Key="IdleBrush" Color="#F59E0B" />
         <SolidColorBrush x:Key="MaintenanceBrush" Color="#EF4444" />
@@ -67,7 +73,7 @@
 
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#E8EEF6" />
+            <Setter Property="Foreground" Value="{StaticResource ContentTextBrush}" />
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -91,7 +97,7 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#1F3145" />
+                    <Setter Property="Background" Value="#2D425C" />
                     <Setter Property="Foreground" Value="White" />
                 </Trigger>
             </Style.Triggers>
@@ -251,13 +257,13 @@
                     <RowDefinition Height="42" />
                 </Grid.RowDefinitions>
 
-                <Border Background="#0B1220" BorderBrush="#17212B" BorderThickness="0,0,0,1">
+                <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,0,0,1">
                     <Grid Margin="20,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Width="24" Height="24" Background="#111827" BorderBrush="#2A3B4F" BorderThickness="1" CornerRadius="5">
+                            <Border Width="24" Height="24" Background="{StaticResource InnerCardBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="5">
                                 <TextBlock Text="iT" Foreground="#EF4444" FontSize="11" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
-                            <TextBlock Text="AnalictY Server Manager" Foreground="#F8FAFC" FontSize="15" Margin="10,0,0,0" VerticalAlignment="Center" />
+                            <TextBlock Text="AnalictY Server Manager" Foreground="{StaticResource ContentTextBrush}" FontSize="15" Margin="10,0,0,0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -395,7 +401,7 @@
                     </Border>
                 </Grid>
 
-                <Border Grid.Row="2" Background="#111827" BorderBrush="#203044" BorderThickness="0,1,0,0">
+                <Border Grid.Row="2" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,1,0,0">
                     <Grid Margin="30,0">
                         <TextBlock Text="© 2026 AnalictY Industrial Intelligence" Foreground="#AAB7C5" VerticalAlignment="Center" />
                         <TextBlock Text="Versão: 0.1.6" Foreground="#AAB7C5" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -612,7 +618,7 @@
 
                 <Border Grid.Row="0"
                         Background="{StaticResource SidebarBrush}"
-                        BorderBrush="#2A3848"
+                        BorderBrush="#4A617B"
                         BorderThickness="0,0,0,1">
                     <Grid Margin="30,0">
                         <Grid.ColumnDefinitions>

@@ -1,9 +1,7 @@
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using AnalictY.Manager.Infrastructure;
-using AnalictY.Manager.Models;
 using AnalictY.Manager.Services;
 
 namespace AnalictY.Manager.ViewModels;
@@ -12,14 +10,15 @@ public sealed class OpcUaViewModel : ObservableObject
 {
     private readonly ConfigService _configService;
     private bool _loading = true;
-    private string _statusMessage = "Carregando conexões...";
+    private string _statusMessage = "Carregando conexoes...";
+    private OpcServerRow? _selectedServer;
 
     public OpcUaViewModel(ConfigService configService)
     {
         _configService = configService;
-        TestConnectionCommand = new RelayCommand(_ => TestConnectionAsync());
-        ReconnectCommand = new RelayCommand(_ => ReconnectAsync());
-        BrowseNodesCommand = new RelayCommand(_ => BrowseNodesAsync());
+        TestConnectionCommand = new RelayCommand(TestConnectionAsync);
+        ReconnectCommand = new RelayCommand(ReconnectAsync);
+        BrowseNodesCommand = new RelayCommand(BrowseNodesAsync);
 
         ServerRows = new ObservableCollection<OpcServerRow>();
         NodeRows = new ObservableCollection<OpcNodeRow>();
@@ -39,6 +38,12 @@ public sealed class OpcUaViewModel : ObservableObject
         set => SetProperty(ref _statusMessage, value);
     }
 
+    public OpcServerRow? SelectedServer
+    {
+        get => _selectedServer;
+        set => SetProperty(ref _selectedServer, value);
+    }
+
     public ICommand TestConnectionCommand { get; }
     public ICommand ReconnectCommand { get; }
     public ICommand BrowseNodesCommand { get; }
@@ -48,23 +53,15 @@ public sealed class OpcUaViewModel : ObservableObject
     private async Task LoadConnectionsAsync()
     {
         Loading = true;
-        StatusMessage = "Carregando conexões...";
+        StatusMessage = "Carregando conexoes...";
         ServerRows.Clear();
 
         try
         {
             var result = await _configService.GetOpcUaConnectionsAsync();
-            if (result.Error != null)
+            if (!string.IsNullOrWhiteSpace(result.Error))
             {
-                StatusMessage = $"Erro ao carregar conexões: {result.Error}";
-                Loading = false;
-                return;
-            }
-
-            if (result.Connections.Count == 0)
-            {
-                StatusMessage = "Nenhuma conexão OPC UA cadastrada no servidor.";
-                Loading = false;
+                StatusMessage = $"Erro ao carregar conexoes: {result.Error}";
                 return;
             }
 
@@ -72,17 +69,19 @@ public sealed class OpcUaViewModel : ObservableObject
             {
                 ServerRows.Add(new OpcServerRow(
                     conn.Name,
-                    conn.Status,
+                    conn.IsActive ? conn.Status : "Desativado",
                     conn.Endpoint,
-                    conn.Id
-                ));
+                    conn.Id));
             }
 
-            StatusMessage = $"{result.Connections.Count} conexão(ões) encontrada(s).";
+            SelectedServer = ServerRows.FirstOrDefault();
+            StatusMessage = ServerRows.Count == 0
+                ? "Nenhuma conexao OPC UA cadastrada no servidor."
+                : $"{ServerRows.Count} conexao(oes) encontrada(s).";
         }
-        catch
+        catch (Exception ex)
         {
-            StatusMessage = "Erro ao conectar ao servidor.";
+            StatusMessage = $"Erro ao conectar ao servidor: {ex.Message}";
         }
         finally
         {
@@ -92,20 +91,65 @@ public sealed class OpcUaViewModel : ObservableObject
 
     private async Task TestConnectionAsync()
     {
-        MessageBox.Show("Teste de conexão será conectado ao servidor OPC UA quando o endpoint estiver disponível.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-        await Task.CompletedTask;
+        if (SelectedServer is null)
+        {
+            MessageBox.Show("Selecione uma conexao OPC UA para testar.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var result = await _configService.TestOpcUaEndpointAsync(SelectedServer.Endpoint);
+        MessageBox.Show(result.Message, "Teste OPC UA", MessageBoxButton.OK, result.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
     private async Task ReconnectAsync()
     {
-        MessageBox.Show("Reconexão será conectada ao servidor OPC UA quando o endpoint estiver disponível.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-        await Task.CompletedTask;
+        if (SelectedServer is null)
+        {
+            MessageBox.Show("Selecione uma conexao OPC UA para reconectar.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var result = await _configService.ConnectOpcUaAsync(SelectedServer.Id);
+        MessageBox.Show(result.Message, "Reconectar OPC UA", MessageBoxButton.OK, result.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
     }
 
     private async Task BrowseNodesAsync()
     {
-        MessageBox.Show("Navegação de nós será conectada ao servidor OPC UA quando o endpoint estiver disponível.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-        await Task.CompletedTask;
+        if (SelectedServer is null)
+        {
+            MessageBox.Show("Selecione uma conexao OPC UA para procurar nos.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        Loading = true;
+        StatusMessage = $"Procurando nos em {SelectedServer.Name}...";
+        NodeRows.Clear();
+
+        try
+        {
+            var result = await _configService.BrowseOpcUaAsync(SelectedServer.Id);
+            if (!string.IsNullOrWhiteSpace(result.Error))
+            {
+                StatusMessage = $"Erro ao procurar nos: {result.Error}";
+                return;
+            }
+
+            foreach (var node in result.Nodes)
+            {
+                NodeRows.Add(new OpcNodeRow(
+                    node.NodeId,
+                    string.IsNullOrWhiteSpace(node.Type) ? "-" : node.Type,
+                    string.IsNullOrWhiteSpace(node.Name) ? "-" : node.Name,
+                    node.Quality,
+                    DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")));
+            }
+
+            StatusMessage = $"{NodeRows.Count} no(s) carregado(s) de {SelectedServer.Name}.";
+        }
+        finally
+        {
+            Loading = false;
+        }
     }
 }
 

@@ -6,13 +6,13 @@
              mc:Ignorable="d">
     <UserControl.Resources>
         <LinearGradientBrush x:Key="ManagerPanelBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#17222C" Offset="0" />
-            <GradientStop Color="#101820" Offset="1" />
+            <GradientStop Color="#30465F" Offset="0" />
+            <GradientStop Color="#243447" Offset="1" />
         </LinearGradientBrush>
 
         <Style x:Key="ManagerCardStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource ManagerPanelBrush}" />
-            <Setter Property="BorderBrush" Value="#2A3848" />
+            <Setter Property="BorderBrush" Value="#4A617B" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="16" />
@@ -41,7 +41,7 @@
             <Setter Property="Foreground" Value="#E5EDF5" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="GridLinesVisibility" Value="Horizontal" />
-            <Setter Property="HorizontalGridLinesBrush" Value="#263445" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#4A617B" />
             <Setter Property="HeadersVisibility" Value="Column" />
             <Setter Property="RowHeaderWidth" Value="0" />
             <Setter Property="AutoGenerateColumns" Value="False" />
@@ -80,7 +80,7 @@
         </Style>
 
         <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#1E2A36" />
+            <Setter Property="Background" Value="#42617F" />
             <Setter Property="Foreground" Value="#E5EDF5" />
             <Setter Property="BorderBrush" Value="#334456" />
             <Setter Property="BorderThickness" Value="1" />
@@ -102,16 +102,16 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#263445" />
+                    <Setter Property="Background" Value="#4A617B" />
                     <Setter Property="BorderBrush" Value="#42556A" />
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#14202A" />
+            <Setter Property="Background" Value="#2A3D53" />
             <Setter Property="Foreground" Value="#D8E2EC" />
-            <Setter Property="BorderBrush" Value="#263445" />
+            <Setter Property="BorderBrush" Value="#4A617B" />
             <Setter Property="Padding" Value="8" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>

@@ -1,6 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using AnalictY.Manager.Infrastructure;
+using AnalictY.Manager.Services;
+using AnalictY.Manager.ViewModels;
 
 namespace AnalictY.Manager.Views
 {
@@ -9,6 +12,9 @@ namespace AnalictY.Manager.Views
         public MqttMonitorPage()
         {
             InitializeComponent();
+            MqttViewHost.DataContext = new MqttViewModel(
+                new AdminApiService(AppServices.HttpClient),
+                new ConfigService(AppServices.HttpClient));
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)

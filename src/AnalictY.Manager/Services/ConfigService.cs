@@ -11,6 +11,9 @@ public sealed class ConfigService
     private static readonly Uri OpcUaAllEndpoint = new(ApiBaseUri, "/api/config/opcua/all");
     private static readonly Uri OpcUaBrowseEndpoint = new(ApiBaseUri, "/api/config/opcua/browse");
     private static readonly Uri OpcUaConnectEndpoint = new(ApiBaseUri, "/api/drivers/opcua/connect");
+    private static readonly Uri OpcUaUpdateEndpoint = new(ApiBaseUri, "/api/config/opcua");
+    private static readonly Uri OpcUaDeleteEndpoint = new(ApiBaseUri, "/api/config/opcua/{id}");
+    private static readonly Uri OpcUaTestEndpoint = new(ApiBaseUri, "/api/config/opcua/{id}/test");
     private static readonly Uri MqttAllEndpoint = new(ApiBaseUri, "/api/config/mqtt/all");
     private static readonly Uri MqttTopicsEndpoint = new(ApiBaseUri, "/api/config/mqtt/cache/topics");
     private static readonly Uri MqttClientsEndpoint = new(ApiBaseUri, "/api/config/mqtt/clients");
@@ -142,10 +145,120 @@ public sealed class ConfigService
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}");
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
             return OperationResult.CreateSuccess("Conexão OPC UA estabelecida com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> CreateOpcUaAsync(OpcUaConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToOpcUaPayload(null, request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, OpcUaUpdateEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão OPC UA criada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateOpcUaAsync(string id, OpcUaConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToOpcUaPayload(ParseNullableInt(id), request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, OpcUaUpdateEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão OPC UA atualizada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteOpcUaAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/opcua/{id}");
+            using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão OPC UA excluída com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestOpcUaAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/opcua/{id}/test");
+            using var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Teste de conexão OPC UA realizado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestOpcUaEndpointAsync(string endpointUrl, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(endpointUrl))
+        {
+            return OperationResult.CreateFailed("Endpoint OPC UA nao informado.");
+        }
+
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/drivers/opcua/status?endpointUrl={Uri.EscapeDataString(endpointUrl)}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Teste de conexao OPC UA realizado com sucesso");
         }
         catch (Exception ex)
         {
@@ -249,6 +362,92 @@ public sealed class ConfigService
         }
     }
 
+    public async Task<OperationResult> CreateMqttAsync(MqttConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToMqttPayload(null, request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, MqttUpdateEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão MQTT criada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateMqttAsync(string id, MqttConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToMqttPayload(ParseNullableInt(id), request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, MqttUpdateEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão MQTT atualizada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteMqttAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mqtt/{id}");
+            using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão MQTT excluída com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestMqttAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mqtt/{id}/test");
+            using var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Teste de conexão MQTT realizado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
     // MySQL
     public async Task<MysqlConnectionsResult> GetMysqlConnectionsAsync(CancellationToken cancellationToken = default)
     {
@@ -288,7 +487,7 @@ public sealed class ConfigService
             using var response = await _httpClient.PostAsync(MysqlTestEndpoint, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}");
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
             return OperationResult.CreateSuccess("Teste de conexão MySQL realizado com sucesso");
@@ -307,7 +506,7 @@ public sealed class ConfigService
             using var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}");
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
             return OperationResult.CreateSuccess("MySQL definido como primário com sucesso");
@@ -331,6 +530,92 @@ public sealed class ConfigService
     public async Task<OperationResult> InitMysqlAsync(string id, CancellationToken cancellationToken = default)
     {
         return await PostMysqlActionAsync(id, "init", "MySQL inicializado com sucesso", cancellationToken);
+    }
+
+    public async Task<OperationResult> CreateMysqlAsync(MysqlConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToMysqlPayload(null, request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, MysqlUpdateEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão MySQL criada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateMysqlAsync(string id, MysqlConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToMysqlPayload(ParseNullableInt(id), request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, MysqlUpdateEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão MySQL atualizada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteMysqlAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mysql/{id}");
+            using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexão MySQL excluída com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestMysqlByIdAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mysql/{id}/test");
+            using var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Teste de conexão MySQL realizado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
     }
 
     // Tags
@@ -489,10 +774,17 @@ public sealed class ConfigService
             return new FtpExportResult
             {
                 Enabled = ReadBool(document.RootElement, "enabled"),
+                Name = ReadString(document.RootElement, "name") ?? "Exportacao FTP/SFTP",
+                Protocol = ReadString(document.RootElement, "protocol") ?? "SFTP",
                 Host = ReadString(document.RootElement, "host") ?? string.Empty,
                 Port = ReadString(document.RootElement, "port") ?? string.Empty,
                 Username = ReadString(document.RootElement, "username") ?? string.Empty,
-                Directory = ReadString(document.RootElement, "directory", "destinationPath", "destination_path") ?? string.Empty
+                PasswordConfigured = ReadBool(document.RootElement, "passwordConfigured", "password_configured"),
+                PrivateKeyPath = ReadString(document.RootElement, "privateKeyPath", "private_key_path") ?? string.Empty,
+                Directory = ReadString(document.RootElement, "directory", "destinationPath", "destination_path") ?? string.Empty,
+                Frequency = ReadString(document.RootElement, "frequency") ?? "manual",
+                DataType = ReadString(document.RootElement, "dataType", "data_type") ?? "production",
+                FileFormat = ReadString(document.RootElement, "fileFormat", "file_format") ?? "CSV"
             };
         }
         catch (OperationCanceledException)
@@ -509,7 +801,193 @@ public sealed class ConfigService
         }
     }
 
+    public async Task<OperationResult> SaveFtpExportAsync(FtpExportRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToFtpPayload(request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, FtpExportEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Configuracao FTP/SFTP atualizada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> TestFtpExportAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.PostAsync(new Uri(ApiBaseUri, "/api/config/ftp-export/test"), null, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            return OperationResult.CreateSuccess("Conexao FTP/SFTP estabelecida com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    private static async Task<string> ReadErrorMessageAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    {
+        var fallback = $"Erro HTTP {(int)response.StatusCode}";
+        try
+        {
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return fallback;
+            }
+
+            using var document = JsonDocument.Parse(body);
+            return ReadString(document.RootElement, "error", "message", "detail", "title") ??
+                ReadNestedString(document.RootElement, "errors") ??
+                body;
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
+
+    private static string? ReadNestedString(JsonElement element, string propertyName)
+    {
+        if (!TryGetProperty(element, propertyName, out var property))
+        {
+            return null;
+        }
+
+        if (property.ValueKind == JsonValueKind.String)
+        {
+            return property.GetString();
+        }
+
+        if (property.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var item in property.EnumerateObject())
+            {
+                if (item.Value.ValueKind == JsonValueKind.Array)
+                {
+                    var messages = item.Value.EnumerateArray()
+                        .Select(value => value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString())
+                        .Where(value => !string.IsNullOrWhiteSpace(value));
+                    return $"{item.Name}: {string.Join("; ", messages)}";
+                }
+            }
+        }
+
+        return property.ToString();
+    }
+
     // Helpers
+    private static object ToOpcUaPayload(int? id, OpcUaConnectionRequest request)
+    {
+        var securityPolicy = string.IsNullOrWhiteSpace(request.SecurityPolicy) ? "None" : request.SecurityPolicy.Trim();
+        var securityMode = string.IsNullOrWhiteSpace(request.SecurityMode) ? "None" : request.SecurityMode.Trim();
+        var usesSecurity = !string.Equals(securityPolicy, "None", StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(securityMode, "None", StringComparison.OrdinalIgnoreCase);
+
+        return new
+        {
+            id,
+            name = string.IsNullOrWhiteSpace(request.Name) ? "OPC UA" : request.Name.Trim(),
+            server_url = request.Endpoint.Trim(),
+            security_policy = securityPolicy,
+            security_mode = securityMode,
+            username = request.Username ?? string.Empty,
+            password = request.Password ?? string.Empty,
+            certificate_path = usesSecurity ? request.CertificatePath ?? string.Empty : string.Empty,
+            private_key_path = usesSecurity ? request.PrivateKeyPath ?? string.Empty : string.Empty,
+            update_interval = ParsePort(request.UpdateInterval, 1000),
+            is_active = request.IsActive
+        };
+    }
+
+    private static object ToMqttPayload(int? id, MqttConnectionRequest request)
+    {
+        return new
+        {
+            id,
+            name = request.Name,
+            client_id = request.ClientId ?? string.Empty,
+            broker_host = request.Host,
+            broker_port = ParsePort(request.Port, 1883),
+            username = request.Username ?? string.Empty,
+            password = request.Password ?? string.Empty,
+            tls_enabled = request.TlsEnabled,
+            ca_cert_path = request.CaCertPath ?? string.Empty,
+            client_cert_path = request.ClientCertPath ?? string.Empty,
+            client_key_path = request.ClientKeyPath ?? string.Empty,
+            topics = request.Topics ?? string.Empty,
+            qos = ParsePort(request.Qos, 0),
+            is_active = request.IsActive
+        };
+    }
+
+    private static object ToMysqlPayload(int? id, MysqlConnectionRequest request)
+    {
+        return new
+        {
+            id,
+            name = request.Name,
+            host = request.Host,
+            port = ParsePort(request.Port, 3306),
+            user = request.Username ?? string.Empty,
+            password = request.Password ?? string.Empty,
+            database = request.Database,
+            pool_size = ParsePort(request.PoolSize, 10),
+            is_active = request.IsActive,
+            is_primary = request.IsPrimary,
+            is_local = request.IsLocal || string.Equals(request.Host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                       string.Equals(request.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase),
+            provider = string.IsNullOrWhiteSpace(request.Type) ? "MySQL" : request.Type
+        };
+    }
+
+    private static object ToFtpPayload(FtpExportRequest request)
+    {
+        return new
+        {
+            name = request.Name,
+            enabled = request.Enabled,
+            protocol = string.IsNullOrWhiteSpace(request.Protocol) ? "SFTP" : request.Protocol,
+            host = request.Host,
+            port = ParsePort(request.Port, string.Equals(request.Protocol, "FTP", StringComparison.OrdinalIgnoreCase) ? 21 : 22),
+            username = request.Username ?? string.Empty,
+            password = request.Password ?? string.Empty,
+            private_key_path = request.PrivateKeyPath ?? string.Empty,
+            destination_path = string.IsNullOrWhiteSpace(request.Directory) ? "/" : request.Directory,
+            frequency = string.IsNullOrWhiteSpace(request.Frequency) ? "manual" : request.Frequency,
+            data_type = string.IsNullOrWhiteSpace(request.DataType) ? "production" : request.DataType,
+            file_format = string.IsNullOrWhiteSpace(request.FileFormat) ? "CSV" : request.FileFormat
+        };
+    }
+
+    private static int? ParseNullableInt(string value)
+    {
+        return int.TryParse(value, out var parsed) ? parsed : null;
+    }
+
+    private static int ParsePort(string value, int fallback)
+    {
+        return int.TryParse(value, out var parsed) ? parsed : fallback;
+    }
+
     private static OpcUaConnection ParseOpcUaConnection(JsonElement element)
     {
         return new OpcUaConnection
@@ -517,6 +995,13 @@ public sealed class ConfigService
             Id = ReadString(element, "id") ?? string.Empty,
             Name = ReadString(element, "name") ?? string.Empty,
             Endpoint = ReadString(element, "endpoint", "serverUrl", "server_url") ?? string.Empty,
+            SecurityPolicy = ReadString(element, "securityPolicy", "security_policy") ?? "None",
+            SecurityMode = ReadString(element, "securityMode", "security_mode") ?? "None",
+            Username = ReadString(element, "username") ?? string.Empty,
+            CertificatePath = ReadString(element, "certificatePath", "certificate_path") ?? string.Empty,
+            PrivateKeyPath = ReadString(element, "privateKeyPath", "private_key_path") ?? string.Empty,
+            UpdateInterval = ReadString(element, "updateInterval", "update_interval") ?? "1000",
+            IsActive = ReadBoolDefaultTrue(element, "isActive", "is_active"),
             Status = ReadString(element, "status") ?? "Desconhecido"
         };
     }
@@ -538,8 +1023,17 @@ public sealed class ConfigService
         {
             Id = ReadString(element, "id") ?? string.Empty,
             Name = ReadString(element, "name") ?? string.Empty,
+            ClientId = ReadString(element, "clientId", "client_id") ?? string.Empty,
             Host = ReadString(element, "host", "brokerHost", "broker_host") ?? string.Empty,
             Port = ReadString(element, "port", "brokerPort", "broker_port") ?? string.Empty,
+            Username = ReadString(element, "username") ?? string.Empty,
+            TlsEnabled = ReadBool(element, "tlsEnabled", "tls_enabled"),
+            CaCertPath = ReadString(element, "caCertPath", "ca_cert_path") ?? string.Empty,
+            ClientCertPath = ReadString(element, "clientCertPath", "client_cert_path") ?? string.Empty,
+            ClientKeyPath = ReadString(element, "clientKeyPath", "client_key_path") ?? string.Empty,
+            Topics = ReadString(element, "topics") ?? string.Empty,
+            Qos = ReadString(element, "qos") ?? "0",
+            IsActive = ReadBoolDefaultTrue(element, "isActive", "is_active"),
             Status = ReadString(element, "status") ?? "Desconhecido"
         };
     }
@@ -587,6 +1081,9 @@ public sealed class ConfigService
             Port = ReadString(element, "port") ?? string.Empty,
             Database = ReadString(element, "database") ?? string.Empty,
             Type = ReadString(element, "type", "provider") ?? "MySQL",
+            Username = ReadString(element, "username", "user") ?? string.Empty,
+            PoolSize = ReadString(element, "poolSize", "pool_size") ?? "10",
+            IsActive = ReadBoolDefaultTrue(element, "isActive", "is_active"),
             IsPrimary = ReadBool(element, "isPrimary", "is_primary"),
             IsLocal = isLocal,
             IsRemote = ReadBool(element, "isRemote", "is_remote") || !isLocal,
@@ -618,7 +1115,7 @@ public sealed class ConfigService
             using var response = await _httpClient.PostAsync(endpoint, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}");
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
             return OperationResult.CreateSuccess(successMessage);
@@ -704,6 +1201,27 @@ public sealed class ConfigService
         }
 
         return false;
+    }
+
+    private static bool ReadBoolDefaultTrue(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryGetProperty(element, name, out var value))
+            {
+                continue;
+            }
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.String => bool.TryParse(value.GetString(), out var parsed) ? parsed : true,
+                _ => true
+            };
+        }
+
+        return true;
     }
 
     private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)
