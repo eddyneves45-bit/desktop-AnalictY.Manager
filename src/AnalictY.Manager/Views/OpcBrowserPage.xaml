@@ -8,10 +8,6 @@
       Background="#F3F5F7"
       FontFamily="Segoe UI">
     
-    <Page.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-    </Page.Resources>
-    
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24">
@@ -168,93 +164,11 @@
                                    FontWeight="SemiBold" 
                                    Foreground="#111827"
                                    Margin="0,0,0,16"/>
-                        
-                        <!-- Loading indicator -->
-                        <TextBlock Text="Carregando..." 
+                        <TextBlock Text="Nenhuma conexão salva" 
                                    FontSize="14" 
                                    Foreground="#6B7280"
                                    HorizontalAlignment="Center"
-                                   Margin="0,40,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Loading}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        
-                        <!-- Status message -->
-                        <TextBlock Text="{Binding StatusMessage}" 
-                                   FontSize="14" 
-                                   Foreground="#6B7280"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,40,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Loading}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        
-                        <!-- Connections list -->
-                        <ItemsControl ItemsSource="{Binding ServerRows}" 
-                                      Margin="0,16,0,0">
-                            <ItemsControl.Style>
-                                <Style TargetType="ItemsControl">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Loading}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ItemsControl.Style>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="#F9FAFB" 
-                                            BorderBrush="#E5E7EB" 
-                                            BorderThickness="1" 
-                                            CornerRadius="8" 
-                                            Padding="16"
-                                            Margin="0,0,0,8">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0">
-                                                <TextBlock Text="{Binding Name}" 
-                                                           FontSize="14" 
-                                                           FontWeight="SemiBold" 
-                                                           Foreground="#111827"/>
-                                                <TextBlock Text="{Binding Endpoint}" 
-                                                           FontSize="12" 
-                                                           Foreground="#6B7280" 
-                                                           Margin="0,4,0,0"/>
-                                            </StackPanel>
-                                            <Border Grid.Column="1" 
-                                                    Background="#ECFDF5" 
-                                                    CornerRadius="6" 
-                                                    Padding="8,4">
-                                                <TextBlock Text="{Binding Status}" 
-                                                           FontSize="12" 
-                                                           FontWeight="Medium" 
-                                                           Foreground="#059669"/>
-                                            </Border>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                   Margin="0,40,0,0"/>
                     </StackPanel>
                 </Border>
             </StackPanel>

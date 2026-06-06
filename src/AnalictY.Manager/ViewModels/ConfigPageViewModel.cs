@@ -9,13 +9,11 @@ using System.Windows;
 using System.Windows.Input;
 using AnalictY.Manager.Models;
 using AnalictY.Manager.Infrastructure;
-using AnalictY.Manager.Services;
 
 namespace AnalictY.Manager.ViewModels
 {
     public class ConfigPageViewModel : INotifyPropertyChanged
     {
-        private readonly ConfigService _configService;
         private string _selectedSector = "all";
         private string _timeZoneId = "America/Sao_Paulo";
         private string _timeZoneLabel = "Brasil - Brasília (GMT-3)";
@@ -31,14 +29,13 @@ namespace AnalictY.Manager.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public ConfigPageViewModel(ConfigService configService)
+        public ConfigPageViewModel()
         {
-            _configService = configService;
             InitializeSectors();
             InitializeCards();
             InitializeTimeZoneOptions();
             InitializeCommands();
-            _ = LoadConfigsAsync();
+            LoadConfigs();
         }
 
         private void InitializeCommands()
@@ -347,70 +344,11 @@ namespace AnalictY.Manager.ViewModels
             };
         }
 
-        private async Task LoadConfigsAsync()
+        private async void LoadConfigs()
         {
             Loading = true;
-            try
-            {
-                // Load OPC UA connections count
-                var opcResult = await _configService.GetOpcUaConnectionsAsync();
-                if (opcResult.Error == null)
-                {
-                    var opcCard = ConfigCards.FirstOrDefault(c => c.Id == "opc");
-                    if (opcCard != null)
-                    {
-                        opcCard.Count = opcResult.Connections.Count.ToString();
-                    }
-                }
-
-                // Load MQTT connections count
-                var mqttResult = await _configService.GetMqttConnectionsAsync();
-                if (mqttResult.Error == null)
-                {
-                    var mqttCard = ConfigCards.FirstOrDefault(c => c.Id == "mqtt");
-                    if (mqttCard != null)
-                    {
-                        mqttCard.Count = mqttResult.Connections.Count.ToString();
-                    }
-                }
-
-                // Load MySQL connections count
-                var mysqlResult = await _configService.GetMysqlConnectionsAsync();
-                if (mysqlResult.Error == null)
-                {
-                    var mysqlCard = ConfigCards.FirstOrDefault(c => c.Id == "mysql");
-                    if (mysqlCard != null)
-                    {
-                        mysqlCard.Count = mysqlResult.Connections.Count.ToString();
-                    }
-                }
-
-                // Load Telegram status
-                var telegramResult = await _configService.GetTelegramStatusAsync();
-                if (telegramResult.Error == null)
-                {
-                    var telegramCard = ConfigCards.FirstOrDefault(c => c.Id == "telegram");
-                    if (telegramCard != null)
-                    {
-                        telegramCard.Count = telegramResult.Enabled ? "Ativo" : "Inativo";
-                    }
-                }
-
-                // Load FTP Export status
-                var ftpResult = await _configService.GetFtpExportAsync();
-                if (ftpResult.Error == null)
-                {
-                    // Could add FTP card if needed
-                }
-            }
-            catch
-            {
-                // Silently fail on load errors
-            }
-            finally
-            {
-                Loading = false;
-            }
+            await Task.Delay(500); // Simulate loading
+            Loading = false;
         }
 
         public ObservableCollection<ConfigSector> ConfigSectors { get; set; } = new();
