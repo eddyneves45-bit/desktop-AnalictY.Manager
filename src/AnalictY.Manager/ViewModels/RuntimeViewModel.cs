@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Net.Http;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using AnalictY.Manager.Infrastructure;
@@ -7,45 +9,31 @@ namespace AnalictY.Manager.ViewModels;
 
 public sealed class RuntimeViewModel : ObservableObject
 {
-    private string _status = "Em execução";
-    private string _uptime = "2d 14h 32m";
-    private string _version = "1.0.0";
-    private string _queuedEvents = "0";
-    private string _processingRate = "150 evt/s";
-    private string _lastCycle = "2s atrás";
-    private string _totalCycles = "1,234,567";
+    private static readonly Uri RuntimeEndpoint = new("http://127.0.0.1:5000/api/runtime/state");
+    private readonly HttpClient _httpClient;
+    private string _status = "Carregando...";
+    private string _uptime = "-";
+    private string _version = "-";
+    private string _queuedEvents = "-";
+    private string _processingRate = "-";
+    private string _lastCycle = "-";
+    private string _totalCycles = "-";
+    private bool _isLoading;
 
-    public RuntimeViewModel()
+    public RuntimeViewModel(HttpClient httpClient)
     {
-        RefreshCommand = new RelayCommand(_ =>
-        {
-            MessageBox.Show("Atualização de dados do Runtime será conectada ao AnalictY Server quando o endpoint estiver disponível.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
-            return Task.CompletedTask;
-        });
+        _httpClient = httpClient;
+        RefreshCommand = new RelayCommand(async _ => await LoadAsync());
         RestartCommand = new RelayCommand(_ =>
         {
             MessageBox.Show("Reinício do Runtime exigirá confirmação futura e integração com o serviço Windows.", "AnalictY Manager", MessageBoxButton.OK, MessageBoxImage.Information);
             return Task.CompletedTask;
         });
 
-        InternalServices = new ObservableCollection<RuntimeServiceRow>
-        {
-            new("Event Processor", "Em execução", "150 evt/s", "0 erros"),
-            new("Tag Scanner", "Em execução", "45 tags/s", "0 erros"),
-            new("MQTT Publisher", "Em execução", "12 msg/s", "0 erros"),
-            new("OPC UA Client", "Em execução", "28 nós/s", "0 erros"),
-            new("Database Writer", "Em execução", "85 rec/s", "0 erros"),
-            new("WebSocket Server", "Em execução", "1 cliente", "0 erros")
-        };
-
-        RecentCycles = new ObservableCollection<RuntimeCycleRow>
-        {
-            new("2s atrás", "142", "0", "12ms"),
-            new("4s atrás", "138", "0", "11ms"),
-            new("6s atrás", "145", "0", "13ms"),
-            new("8s atrás", "140", "0", "12ms"),
-            new("10s atrás", "139", "0", "11ms")
-        };
+        InternalServices = new ObservableCollection<RuntimeServiceRow>();
+        RecentCycles = new ObservableCollection<RuntimeCycleRow>();
+        
+        _ = LoadAsync();
     }
 
     public string Status
@@ -90,10 +78,90 @@ public sealed class RuntimeViewModel : ObservableObject
         set => SetProperty(ref _totalCycles, value);
     }
 
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
+    }
+
     public ICommand RefreshCommand { get; }
     public ICommand RestartCommand { get; }
     public ObservableCollection<RuntimeServiceRow> InternalServices { get; }
     public ObservableCollection<RuntimeCycleRow> RecentCycles { get; }
+
+    public async Task LoadAsync()
+    {
+        IsLoading = true;
+        try
+        {
+            using HttpResponseMessage response = await _httpClient.GetAsync(RuntimeEndpoint);
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                Status = "Requer login";
+                return;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Status = $"Erro: {response.StatusCode}";
+                return;
+            }
+
+            string content = await response.Content.ReadAsStringAsync();
+            using JsonDocument doc = JsonDocument.Parse(content);
+            
+            Status = "Em execução";
+            Uptime = ReadString(doc.RootElement, "uptime") ?? "-";
+            Version = ReadString(doc.RootElement, "version") ?? "-";
+            
+            int tagCount = CountRuntimeItems(doc.RootElement);
+            QueuedEvents = tagCount.ToString();
+            ProcessingRate = $"{tagCount} tags";
+        }
+        catch (Exception ex)
+        {
+            Status = $"Erro: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private static string? ReadString(JsonElement element, params string[] names)
+    {
+        foreach (string name in names)
+        {
+            if (element.TryGetProperty(name, out JsonElement value))
+            {
+                return value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString();
+            }
+        }
+        return null;
+    }
+
+    private static int CountRuntimeItems(JsonElement root)
+    {
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            return root.GetArrayLength();
+        }
+
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return 0;
+        }
+
+        foreach (string name in new[] { "tags", "states", "data", "items", "results" })
+        {
+            if (root.TryGetProperty(name, out JsonElement value) && value.ValueKind == JsonValueKind.Array)
+            {
+                return value.GetArrayLength();
+            }
+        }
+
+        return root.EnumerateObject().Count();
+    }
 }
 
 public sealed record RuntimeServiceRow(string Name, string Status, string Rate, string Errors);

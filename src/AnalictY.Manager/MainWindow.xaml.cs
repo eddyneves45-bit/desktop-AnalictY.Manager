@@ -18,18 +18,10 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        var cookieContainer = new CookieContainer();
-        var handler = new HttpClientHandler
-        {
-            CookieContainer = cookieContainer,
-            UseCookies = true
-        };
-        var csrfHandler = new CsrfHeaderHandler(cookieContainer)
-        {
-            InnerHandler = handler
-        };
-        var apiClient = new HttpClient(csrfHandler) { Timeout = TimeSpan.FromSeconds(10) };
-        AppServices.Configure(apiClient);
+        // AppServices já configura HttpClient com CookieContainer e CsrfHandler
+        var apiClient = AppServices.HttpClient;
+        var cookieContainer = AppServices.CookieContainer;
+        var authService = AppServices.AuthService;
 
         var machineOverviewService = new MachineOverviewService(apiClient);
         var healthService = new HealthService(apiClient);
@@ -37,10 +29,12 @@ public partial class MainWindow : Window
         var logsService = new LogsService(apiClient);
         var updatesService = new UpdatesService(apiClient);
         var databaseService = new DatabaseService(apiClient);
+        var backupService = new BackupService(apiClient);
+        var eventsService = new EventsService(apiClient);
         var adminApiService = new AdminApiService(apiClient);
 
         var viewModel = new MainWindowViewModel(
-            new AuthService(apiClient, cookieContainer),
+            authService,
             machineOverviewService,
             new StatusOverviewService(apiClient, machineOverviewService),
             new ProductionHistoryService(apiClient),
@@ -58,12 +52,12 @@ public partial class MainWindow : Window
         UpdatesViewHost.DataContext = new UpdatesViewModel(updatesService, versionService);
         var configService = new ConfigService(apiClient);
         DatabaseViewHost.DataContext = new DatabaseViewModel(databaseService, configService);
-        RuntimeViewHost.DataContext = new RuntimeViewModel();
+        RuntimeViewHost.DataContext = new RuntimeViewModel(apiClient);
         TagsViewHost.DataContext = new TagsViewModel(configService);
         ProtocolsViewHost.DataContext = new ProtocolsViewModel(configService);
-        ServicesViewHost.DataContext = new ServicesViewModel();
-        EventsViewHost.DataContext = new EventsViewModel();
-        BackupViewHost.DataContext = new BackupViewModel();
+        ServicesViewHost.DataContext = new ServicesViewModel(adminApiService);
+        EventsViewHost.DataContext = new EventsViewModel(eventsService);
+        BackupViewHost.DataContext = new BackupViewModel(backupService, authService);
         AboutViewHost.DataContext = new AboutViewModel();
         Loaded += MainWindow_OnLoaded;
         ApplyTheme(viewModel.IsDarkTheme);
