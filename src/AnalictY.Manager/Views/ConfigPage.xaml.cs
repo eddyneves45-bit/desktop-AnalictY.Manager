@@ -65,7 +65,7 @@ namespace AnalictY.Manager.Views
         {
             FrameworkElement? page = target switch
             {
-                "opc-browser" => new OpcBrowserPage(),
+                "opc-browser" => new OpcUaView(),
                 "mqtt-monitor" => new MqttMonitorPage(),
                 "database-browser" => new DatabaseBrowserPage(),
                 "connections" => new ConnectionsPage(),

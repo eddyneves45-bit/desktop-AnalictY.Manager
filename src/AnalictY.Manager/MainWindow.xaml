@@ -291,7 +291,7 @@
 
                         <Border Width="70" Height="3" Background="#EF4444" HorizontalAlignment="Left" Margin="10,0,0,18" />
 
-                        <TextBlock Text="AdministraÃ§Ã£o e Monitoramento" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="22" FontWeight="SemiBold" Margin="10,0,0,10" />
+                        <TextBlock Text="Administração e Monitoramento" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="22" FontWeight="SemiBold" Margin="10,0,0,10" />
                         <TextBlock Text="da Plataforma Industrial" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="21" Margin="10,0,0,20" />
 
                         <StackPanel Margin="10,0,0,0">
@@ -310,7 +310,7 @@
                                     <TextBlock Text="&#xE968;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Margin="20,4,0,0">
-                                    <TextBlock Text="ConfiÃ¡vel" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="18" FontWeight="SemiBold" />
+                                    <TextBlock Text="Confiável" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="18" FontWeight="SemiBold" />
                                     <TextBlock Text="Monitoramento 24/7 da plataforma" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="15" Margin="0,8,0,0" />
                                 </StackPanel>
                             </StackPanel>
@@ -321,7 +321,7 @@
                                 </Border>
                                 <StackPanel Margin="20,4,0,0">
                                     <TextBlock Text="Inteligente" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="18" FontWeight="SemiBold" />
-                                    <TextBlock Text="InformaÃ§Ãµes em tempo real" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="15" Margin="0,8,0,0" />
+                                    <TextBlock Text="Informações em tempo real" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="15" Margin="0,8,0,0" />
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -355,20 +355,20 @@
                             <TextBox Text="{Binding LoginServerUrl, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
                             <TextBlock Text="Exemplo: http://localhost:5000 ou http://192.168.1.100:5000" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="12" Margin="0,7,0,10" />
 
-                            <TextBlock Text="UsuÃ¡rio" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                            <TextBlock Text="Usuário" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,0,0,8" />
                             <TextBox Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
 
                             <TextBlock Text="Senha" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,10,0,8" />
                             <PasswordBox x:Name="LoginPasswordBox" PasswordChanged="LoginPasswordBox_OnPasswordChanged" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
 
-                            <CheckBox Content="Lembrar servidor e usuÃ¡rio" IsChecked="True" Foreground="{StaticResource LoginMutedTextBrush}" Margin="0,10,0,12" />
+                            <CheckBox Content="Lembrar servidor e usuário" IsChecked="True" Foreground="{StaticResource LoginMutedTextBrush}" Margin="0,10,0,12" />
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*" />
                                     <ColumnDefinition Width="1.25*" />
                                 </Grid.ColumnDefinitions>
-                                <Button Content="Testar ConexÃ£o" Command="{Binding CheckServerCommand}" Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,18,0" />
+                                <Button Content="Testar Conexão" Command="{Binding CheckServerCommand}" Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,18,0" />
                                 <Button Grid.Column="1" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Stretch" />
                             </Grid>
 
@@ -390,7 +390,7 @@
                                             <TextBlock Text="localhost" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="16" Margin="0,8,0,0" />
                                         </StackPanel>
                                         <StackPanel>
-                                            <TextBlock Text="VersÃ£o" Foreground="{StaticResource LoginMutedTextBrush}" />
+                                            <TextBlock Text="Versão" Foreground="{StaticResource LoginMutedTextBrush}" />
                                             <TextBlock Text="{Binding SystemVersion}" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="16" Margin="0,8,0,0" />
                                         </StackPanel>
                                         <StackPanel>
@@ -407,10 +407,10 @@
 
                 <Border Grid.Row="2" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,1,0,0">
                     <Grid Margin="30,0">
-                        <TextBlock Text="Â© 2026 AnalictY Industrial Intelligence" Foreground="#AAB7C5" VerticalAlignment="Center" />
-                        <TextBlock Text="VersÃ£o: 0.1.6" Foreground="#AAB7C5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Text="© 2026 AnalictY Industrial Intelligence" Foreground="#AAB7C5" VerticalAlignment="Center" />
+                        <TextBlock Text="Versão: 0.1.6" Foreground="#AAB7C5" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock Text="DocumentaÃ§Ã£o" Foreground="#AAB7C5" Margin="0,0,30,0" />
+                            <TextBlock Text="Documentação" Foreground="#AAB7C5" Margin="0,0,30,0" />
                             <TextBlock Text="Suporte" Foreground="#AAB7C5" />
                         </StackPanel>
                     </Grid>
@@ -492,7 +492,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="UsuÃ¡rio"
+                                <TextBlock Text="Usuário"
                                            Foreground="#91A3B7"
                                            FontSize="13" />
                                 <TextBlock Grid.Row="1"

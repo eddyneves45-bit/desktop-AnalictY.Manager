@@ -192,10 +192,7 @@ public sealed class MainWindowViewModel : ObservableObject
         {
             new("Visão Geral", "AdminDashboard", "\uE9D2"),
             new("Runtime", "Runtime", "\uE768"),
-            new("Tags", "Tags", "\uE8EC"),
-            new("Protocolos", "Protocols", "\uE968"),
-            new("Banco de Dados", "Database", "\uEFC7"),
-            new("Serviços", "Services", "\uE713"),
+            new("Serviços", "Services", "\uE773"),
             new("Logs", "Logs", "\uE8A5"),
             new("Eventos", "Events", "\uE7BA"),
             new("Backup", "Backup", "\uE753"),

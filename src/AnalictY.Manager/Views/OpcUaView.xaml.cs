@@ -7,7 +7,7 @@ using AnalictY.Manager.ViewModels;
 
 namespace AnalictY.Manager.Views;
 
-public partial class OpcUaView : UserControl
+public partial class OpcUaView : Page
 {
     private OpcUaBrowserViewModel? _viewModel;
 

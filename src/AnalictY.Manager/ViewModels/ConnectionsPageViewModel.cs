@@ -640,7 +640,15 @@ public sealed class ConnectionsPageViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erro ao salvar: {ex.Message}";
+            string errorMessage = ex.Message;
+            if (errorMessage.Contains("401") || errorMessage.Contains("Unauthorized"))
+            {
+                ErrorMessage = "Sessão expirada. Faça login novamente.";
+            }
+            else
+            {
+                ErrorMessage = $"Erro ao salvar: {ex.Message}";
+            }
         }
     }
 

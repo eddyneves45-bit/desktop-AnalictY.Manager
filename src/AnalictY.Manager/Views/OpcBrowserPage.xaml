@@ -23,7 +23,7 @@
                                   Width="20" Height="20" Stretch="Uniform"/>
                         </Button>
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="OPC UA" 
+                            <TextBlock Text="Browser OPC UA" 
                                        FontSize="28" FontWeight="Bold" 
                                        Foreground="#111827"/>
                         </StackPanel>

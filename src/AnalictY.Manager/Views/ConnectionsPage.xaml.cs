@@ -54,6 +54,16 @@ namespace AnalictY.Manager.Views
             TypeComboBox.SelectedIndex = 0;
             TypeComboBox.IsEnabled = true;
             EditDialogOverlay.Visibility = Visibility.Visible;
+            
+            // Force OPC UA fields to be visible since it's the default selection
+            OpcUaFields.Visibility = Visibility.Visible;
+            HostPortFields.Visibility = Visibility.Collapsed;
+            DatabaseFields.Visibility = Visibility.Collapsed;
+            MqttFields.Visibility = Visibility.Collapsed;
+            FtpFields.Visibility = Visibility.Collapsed;
+            CredentialFields.Visibility = Visibility.Visible;
+            MysqlActions.Visibility = Visibility.Collapsed;
+            FtpActions.Visibility = Visibility.Collapsed;
         }
 
         private void EditConnection_Click(object sender, RoutedEventArgs e)
@@ -196,7 +206,30 @@ namespace AnalictY.Manager.Views
 
         private void UpdateFieldVisibility()
         {
-            if (TypeComboBox.SelectedItem is not string selectedType)
+            string selectedType;
+            
+            if (TypeComboBox.SelectedItem is string type)
+            {
+                selectedType = type;
+            }
+            else if (TypeComboBox.SelectedItem is ComboBoxItem item && item.Content is string content)
+            {
+                selectedType = content;
+            }
+            else if (TypeComboBox.SelectedIndex >= 0)
+            {
+                // Fallback to using SelectedIndex
+                selectedType = TypeComboBox.SelectedIndex switch
+                {
+                    0 => "OPC UA",
+                    1 => "MQTT",
+                    2 => "MySQL",
+                    3 => "SQL Server",
+                    4 => "FTP/SFTP",
+                    _ => "OPC UA"
+                };
+            }
+            else
             {
                 return;
             }
@@ -252,7 +285,7 @@ namespace AnalictY.Manager.Views
             }
 
             _viewModel.EditName = NameTextBox.Text;
-            _viewModel.EditType = TypeComboBox.SelectedItem?.ToString() ?? string.Empty;
+            _viewModel.EditType = ComboValue(TypeComboBox) ?? "OPC UA";
             _viewModel.EditEndpoint = EndpointTextBox.Text;
             _viewModel.EditHost = HostTextBox.Text;
             _viewModel.EditPort = PortTextBox.Text;
