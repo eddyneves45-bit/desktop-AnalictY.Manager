@@ -67,6 +67,7 @@ namespace AnalictY.Manager.Views
             {
                 "opc-browser" => new OpcUaView(),
                 "mqtt-monitor" => new MqttMonitorPage(),
+                "mysql-console" => new ConnectionsPage(),
                 "database-browser" => new DatabaseBrowserPage(),
                 "connections" => new ConnectionsPage(),
                 "weintek-browser" => new WeintekPage(),
@@ -81,6 +82,7 @@ namespace AnalictY.Manager.Views
                 "logs" => new LogsPage(),
                 "local-server" => new LocalServerPage(),
                 "users" => new UsersPage(),
+                "security" => new SecurityPage(),
                 "audit" => new AuditPage(),
                 "downtime-reasons" => new DowntimeReasonsPage(),
                 _ => null

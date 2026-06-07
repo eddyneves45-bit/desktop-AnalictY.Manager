@@ -173,6 +173,28 @@ public sealed class Tag
     public string Address { get; set; } = string.Empty;
     public string DataType { get; set; } = string.Empty;
     public string ScanRate { get; set; } = string.Empty;
+    public string DriverType { get; set; } = string.Empty;
+    public int? FolderId { get; set; }
+    public int? OpcUaConnectionId { get; set; }
+    public int? MqttConnectionId { get; set; }
+    public string FolderName { get; set; } = "Sem pasta";
+    public bool IsActive { get; set; } = true;
+    public string? PersistenceMode { get; set; }
+    public string CurrentValue { get; set; } = "-";
+    public string Quality { get; set; } = "-";
+    public string LastTimestamp { get; set; } = "-";
+    public bool RuntimeConnected { get; set; }
+    public string Status => !IsActive ? "Inativa" : RuntimeConnected ? "Online" : "Sem leitura";
+}
+
+public sealed class TagRuntimeState
+{
+    public string TagId { get; set; } = string.Empty;
+    public string TagName { get; set; } = string.Empty;
+    public string Value { get; set; } = "-";
+    public string Quality { get; set; } = "-";
+    public string Timestamp { get; set; } = "-";
+    public bool Connected { get; set; }
 }
 
 public sealed class MachineFoldersResult
@@ -259,9 +281,12 @@ public sealed class TagRequest
     public string DataType { get; set; } = "Double";
     public string DriverType { get; set; } = "OPCUA";
     public string Address { get; set; } = string.Empty;
-    public int OpcUaConnectionId { get; set; }
+    public int? OpcUaConnectionId { get; set; }
+    public int? MqttConnectionId { get; set; }
+    public int? FolderId { get; set; }
     public int PollIntervalMs { get; set; } = 1000;
     public bool IsActive { get; set; } = true;
+    public string? PersistenceMode { get; set; }
 }
 
 // Database Browser Models

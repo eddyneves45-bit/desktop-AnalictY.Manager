@@ -35,6 +35,7 @@ public sealed class ConfigService
     private static readonly Uri TagsEndpoint = new(ApiBaseUri, "/api/config/tags");
     private static readonly Uri TagsUpdateEndpoint = new(ApiBaseUri, "/api/config/tags/{id}");
     private static readonly Uri TagsDeleteEndpoint = new(ApiBaseUri, "/api/config/tags/{id}");
+    private static readonly Uri RuntimeStateEndpoint = new(ApiBaseUri, "/api/runtime/state");
     private static readonly Uri MachineFoldersEndpoint = new(ApiBaseUri, "/api/machine-folders");
     private static readonly Uri MachinesEndpoint = new(ApiBaseUri, "/api/machines");
     private static readonly Uri WeintekEndpoint = new(ApiBaseUri, "/api/config/weintek");
@@ -128,7 +129,7 @@ public sealed class ConfigService
             using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return new OpcUaBrowseResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+                return new OpcUaBrowseResult { Error = await ReadErrorMessageAsync(response, cancellationToken) };
             }
 
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
@@ -623,6 +624,31 @@ public sealed class ConfigService
         }
     }
 
+    public async Task<OperationResult> TestMysqlAsync(MysqlConnectionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(ToMysqlPayload(null, request), JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, MysqlTestEndpoint)
+            {
+                Content = new StringContent(payload, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            var provider = string.IsNullOrWhiteSpace(request.Provider) ? "MySQL" : request.Provider;
+            return OperationResult.CreateSuccess($"Teste de conexao {provider} realizado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
     public async Task<OperationResult> SetMysqlPrimaryAsync(string id, CancellationToken cancellationToken = default)
     {
         try
@@ -934,8 +960,11 @@ public sealed class ConfigService
                 driver_type = request.DriverType,
                 address = request.Address,
                 opcua_connection_id = request.OpcUaConnectionId,
+                mqtt_connection_id = request.MqttConnectionId,
+                folder_id = request.FolderId,
                 poll_interval_ms = request.PollIntervalMs,
-                is_active = request.IsActive
+                is_active = request.IsActive,
+                persistence_mode = request.PersistenceMode
             };
 
             var json = JsonSerializer.Serialize(payload, JsonOptions);
@@ -975,8 +1004,11 @@ public sealed class ConfigService
                 driver_type = request.DriverType,
                 address = request.Address,
                 opcua_connection_id = request.OpcUaConnectionId,
+                mqtt_connection_id = request.MqttConnectionId,
+                folder_id = request.FolderId,
                 poll_interval_ms = request.PollIntervalMs,
-                is_active = request.IsActive
+                is_active = request.IsActive,
+                persistence_mode = request.PersistenceMode
             };
 
             var json = JsonSerializer.Serialize(payload, JsonOptions);
@@ -1008,6 +1040,27 @@ public sealed class ConfigService
         catch (JsonException ex)
         {
             return OperationResult.CreateFailed($"Erro ao processar resposta: {ex.Message}");
+        }
+    }
+
+    public async Task<List<TagRuntimeState>> GetTagRuntimeStatesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(RuntimeStateEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new List<TagRuntimeState>();
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            return ReadArray(document.RootElement, "tags", "states", "data", "items", "results")
+                .Select(ParseTagRuntimeState)
+                .ToList();
+        }
+        catch
+        {
+            return new List<TagRuntimeState>();
         }
     }
 
@@ -1052,9 +1105,7 @@ public sealed class ConfigService
             ? ReadString(nameProp) ?? string.Empty
             : string.Empty;
 
-        var parentFolderId = TryGetProperty(element, "parent_folder_id", out var parentProp) && parentProp.ValueKind == JsonValueKind.Number
-            ? parentProp.GetInt32() as int?
-            : null;
+        var parentFolderId = ReadNullableInt(element, "parent_folder_id", "parentFolderId");
 
         var isSector = TryGetProperty(element, "is_sector", out var sectorProp) && sectorProp.ValueKind == JsonValueKind.True
             ? true
@@ -3197,6 +3248,29 @@ public sealed class ConfigService
         return int.TryParse(value, out var parsed) ? parsed : null;
     }
 
+    private static int? ReadNullableInt(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (!TryGetProperty(element, name, out var value))
+            {
+                continue;
+            }
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number))
+            {
+                return number;
+            }
+
+            if (value.ValueKind == JsonValueKind.String && int.TryParse(value.GetString(), out var parsed))
+            {
+                return parsed;
+            }
+        }
+
+        return null;
+    }
+
     private static int ParsePort(string value, int fallback)
     {
         return int.TryParse(value, out var parsed) ? parsed : fallback;
@@ -3224,10 +3298,11 @@ public sealed class ConfigService
     {
         return new OpcUaNode
         {
-            NodeId = ReadString(element, "nodeId") ?? string.Empty,
-            Name = ReadString(element, "name") ?? string.Empty,
-            Type = ReadString(element, "type") ?? string.Empty,
-            Quality = ReadString(element, "quality") ?? "Desconhecido"
+            NodeId = ReadString(element, "nodeId", "node_id") ?? string.Empty,
+            Name = ReadString(element, "name", "displayName", "display_name", "browseName", "browse_name") ?? string.Empty,
+            Type = ReadString(element, "type", "nodeClass", "node_class") ?? string.Empty,
+            Quality = ReadString(element, "quality") ?? "Desconhecido",
+            HasChildren = ReadBool(element, "hasChildren", "has_children")
         };
     }
 
@@ -3313,7 +3388,30 @@ public sealed class ConfigService
             Name = ReadString(element, "name", "tagName", "tag_name") ?? string.Empty,
             Address = ReadString(element, "address", "nodeId", "node_id", "topic") ?? string.Empty,
             DataType = ReadString(element, "dataType", "data_type", "type") ?? string.Empty,
-            ScanRate = ReadString(element, "scanRate", "scan_rate", "pollingInterval", "polling_interval") ?? string.Empty
+            ScanRate = ReadString(element, "scanRate", "scan_rate", "pollingInterval", "polling_interval", "pollIntervalMs", "poll_interval_ms") ?? string.Empty,
+            DriverType = ReadString(element, "driverType", "driver_type", "driver") ?? string.Empty,
+            FolderId = ReadNullableInt(element, "folderId", "folder_id"),
+            OpcUaConnectionId = ReadNullableInt(element, "opcUaConnectionId", "opcuaConnectionId", "opcua_connection_id"),
+            MqttConnectionId = ReadNullableInt(element, "mqttConnectionId", "mqtt_connection_id"),
+            IsActive = ReadBoolDefaultTrue(element, "isActive", "is_active", "active", "enabled"),
+            PersistenceMode = ReadString(element, "persistenceMode", "persistence_mode"),
+            CurrentValue = ReadString(element, "currentValue", "current_value", "value") ?? "-",
+            Quality = ReadString(element, "quality") ?? "-",
+            LastTimestamp = ReadString(element, "timestamp", "sourceTimestamp", "source_timestamp", "updatedAt", "updated_at") ?? "-",
+            RuntimeConnected = ReadBool(element, "connected", "runtimeConnected", "runtime_connected")
+        };
+    }
+
+    private static TagRuntimeState ParseTagRuntimeState(JsonElement element)
+    {
+        return new TagRuntimeState
+        {
+            TagId = ReadString(element, "tagId", "tag_id", "id") ?? string.Empty,
+            TagName = ReadString(element, "tagName", "tag_name", "name") ?? string.Empty,
+            Value = ReadString(element, "value", "currentValue", "current_value") ?? "-",
+            Quality = ReadString(element, "quality") ?? "-",
+            Timestamp = ReadString(element, "timestamp", "sourceTimestamp", "source_timestamp") ?? "-",
+            Connected = ReadBool(element, "connected")
         };
     }
 

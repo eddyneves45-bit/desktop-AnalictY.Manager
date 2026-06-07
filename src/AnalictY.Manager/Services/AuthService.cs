@@ -28,6 +28,11 @@ public sealed class AuthService
 
     public async Task<AuthResult> LoginAsync(string username, string password, CancellationToken cancellationToken = default)
     {
+        return await LoginAsync(username, password, null, cancellationToken);
+    }
+
+    public async Task<AuthResult> LoginAsync(string username, string password, string? mfaCode, CancellationToken cancellationToken = default)
+    {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
             return AuthResult.Failed("Informe usuário/e-mail e senha.");
@@ -35,7 +40,12 @@ public sealed class AuthService
 
         try
         {
-            var payload = JsonSerializer.Serialize(new { username, password }, JsonOptions);
+            var payload = JsonSerializer.Serialize(new
+            {
+                username,
+                password,
+                mfaCode = string.IsNullOrWhiteSpace(mfaCode) ? null : mfaCode.Trim()
+            }, JsonOptions);
             using var request = new HttpRequestMessage(HttpMethod.Post, LoginEndpoint)
             {
                 Content = new StringContent(payload, Encoding.UTF8, "application/json")

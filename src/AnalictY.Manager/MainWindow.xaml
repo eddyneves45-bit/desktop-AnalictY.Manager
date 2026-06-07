@@ -361,6 +361,11 @@
                             <TextBlock Text="Senha" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,10,0,8" />
                             <PasswordBox x:Name="LoginPasswordBox" PasswordChanged="LoginPasswordBox_OnPasswordChanged" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
 
+                            <StackPanel Visibility="{Binding IsMfaCodeRequired, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock Text="Codigo MFA" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,10,0,8" />
+                                <TextBox Text="{Binding LoginMfaCode, UpdateSourceTrigger=PropertyChanged}" MaxLength="6" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="18" />
+                            </StackPanel>
+
                             <CheckBox Content="Lembrar servidor e usuário" IsChecked="True" Foreground="{StaticResource LoginMutedTextBrush}" Margin="0,10,0,12" />
 
                             <Grid>

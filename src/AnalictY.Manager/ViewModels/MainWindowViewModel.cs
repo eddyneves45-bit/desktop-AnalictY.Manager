@@ -85,9 +85,11 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _loginServerUrl = "http://localhost:5000";
     private string _loginUsername = "admin";
     private string _loginPassword = "Rs26051986@";
+    private string _loginMfaCode = string.Empty;
     private string _loginError = string.Empty;
     private string _loginButtonText = "Conectar";
     private bool _isLoginModalOpen;
+    private bool _isMfaCodeRequired;
     private AuthSession? _session;
     private bool _isServerOnline;
     private bool _isCheckingServer;
@@ -430,6 +432,22 @@ public sealed class MainWindowViewModel : ObservableObject
         set { if (SetProperty(ref _loginPassword, value)) LoginError = string.Empty; }
     }
 
+    public string LoginMfaCode
+    {
+        get => _loginMfaCode;
+        set
+        {
+            var normalized = new string((value ?? string.Empty).Where(char.IsDigit).Take(6).ToArray());
+            if (SetProperty(ref _loginMfaCode, normalized)) LoginError = string.Empty;
+        }
+    }
+
+    public bool IsMfaCodeRequired
+    {
+        get => _isMfaCodeRequired;
+        private set => SetProperty(ref _isMfaCodeRequired, value);
+    }
+
     public string LoginError { get => _loginError; private set => SetProperty(ref _loginError, value); }
     public string LoginButtonText { get => _loginButtonText; private set => SetProperty(ref _loginButtonText, value); }
     public bool IsServerOnline { get => _isServerOnline; private set => SetProperty(ref _isServerOnline, value); }
@@ -467,6 +485,8 @@ public sealed class MainWindowViewModel : ObservableObject
         if (!IsLoggingIn)
         {
             LoginError = string.Empty;
+            LoginMfaCode = string.Empty;
+            IsMfaCodeRequired = false;
             IsLoginModalOpen = false;
         }
     }
@@ -480,15 +500,24 @@ public sealed class MainWindowViewModel : ObservableObject
         try
         {
             using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(10));
-            AuthResult result = await _authService.LoginAsync(LoginUsername.Trim(), LoginPassword, timeout.Token);
+            AuthResult result = await _authService.LoginAsync(
+                LoginUsername.Trim(),
+                LoginPassword,
+                IsMfaCodeRequired ? LoginMfaCode : null,
+                timeout.Token);
             if (!result.Success || result.Session is null)
             {
-                LoginError = result.Message;
+                IsMfaCodeRequired = result.MfaRequired;
+                LoginError = result.MfaRequired
+                    ? "Informe o codigo MFA de 6 digitos para concluir o login."
+                    : result.Message;
                 return;
             }
 
             _session = result.Session;
             LoginPassword = string.Empty;
+            LoginMfaCode = string.Empty;
+            IsMfaCodeRequired = false;
             IsLoginModalOpen = false;
             CurrentPage = "AdminDashboard";
             OnPropertyChanged(nameof(IsAuthenticated));
@@ -514,6 +543,8 @@ public sealed class MainWindowViewModel : ObservableObject
         _hasLoadedDowntimeHistory = false;
         _hasLoadedAlerts = false;
         LoginPassword = string.Empty;
+        LoginMfaCode = string.Empty;
+        IsMfaCodeRequired = false;
         LoginError = string.Empty;
         IsLoginModalOpen = false;
         OverviewDataMessage = "Entre para carregar máquinas reais; mostrando dados demonstrativos.";

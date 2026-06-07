@@ -284,6 +284,53 @@ namespace AnalictY.Manager.Views
                 return;
             }
 
+            PopulateViewModelFromDialog();
+
+            await _viewModel.SaveConnectionAsync();
+
+            if (string.IsNullOrWhiteSpace(_viewModel.ErrorMessage))
+            {
+                EditDialogOverlay.Visibility = Visibility.Collapsed;
+                ShowNotification("Conexao salva", _viewModel.StatusMessage);
+            }
+            else
+            {
+                ShowError(_viewModel.ErrorMessage);
+                ShowNotification("Falha ao salvar", _viewModel.ErrorMessage);
+            }
+        }
+
+        private async void TestCurrentConnection_Click(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
+            ErrorBorder.Visibility = Visibility.Collapsed;
+            _viewModel.ErrorMessage = string.Empty;
+            PopulateViewModelFromDialog();
+
+            await _viewModel.TestCurrentEditConnectionAsync();
+
+            if (string.IsNullOrWhiteSpace(_viewModel.ErrorMessage))
+            {
+                ShowNotification("Teste de conexao", _viewModel.StatusMessage);
+            }
+            else
+            {
+                ShowError(_viewModel.ErrorMessage);
+                ShowNotification("Falha no teste", _viewModel.ErrorMessage);
+            }
+        }
+
+        private void PopulateViewModelFromDialog()
+        {
+            if (_viewModel == null)
+            {
+                return;
+            }
+
             _viewModel.EditName = NameTextBox.Text;
             _viewModel.EditType = ComboValue(TypeComboBox) ?? "OPC UA";
             _viewModel.EditEndpoint = EndpointTextBox.Text;
@@ -307,6 +354,10 @@ namespace AnalictY.Manager.Views
             _viewModel.EditQos = ComboValue(QosComboBox) ?? "0";
             _viewModel.EditPoolSize = PoolSizeTextBox.Text;
             _viewModel.EditIsActive = ActiveCheckBox.IsChecked == true;
+            _viewModel.EditIsPrimary = _isEditMode && _selectedConnection?.IsPrimary == true;
+            _viewModel.EditIsLocal = _isEditMode
+                ? _selectedConnection?.IsLocal == true
+                : IsLoopbackHost(HostTextBox.Text);
             _viewModel.EditProtocol = ComboValue(ProtocolComboBox) ?? "SFTP";
             _viewModel.EditDirectory = DirectoryTextBox.Text;
             _viewModel.EditFrequency = FrequencyTextBox.Text;
@@ -320,20 +371,8 @@ namespace AnalictY.Manager.Views
             }
             else
             {
+                _viewModel.SelectedConnection = null;
                 _viewModel.EditDialogType = "Create";
-            }
-
-            await _viewModel.SaveConnectionAsync();
-
-            if (string.IsNullOrWhiteSpace(_viewModel.ErrorMessage))
-            {
-                EditDialogOverlay.Visibility = Visibility.Collapsed;
-                ShowNotification("Conexao salva", _viewModel.StatusMessage);
-            }
-            else
-            {
-                ShowError(_viewModel.ErrorMessage);
-                ShowNotification("Falha ao salvar", _viewModel.ErrorMessage);
             }
         }
 
@@ -548,6 +587,13 @@ namespace AnalictY.Manager.Views
         {
             var parts = address.Split('/', 2);
             return parts.Length == 2 ? parts[1] : string.Empty;
+        }
+
+        private static bool IsLoopbackHost(string host)
+        {
+            return string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(host, "127.0.0.1", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(host, "::1", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void SetCombo(ComboBox comboBox, string? value)

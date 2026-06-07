@@ -15,9 +15,10 @@ public sealed class CsrfHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        if (request.Method == HttpMethod.Post || 
+        if (request.RequestUri is not null &&
+            (request.Method == HttpMethod.Post ||
             request.Method == HttpMethod.Put || 
-            request.Method == HttpMethod.Delete)
+            request.Method == HttpMethod.Delete))
         {
             var csrfToken = _cookieContainer.GetCookies(request.RequestUri)
                 .Cast<Cookie>()

@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
+using AnalictY.Manager.Models;
 using AnalictY.Manager.Infrastructure;
 using AnalictY.Manager.Services;
 using AnalictY.Manager.ViewModels;
@@ -60,6 +62,23 @@ public partial class OpcUaView : Page
     private void RootButton_Click(object sender, RoutedEventArgs e)
     {
         _viewModel?.GoToRoot();
+        HideNodeDetails();
+    }
+
+    private void NodeRow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_viewModel == null || sender is not FrameworkElement { Tag: OpcUaNode node })
+        {
+            return;
+        }
+
+        _viewModel.SelectedNode = node;
+        ShowNodeDetails();
+
+        if (node.HasChildren)
+        {
+            _viewModel.OpenNode(node.NodeId);
+        }
     }
 
     private void CreateTag_Click(object sender, RoutedEventArgs e)
@@ -88,7 +107,9 @@ public partial class OpcUaView : Page
         _viewModel.ErrorMessage = string.Empty;
 
         var tagName = TagNameTextBox.Text.Trim();
-        var dataType = DataTypeComboBox.SelectedItem?.ToString() ?? "Double";
+        var dataType = DataTypeComboBox.SelectedItem is ComboBoxItem item
+            ? item.Content?.ToString() ?? "Double"
+            : DataTypeComboBox.SelectedItem?.ToString() ?? "Double";
 
         await _viewModel.CreateTagAsync(tagName, dataType);
 
@@ -113,6 +134,18 @@ public partial class OpcUaView : Page
     {
         ErrorText.Text = message;
         ErrorBorder.Visibility = Visibility.Visible;
+    }
+
+    private void ShowNodeDetails()
+    {
+        NodeDetailsPanel.Visibility = Visibility.Visible;
+        NoSelectionText.Visibility = Visibility.Collapsed;
+    }
+
+    private void HideNodeDetails()
+    {
+        NodeDetailsPanel.Visibility = Visibility.Collapsed;
+        NoSelectionText.Visibility = Visibility.Visible;
     }
 
     private void ShowNotification(string title, string message)

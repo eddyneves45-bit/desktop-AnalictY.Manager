@@ -551,6 +551,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
 
         try
         {
+            ErrorMessage = string.Empty;
             var result = SelectedConnection.Type switch
             {
                 "OPC UA" => await _configService.TestOpcUaEndpointAsync(SelectedConnection.Address),
@@ -558,6 +559,42 @@ public sealed class ConnectionsPageViewModel : ObservableObject
                 "MySQL" or "SQL Server" => await _configService.TestMysqlByIdAsync(SelectedConnection.Id),
                 "FTP/SFTP" => await _configService.TestFtpExportAsync(BuildFtpRequest()),
                 _ => OperationResult.CreateFailed("Tipo de conexão não suportado para teste")
+            };
+
+            if (result.Success)
+            {
+                StatusMessage = result.Message;
+                SelectedConnection.Status = "Conectado";
+                await LoadAsync();
+            }
+            else
+            {
+                ErrorMessage = result.Message;
+                SelectedConnection.Status = "Falha";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erro ao testar: {ex.Message}";
+        }
+    }
+
+    public async Task TestCurrentEditConnectionAsync()
+    {
+        try
+        {
+            ErrorMessage = string.Empty;
+
+            var result = EditType switch
+            {
+                "OPC UA" => await _configService.TestOpcUaEndpointAsync(EditEndpoint),
+                "MQTT" when SelectedConnection != null && SelectedConnection.Type == "MQTT" =>
+                    await _configService.TestMqttAsync(SelectedConnection.Id),
+                "MQTT" => OperationResult.CreateFailed("Para testar MQTT, salve a conexao primeiro. O endpoint real testa a configuracao cadastrada no servidor."),
+                "MySQL" => await _configService.TestMysqlAsync(BuildMysqlRequest("MySQL")),
+                "SQL Server" => await _configService.TestMysqlAsync(BuildMysqlRequest("SQLServer")),
+                "FTP/SFTP" => await _configService.TestFtpExportAsync(BuildFtpRequest()),
+                _ => OperationResult.CreateFailed("Tipo de conexao nao suportado para teste")
             };
 
             if (result.Success)
@@ -695,6 +732,12 @@ public sealed class ConnectionsPageViewModel : ObservableObject
     // MySQL-specific commands
     public async Task SetMysqlPrimaryAsync()
     {
+        if (SelectedConnection?.Type == "SQL Server")
+        {
+            ErrorMessage = "SQL Server ainda esta em modo segunda opcao: conexao, schema e browser. A producao segue usando MySQL ate a camada operacional ficar multi-banco.";
+            return;
+        }
+
         if (SelectedConnection?.Type != "MySQL") return;
         
         var result = await _configService.SetMysqlPrimaryAsync(SelectedConnection.Id);
@@ -711,7 +754,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
 
     public async Task SetMysqlLocalAsync()
     {
-        if (SelectedConnection?.Type != "MySQL") return;
+        if (SelectedConnection?.Type is not ("MySQL" or "SQL Server")) return;
         
         var result = await _configService.SetMysqlLocalAsync(SelectedConnection.Id);
         if (result.Success)
@@ -727,7 +770,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
 
     public async Task SetMysqlRemoteAsync()
     {
-        if (SelectedConnection?.Type != "MySQL") return;
+        if (SelectedConnection?.Type is not ("MySQL" or "SQL Server")) return;
         
         var result = await _configService.SetMysqlRemoteAsync(SelectedConnection.Id);
         if (result.Success)
@@ -743,7 +786,7 @@ public sealed class ConnectionsPageViewModel : ObservableObject
 
     public async Task InitMysqlAsync()
     {
-        if (SelectedConnection?.Type != "MySQL") return;
+        if (SelectedConnection?.Type is not ("MySQL" or "SQL Server")) return;
 
         var result = await _configService.InitMysqlAsync(SelectedConnection.Id);
         if (result.Success)

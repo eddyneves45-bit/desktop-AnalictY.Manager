@@ -112,7 +112,7 @@ namespace AnalictY.Manager.ViewModels
                     HoverColorHex = "#E0F2FE",
                     IconColorHex = "#0284C7",
                     IsButton = true,
-                    NavigationTarget = "database-browser"
+                    NavigationTarget = "mysql-console"
                 },
                 new ConfigCard 
                 { 
@@ -312,6 +312,21 @@ namespace AnalictY.Manager.ViewModels
                     IconColorHex = "#DC2626",
                     IsButton = true,
                     NavigationTarget = "users"
+                },
+                new ConfigCard 
+                { 
+                    Id = "security", 
+                    Title = "Seguranca", 
+                    Description = "MFA e acesso administrativo", 
+                    Icon = "Shield", 
+                    IconPath = "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+                    Count = "", 
+                    Category = "system",
+                    ColorHex = "#7C3AED",
+                    HoverColorHex = "#EDE9FE",
+                    IconColorHex = "#6D28D9",
+                    IsButton = true,
+                    NavigationTarget = "security"
                 },
                 new ConfigCard 
                 { 
