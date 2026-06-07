@@ -1,4 +1,4 @@
-<Window x:Class="AnalictY.Manager.MainWindow"
+﻿<Window x:Class="AnalictY.Manager.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,7 +12,9 @@
         MinWidth="1120"
         Background="{StaticResource SurfaceBrush}"
         FontFamily="Segoe UI"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        ResizeMode="CanResize">
     <Window.Resources>
         <!-- Industrial Dark Mode Theme -->
         <SolidColorBrush x:Key="SidebarBrush" Color="#172539" />
@@ -268,7 +270,8 @@
                     </Grid>
                 </Border>
 
-                <Grid Grid.Row="1" Margin="76,38">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid Margin="76,24">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*" />
                         <ColumnDefinition Width="620" />
@@ -286,13 +289,13 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <Border Width="70" Height="3" Background="#EF4444" HorizontalAlignment="Left" Margin="10,0,0,24" />
+                        <Border Width="70" Height="3" Background="#EF4444" HorizontalAlignment="Left" Margin="10,0,0,18" />
 
-                        <TextBlock Text="Administração e Monitoramento" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="22" FontWeight="SemiBold" Margin="10,0,0,10" />
-                        <TextBlock Text="da Plataforma Industrial" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="21" Margin="10,0,0,30" />
+                        <TextBlock Text="AdministraÃ§Ã£o e Monitoramento" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="22" FontWeight="SemiBold" Margin="10,0,0,10" />
+                        <TextBlock Text="da Plataforma Industrial" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="21" Margin="10,0,0,20" />
 
                         <StackPanel Margin="10,0,0,0">
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,26">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                 <Border Width="58" Height="58" Background="{StaticResource LoginPanelBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" CornerRadius="8">
                                     <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" Foreground="#EF4444" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
@@ -302,12 +305,12 @@
                                 </StackPanel>
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,26">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                                 <Border Width="58" Height="58" Background="{StaticResource LoginPanelBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" CornerRadius="8">
                                     <TextBlock Text="&#xE968;" FontFamily="Segoe MDL2 Assets" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Margin="20,4,0,0">
-                                    <TextBlock Text="Confiável" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="18" FontWeight="SemiBold" />
+                                    <TextBlock Text="ConfiÃ¡vel" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="18" FontWeight="SemiBold" />
                                     <TextBlock Text="Monitoramento 24/7 da plataforma" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="15" Margin="0,8,0,0" />
                                 </StackPanel>
                             </StackPanel>
@@ -318,19 +321,19 @@
                                 </Border>
                                 <StackPanel Margin="20,4,0,0">
                                     <TextBlock Text="Inteligente" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="18" FontWeight="SemiBold" />
-                                    <TextBlock Text="Informações em tempo real" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="15" Margin="0,8,0,0" />
+                                    <TextBlock Text="InformaÃ§Ãµes em tempo real" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="15" Margin="0,8,0,0" />
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Grid.Column="1" Background="{StaticResource LoginPanelBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" CornerRadius="14" Padding="28" VerticalAlignment="Center">
+                    <Border Grid.Column="1" Background="{StaticResource LoginPanelBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" CornerRadius="14" Padding="28,20" VerticalAlignment="Center">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="28" ShadowDepth="6" Opacity="0.22" Color="#000000" />
                         </Border.Effect>
 
                         <StackPanel>
-                            <Grid Margin="0,0,0,22">
+                            <Grid Margin="0,0,0,14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
@@ -346,32 +349,32 @@
                                 <Button Grid.Column="2" Content="{Binding ThemeButtonText}" Command="{Binding ToggleThemeCommand}" Style="{StaticResource SecondaryButtonStyle}" MinWidth="112" Padding="12,8" VerticalAlignment="Top" />
                             </Grid>
 
-                            <Border Height="1" Background="{StaticResource LoginBorderBrush}" Margin="0,0,0,22" />
+                            <Border Height="1" Background="{StaticResource LoginBorderBrush}" Margin="0,0,0,14" />
 
                             <TextBlock Text="Servidor" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,0,0,8" />
                             <TextBox Text="{Binding LoginServerUrl, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
-                            <TextBlock Text="Exemplo: http://localhost:5000 ou http://192.168.1.100:5000" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="12" Margin="0,9,0,18" />
+                            <TextBlock Text="Exemplo: http://localhost:5000 ou http://192.168.1.100:5000" Foreground="{StaticResource LoginMutedTextBrush}" FontSize="12" Margin="0,7,0,10" />
 
-                            <TextBlock Text="Usuário" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                            <TextBlock Text="UsuÃ¡rio" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,0,0,8" />
                             <TextBox Text="{Binding LoginUsername, UpdateSourceTrigger=PropertyChanged}" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
 
-                            <TextBlock Text="Senha" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,18,0,8" />
+                            <TextBlock Text="Senha" Foreground="{StaticResource LoginPrimaryTextBrush}" FontWeight="SemiBold" Margin="0,10,0,8" />
                             <PasswordBox x:Name="LoginPasswordBox" PasswordChanged="LoginPasswordBox_OnPasswordChanged" Background="{StaticResource LoginFieldBrush}" Foreground="{StaticResource LoginPrimaryTextBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" Height="48" Padding="16,0" VerticalContentAlignment="Center" FontSize="16" />
 
-                            <CheckBox Content="Lembrar servidor e usuário" IsChecked="True" Foreground="{StaticResource LoginMutedTextBrush}" Margin="0,16,0,18" />
+                            <CheckBox Content="Lembrar servidor e usuÃ¡rio" IsChecked="True" Foreground="{StaticResource LoginMutedTextBrush}" Margin="0,10,0,12" />
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*" />
                                     <ColumnDefinition Width="1.25*" />
                                 </Grid.ColumnDefinitions>
-                                <Button Content="Testar Conexão" Command="{Binding CheckServerCommand}" Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,18,0" />
+                                <Button Content="Testar ConexÃ£o" Command="{Binding CheckServerCommand}" Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Stretch" Margin="0,0,18,0" />
                                 <Button Grid.Column="1" Content="{Binding LoginButtonText}" Command="{Binding LoginCommand}" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Stretch" />
                             </Grid>
 
                             <TextBlock Text="{Binding LoginError}" Foreground="#FCA5A5" TextWrapping="Wrap" Margin="0,14,0,0" />
 
-                            <Border Background="{StaticResource LoginFieldBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,20,0,0">
+                            <Border Background="{StaticResource LoginFieldBrush}" BorderBrush="{StaticResource LoginBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14" Margin="0,12,0,0">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -381,13 +384,13 @@
                                         <Ellipse Width="18" Height="18" Fill="#22C55E" Margin="0,0,12,0" />
                                         <TextBlock Text="Servidor encontrado" Foreground="#4ADE80" FontSize="16" FontWeight="SemiBold" />
                                     </StackPanel>
-                                    <UniformGrid Grid.Row="1" Columns="3" Margin="0,22,0,0">
+                                    <UniformGrid Grid.Row="1" Columns="3" Margin="0,12,0,0">
                                         <StackPanel>
                                             <TextBlock Text="Host" Foreground="{StaticResource LoginMutedTextBrush}" />
                                             <TextBlock Text="localhost" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="16" Margin="0,8,0,0" />
                                         </StackPanel>
                                         <StackPanel>
-                                            <TextBlock Text="Versão" Foreground="{StaticResource LoginMutedTextBrush}" />
+                                            <TextBlock Text="VersÃ£o" Foreground="{StaticResource LoginMutedTextBrush}" />
                                             <TextBlock Text="{Binding SystemVersion}" Foreground="{StaticResource LoginPrimaryTextBrush}" FontSize="16" Margin="0,8,0,0" />
                                         </StackPanel>
                                         <StackPanel>
@@ -400,13 +403,14 @@
                         </StackPanel>
                     </Border>
                 </Grid>
+                </ScrollViewer>
 
                 <Border Grid.Row="2" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrushSoft}" BorderThickness="0,1,0,0">
                     <Grid Margin="30,0">
-                        <TextBlock Text="© 2026 AnalictY Industrial Intelligence" Foreground="#AAB7C5" VerticalAlignment="Center" />
-                        <TextBlock Text="Versão: 0.1.6" Foreground="#AAB7C5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Text="Â© 2026 AnalictY Industrial Intelligence" Foreground="#AAB7C5" VerticalAlignment="Center" />
+                        <TextBlock Text="VersÃ£o: 0.1.6" Foreground="#AAB7C5" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock Text="Documentação" Foreground="#AAB7C5" Margin="0,0,30,0" />
+                            <TextBlock Text="DocumentaÃ§Ã£o" Foreground="#AAB7C5" Margin="0,0,30,0" />
                             <TextBlock Text="Suporte" Foreground="#AAB7C5" />
                         </StackPanel>
                     </Grid>
@@ -434,7 +438,7 @@
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Background="{StaticResource SidebarBrush}">
-                <DockPanel Margin="12,14">
+                <DockPanel Margin="12,14" LastChildFill="True">
                     <StackPanel DockPanel.Dock="Top">
                         <Grid Margin="8,0,8,18">
                             <Grid.ColumnDefinitions>
@@ -488,7 +492,7 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Text="Usuário"
+                                <TextBlock Text="UsuÃ¡rio"
                                            Foreground="#91A3B7"
                                            FontSize="13" />
                                 <TextBlock Grid.Row="1"
@@ -522,7 +526,16 @@
                             </Grid>
                         </Border>
 
-                        <ItemsControl ItemsSource="{Binding NavigationItems}" Margin="8,0,8,0">
+                    </StackPanel>
+
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="●  Conectado ao servidor"
+                               Foreground="#AAB7C5"
+                               FontSize="13"
+                               Margin="12,8,0,0" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
+                        <ItemsControl ItemsSource="{Binding NavigationItems}" Margin="8,0,4,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -600,13 +613,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
-
-                    <TextBlock DockPanel.Dock="Bottom"
-                               Text="●  Conectado ao servidor"
-                               Foreground="#AAB7C5"
-                               FontSize="13"
-                               Margin="12,0,0,0" />
+                    </ScrollViewer>
                 </DockPanel>
             </Border>
 
@@ -932,9 +939,9 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
                                         <StackPanel>
-                                            <TextBlock Text="Máquinas em destaque"
+                                            <TextBlock Text="MÃ¡quinas em destaque"
                                                        Style="{StaticResource SectionTitleStyle}" />
-                                            <TextBlock Text="Acompanhe o estado das máquinas carregadas do AnalictY Server com um visual próximo ao web."
+                                            <TextBlock Text="Acompanhe o estado das mÃ¡quinas carregadas do AnalictY Server com um visual prÃ³ximo ao web."
                                                        Style="{StaticResource SectionSubtitleStyle}"
                                                        Margin="0,6,0,0" />
                                         </StackPanel>
@@ -943,7 +950,7 @@
                                                 Background="#FFF1F2"
                                                 BorderBrush="#FECACA"
                                                 VerticalAlignment="Center">
-                                            <TextBlock Text="Visão Geral"
+                                            <TextBlock Text="VisÃ£o Geral"
                                                        Style="{StaticResource StatusBadgeTextStyle}"
                                                        Foreground="#B91C1C" />
                                         </Border>
@@ -1009,7 +1016,7 @@
                                                             <ColumnDefinition Width="*" />
                                                         </Grid.ColumnDefinitions>
                                                         <StackPanel>
-                                                            <TextBlock Text="Eficiência"
+                                                            <TextBlock Text="EficiÃªncia"
                                                                        Foreground="{StaticResource MutedTextBrush}"
                                                                        FontSize="11" />
                                                             <TextBlock Text="{Binding Efficiency}"
@@ -1055,7 +1062,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
-                                    <TextBlock Text="Histórico de Produção"
+                                    <TextBlock Text="HistÃ³rico de ProduÃ§Ã£o"
                                                FontSize="22"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource ContentTextBrush}" />
@@ -1080,7 +1087,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Margin="0,0,16,0">
-                                        <TextBlock Text="Máquina"
+                                        <TextBlock Text="MÃ¡quina"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource ContentTextBrush}"
                                                    Margin="0,0,0,8" />
@@ -1093,7 +1100,7 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Margin="0,0,16,0">
-                                        <TextBlock Text="Período"
+                                        <TextBlock Text="PerÃ­odo"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource ContentTextBrush}"
                                                    Margin="0,0,0,8" />
@@ -1133,7 +1140,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Quantidade perdida" Foreground="#FEE2E2" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding ProductionTotalLostText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
-                                        <TextBlock Text="Perdas do período" Foreground="#FEE2E2" FontSize="12" />
+                                        <TextBlock Text="Perdas do perÃ­odo" Foreground="#FEE2E2" FontSize="12" />
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource CardBorderStyle}"
@@ -1151,7 +1158,7 @@
                                         BorderThickness="0"
                                         Padding="18">
                                     <StackPanel>
-                                        <TextBlock Text="Período" Foreground="#E2E8F0" FontWeight="SemiBold" />
+                                        <TextBlock Text="PerÃ­odo" Foreground="#E2E8F0" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding ProductionPeriodLabel}" Foreground="White" FontSize="25" FontWeight="Bold" Margin="0,12,0,0" />
                                         <TextBlock Text="Filtro selecionado" Foreground="#CBD5E1" FontSize="12" />
                                     </StackPanel>
@@ -1160,7 +1167,7 @@
 
                             <Border Style="{StaticResource CardBorderStyle}" Margin="0">
                                 <StackPanel>
-                                    <TextBlock Text="Produção por hora"
+                                    <TextBlock Text="ProduÃ§Ã£o por hora"
                                                FontSize="18"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource ContentTextBrush}"
@@ -1204,7 +1211,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel>
-                                    <TextBlock Text="Histórico de Paradas"
+                                    <TextBlock Text="HistÃ³rico de Paradas"
                                                FontSize="22"
                                                FontWeight="SemiBold"
                                                Foreground="{StaticResource ContentTextBrush}" />
@@ -1229,7 +1236,7 @@
                                     </Grid.ColumnDefinitions>
 
                                     <StackPanel Margin="0,0,16,0">
-                                        <TextBlock Text="Máquina"
+                                        <TextBlock Text="MÃ¡quina"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource ContentTextBrush}"
                                                    Margin="0,0,0,8" />
@@ -1242,7 +1249,7 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Column="1" Margin="0,0,16,0">
-                                        <TextBlock Text="Período"
+                                        <TextBlock Text="PerÃ­odo"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource ContentTextBrush}"
                                                    Margin="0,0,0,8" />
@@ -1282,7 +1289,7 @@
                                     <StackPanel>
                                         <TextBlock Text="Tempo parado" Foreground="#FEE2E2" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding DowntimeTotalDuration}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,8,0,0" />
-                                        <TextBlock Text="Soma das durações" Foreground="#FEE2E2" FontSize="12" />
+                                        <TextBlock Text="Soma das duraÃ§Ãµes" Foreground="#FEE2E2" FontSize="12" />
                                     </StackPanel>
                                 </Border>
                                 <Border Style="{StaticResource CardBorderStyle}"
@@ -1300,7 +1307,7 @@
                                         BorderThickness="0"
                                         Padding="18">
                                     <StackPanel>
-                                        <TextBlock Text="Período" Foreground="#E2E8F0" FontWeight="SemiBold" />
+                                        <TextBlock Text="PerÃ­odo" Foreground="#E2E8F0" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding DowntimePeriodLabel}" Foreground="White" FontSize="25" FontWeight="Bold" Margin="0,12,0,0" />
                                         <TextBlock Text="Filtro selecionado" Foreground="#CBD5E1" FontSize="12" />
                                     </StackPanel>
@@ -1323,11 +1330,11 @@
                                               RowHeaderWidth="0"
                                               MinHeight="260">
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Início" Binding="{Binding Start}" Width="*" />
+                                            <DataGridTextColumn Header="InÃ­cio" Binding="{Binding Start}" Width="*" />
                                             <DataGridTextColumn Header="Fim" Binding="{Binding End}" Width="*" />
                                             <DataGridTextColumn Header="Motivo" Binding="{Binding Reason}" Width="1.4*" />
                                             <DataGridTextColumn Header="Categoria" Binding="{Binding Category}" Width="*" />
-                                            <DataGridTextColumn Header="Duração" Binding="{Binding Duration}" Width="*" />
+                                            <DataGridTextColumn Header="DuraÃ§Ã£o" Binding="{Binding Duration}" Width="*" />
                                         </DataGrid.Columns>
                                     </DataGrid>
                                 </StackPanel>
@@ -1421,7 +1428,7 @@
 
                                             <UniformGrid Columns="2" Margin="0,22,0,0">
                                                 <StackPanel Margin="0,0,18,14">
-                                                    <TextBlock Text="Versão" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                                    <TextBlock Text="VersÃ£o" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
                                                     <TextBlock Text="{Binding SystemVersion}" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
                                                 </StackPanel>
                                                 <StackPanel Margin="0,0,0,14">
@@ -1458,7 +1465,7 @@
 
                                     <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="Conexão e runtime"
+                                            <TextBlock Text="ConexÃ£o e runtime"
                                                        FontSize="20"
                                                        FontWeight="SemiBold"
                                                        Foreground="{StaticResource ContentTextBrush}" />
@@ -1528,7 +1535,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <TextBlock Text="Máquinas e status"
+                                <TextBlock Text="MÃ¡quinas e status"
                                            FontSize="18"
                                            FontWeight="SemiBold"
                                            Foreground="{StaticResource ContentTextBrush}"
@@ -1567,7 +1574,7 @@
                                                     <TextBlock Text="{Binding CurrentOrder}"
                                                                FontWeight="SemiBold"
                                                                Foreground="{StaticResource ContentTextBrush}" />
-                                                    <TextBlock Text="{Binding Efficiency, StringFormat='Eficiência: {0}'}"
+                                                    <TextBlock Text="{Binding Efficiency, StringFormat='EficiÃªncia: {0}'}"
                                                                Foreground="{StaticResource MutedTextBrush}"
                                                                Margin="0,6,0,0" />
                                                 </StackPanel>
@@ -1599,11 +1606,11 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <StackPanel Margin="0,0,18,0">
-                                                <TextBlock Text="Tipo de relatório" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
+                                                <TextBlock Text="Tipo de relatÃ³rio" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
                                                 <ComboBox Width="170" ItemsSource="{Binding ReportTypeOptions}" SelectedItem="{Binding SelectedReportType}" />
                                             </StackPanel>
                                             <StackPanel Margin="0,0,18,0">
-                                                <TextBlock Text="Máquina" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
+                                                <TextBlock Text="MÃ¡quina" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
                                                         <ComboBox Width="220"
                                                           ItemsSource="{Binding ReportMachines}"
                                                           DisplayMemberPath="DisplayName"
@@ -1611,12 +1618,12 @@
                                                           SelectedValue="{Binding SelectedReportMachineId}" />
                                             </StackPanel>
                                             <StackPanel>
-                                                <TextBlock Text="Período" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
+                                                <TextBlock Text="PerÃ­odo" FontSize="12" Foreground="{StaticResource MutedTextBrush}" />
                                                 <ComboBox Width="160" ItemsSource="{Binding ReportPeriodOptions}" SelectedItem="{Binding SelectedReportPeriod}" />
                                             </StackPanel>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="Prévia nativa" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
+                                            <TextBlock Text="PrÃ©via nativa" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" />
                                             <TextBlock Text="{Binding ReportMessage}" Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
@@ -1636,13 +1643,13 @@
                                     </Border>
                                     <Border Style="{StaticResource CardBorderStyle}">
                                         <StackPanel>
-                                            <TextBlock Text="Máquina" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="MÃ¡quina" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
                                             <TextBlock Text="{Binding SelectedReportMachineLabel}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,10,0,0" />
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource CardBorderStyle}">
                                         <StackPanel>
-                                            <TextBlock Text="Período" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="PerÃ­odo" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
                                             <TextBlock Text="{Binding SelectedReportPeriodLabel}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="SemiBold" Margin="0,10,0,0" />
                                         </StackPanel>
                                     </Border>
@@ -1656,7 +1663,7 @@
 
                                 <Border Style="{StaticResource CardBorderStyle}" Margin="0">
                                     <StackPanel>
-                                        <TextBlock Text="Prévia" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" Margin="0,0,0,12" />
+                                        <TextBlock Text="PrÃ©via" FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource ContentTextBrush}" Margin="0,0,0,12" />
                                         <DataGrid ItemsSource="{Binding ReportRows}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderThickness="0" RowHeaderWidth="0" MinHeight="260">
                                             <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Hora" Binding="{Binding Hour}" Width="1*" />
@@ -1715,7 +1722,7 @@
                                                 Background="#F8FAFC"
                                                 Foreground="#64748B"
                                                 VerticalAlignment="Center"
-                                                ToolTip="Envio de teste será liberado em uma etapa futura com confirmação." />
+                                                ToolTip="Envio de teste serÃ¡ liberado em uma etapa futura com confirmaÃ§Ã£o." />
                                     </Grid>
                                 </Border>
 
@@ -1729,9 +1736,9 @@
                                     </Border>
                                     <Border Style="{StaticResource CardBorderStyle}" Background="#7F1D1D" BorderThickness="0">
                                         <StackPanel>
-                                            <TextBlock Text="Críticos" Foreground="#FEE2E2" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="CrÃ­ticos" Foreground="#FEE2E2" FontSize="13" FontWeight="SemiBold" />
                                             <TextBlock Text="{Binding CriticalAlertCountText}" Foreground="White" FontSize="32" FontWeight="Bold" Margin="0,10,0,0" />
-                                            <TextBlock Text="Severidade alta ou crítica" Foreground="#FECACA" FontSize="12" />
+                                            <TextBlock Text="Severidade alta ou crÃ­tica" Foreground="#FECACA" FontSize="12" />
                                         </StackPanel>
                                     </Border>
                                     <Border Style="{StaticResource CardBorderStyle}">
@@ -1743,9 +1750,9 @@
                                     </Border>
                                     <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
                                         <StackPanel>
-                                            <TextBlock Text="Último envio/teste" Foreground="{StaticResource MutedTextBrush}" FontSize="13" FontWeight="SemiBold" />
+                                            <TextBlock Text="Ãšltimo envio/teste" Foreground="{StaticResource MutedTextBrush}" FontSize="13" FontWeight="SemiBold" />
                                             <TextBlock Text="{Binding LastAlertActivity}" Foreground="{StaticResource ContentTextBrush}" FontSize="18" FontWeight="Bold" Margin="0,12,0,0" TextWrapping="Wrap" />
-                                            <TextBlock Text="Quando disponível pela API" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
+                                            <TextBlock Text="Quando disponÃ­vel pela API" Foreground="{StaticResource MutedTextBrush}" FontSize="12" />
                                         </StackPanel>
                                     </Border>
                                 </UniformGrid>
@@ -1769,8 +1776,8 @@
                                                   MinHeight="260">
                                             <DataGrid.Columns>
                                                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="1.3*" />
-                                                <DataGridTextColumn Header="Máquina/Escopo" Binding="{Binding Scope}" Width="*" />
-                                                <DataGridTextColumn Header="Condição" Binding="{Binding Condition}" Width="1.7*" />
+                                                <DataGridTextColumn Header="MÃ¡quina/Escopo" Binding="{Binding Scope}" Width="*" />
+                                                <DataGridTextColumn Header="CondiÃ§Ã£o" Binding="{Binding Condition}" Width="1.7*" />
                                                 <DataGridTextColumn Header="Severidade" Binding="{Binding Severity}" Width="0.8*" />
                                                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="0.8*" />
                                             </DataGrid.Columns>
@@ -1817,11 +1824,11 @@
 
                                 <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,16,0">
                                     <StackPanel>
-                                        <TextBlock Text="Manual do usuário"
+                                        <TextBlock Text="Manual do usuÃ¡rio"
                                                    FontSize="22"
                                                    FontWeight="SemiBold"
                                                    Foreground="{StaticResource ContentTextBrush}" />
-                                        <TextBlock Text="Escolha um tópico para ler a orientação completa sobre o uso do console."
+                                        <TextBlock Text="Escolha um tÃ³pico para ler a orientaÃ§Ã£o completa sobre o uso do console."
                                                    TextWrapping="Wrap"
                                                    Foreground="{StaticResource MutedTextBrush}"
                                                    Margin="0,6,0,14" />
@@ -1878,7 +1885,7 @@
                                                 Padding="16"
                                                 Margin="0,20,0,0">
                                             <StackPanel>
-                                                <TextBlock Text="Ação rápida"
+                                                <TextBlock Text="AÃ§Ã£o rÃ¡pida"
                                                            Foreground="{StaticResource MutedTextBrush}"
                                                            FontSize="12" />
                                                 <TextBlock Text="{Binding SelectedHelpAction}"
@@ -1890,7 +1897,7 @@
                                         </Border>
 
                                         <StackPanel Orientation="Horizontal" Margin="0,18,0,0">
-                                            <Button Content="Abrir seção"
+                                            <Button Content="Abrir seÃ§Ã£o"
                                                     Command="{Binding OpenSelectedHelpCommand}"
                                                     IsEnabled="{Binding SelectedHelpCanOpen}"
                                                     Padding="16,10"
@@ -1939,7 +1946,7 @@
                                             BorderThickness="1"
                                             Padding="16"
                                             Margin="0,22,0,0">
-                                        <TextBlock Text="O módulo de Relatórios depende do AnalictY Server. Certifique-se de que o servidor está em execução e que os endpoints de relatórios estão configurados."
+                                        <TextBlock Text="O mÃ³dulo de RelatÃ³rios depende do AnalictY Server. Certifique-se de que o servidor estÃ¡ em execuÃ§Ã£o e que os endpoints de relatÃ³rios estÃ£o configurados."
                                                    TextWrapping="Wrap"
                                                    Foreground="#475569" />
                                     </Border>

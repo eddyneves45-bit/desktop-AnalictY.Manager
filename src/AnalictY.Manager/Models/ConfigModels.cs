@@ -194,6 +194,19 @@ public sealed class Shift
     public string Name { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
     public string EndTime { get; set; } = string.Empty;
+    public string? DaysOfWeek { get; set; }
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public sealed class ShiftRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string StartTime { get; set; } = string.Empty;
+    public string EndTime { get; set; } = string.Empty;
+    public string? DaysOfWeek { get; set; }
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
 }
 
 // Telegram
@@ -642,5 +655,197 @@ public sealed class DowntimesResult
 public sealed class DowntimeReasonsResult
 {
     public List<DowntimeReason> Reasons { get; set; } = new();
+    public string? Error { get; set; }
+}
+
+// Dashboards
+public sealed class DashboardWidget
+{
+    public string Id { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string Metric { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? Color { get; set; }
+    public int? X { get; set; }
+    public int? Y { get; set; }
+    public int? W { get; set; }
+    public int? H { get; set; }
+}
+
+public sealed class DashboardConfig
+{
+    public int? Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string MachineId { get; set; } = string.Empty;
+    public string PeriodPreset { get; set; } = "today";
+    public string RefreshInterval { get; set; } = "10";
+    public bool IsDefault { get; set; }
+    public List<DashboardWidget> Widgets { get; set; } = new();
+}
+
+public sealed class DashboardConfigRequest
+{
+    public int? Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string MachineId { get; set; } = string.Empty;
+    public string PeriodPreset { get; set; } = "today";
+    public string RefreshInterval { get; set; } = "10";
+    public bool IsDefault { get; set; }
+    public bool IsActive { get; set; }
+    public List<DashboardWidget> Widgets { get; set; } = new();
+}
+
+public sealed class DashboardConfigsResult
+{
+    public List<DashboardConfig> Configs { get; set; } = new();
+    public string? Error { get; set; }
+}
+
+// Production Diagnostics
+public sealed class DiagnosticTag
+{
+    public string Alias { get; set; } = string.Empty;
+    public int TagId { get; set; }
+    public string? Name { get; set; }
+    public string? Address { get; set; }
+    public string? Driver { get; set; }
+    public string? PersistenceMode { get; set; }
+    public string? Value { get; set; }
+    public string? Quality { get; set; }
+    public string? SourceTimestamp { get; set; }
+    public string? LastPersistedAt { get; set; }
+}
+
+public sealed class DiagnosticSnapshot
+{
+    public string GeneratedAt { get; set; } = string.Empty;
+    public string? MachineId { get; set; }
+    public Dictionary<string, object> Window { get; set; } = new();
+    public List<Machine> Machines { get; set; } = new();
+    public List<Dictionary<string, object>> Pipeline { get; set; } = new();
+    public Dictionary<string, int> Queues { get; set; } = new();
+    public DiagnosticSqlite Sqlite { get; set; } = new();
+    public DiagnosticMysql Mysql { get; set; } = new();
+}
+
+public sealed class DiagnosticSqlite
+{
+    public List<DiagnosticTag> Tags { get; set; } = new();
+    public List<Dictionary<string, object>> PendingEnvelopes { get; set; } = new();
+    public int PendingCount { get; set; }
+    public int ProcessedCount { get; set; }
+    public int FailedCount { get; set; }
+}
+
+public sealed class DiagnosticMysql
+{
+    public bool Available { get; set; }
+    public string? Message { get; set; }
+    public DiagnosticTotals? Totals { get; set; }
+    public List<Dictionary<string, object>> ProductionEvents { get; set; } = new();
+    public List<Dictionary<string, object>> LossEvents { get; set; } = new();
+    public List<Dictionary<string, object>> StatusEvents { get; set; } = new();
+    public List<Dictionary<string, object>> DowntimeEvents { get; set; } = new();
+    public List<Dictionary<string, object>> HourlySummary { get; set; } = new();
+}
+
+public sealed class DiagnosticTotals
+{
+    public double Produced { get; set; }
+    public double Losses { get; set; }
+    public double Good { get; set; }
+    public double QualityPercent { get; set; }
+    public int StatusEvents { get; set; }
+    public int DowntimeEvents { get; set; }
+}
+
+public sealed class DiagnosticResult
+{
+    public DiagnosticSnapshot? Snapshot { get; set; }
+    public string? Error { get; set; }
+}
+
+public sealed class SystemTimezoneResult
+{
+    public string TimeZoneId { get; set; } = "America/Sao_Paulo";
+    public string Label { get; set; } = "Brasil - Brasília (GMT-3)";
+    public string? Error { get; set; }
+}
+
+// Simulator
+public sealed class VirtualMachineSummary
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string CostCenter { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+}
+
+public sealed class VirtualMachineRuntime
+{
+    public int MachineId { get; set; }
+    public int Status { get; set; }
+    public int DowntimeReasonCode { get; set; }
+    public int ProductionCounter { get; set; }
+    public int LossCounter { get; set; }
+    public int PiecesPerMinute { get; set; }
+    public bool Running { get; set; }
+}
+
+public sealed class VirtualConsole
+{
+    public Machine Machine { get; set; } = new();
+    public Dictionary<string, VirtualTag> Tags { get; set; } = new();
+    public List<VirtualReason> Reasons { get; set; } = new();
+    public VirtualMachineRuntime Simulator { get; set; } = new();
+}
+
+public sealed class VirtualTag
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+}
+
+public sealed class VirtualReason
+{
+    public int Code { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public string? Category { get; set; }
+}
+
+public sealed class VirtualMachineRequest
+{
+    public string Name { get; set; } = "Máquina Virtual 1";
+    public string Code { get; set; } = "VIRTUAL-001";
+    public string CostCenter { get; set; } = "Simulacao";
+    public string Location { get; set; } = "Laboratorio";
+    public int? FolderId { get; set; }
+}
+
+public sealed class VirtualMachinePublishRequest
+{
+    public int Status { get; set; }
+    public int DowntimeReasonCode { get; set; }
+    public int ProductionCounter { get; set; }
+    public int LossCounter { get; set; }
+}
+
+public sealed class VirtualMachineStartRequest
+{
+    public int PiecesPerMinute { get; set; } = 60;
+}
+
+public sealed class VirtualMachinesResult
+{
+    public List<VirtualMachineSummary> Machines { get; set; } = new();
+    public string? Error { get; set; }
+}
+
+public sealed class VirtualConsoleResult
+{
+    public VirtualConsole? Console { get; set; }
     public string? Error { get; set; }
 }

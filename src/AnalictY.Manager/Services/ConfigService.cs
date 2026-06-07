@@ -52,6 +52,15 @@ public sealed class ConfigService
     private static readonly Uri ShiftsEndpoint = new(ApiBaseUri, "/api/config/shifts");
     private static readonly Uri ShiftsUpdateEndpoint = new(ApiBaseUri, "/api/config/shifts");
     private static readonly Uri ShiftsDeleteEndpoint = new(ApiBaseUri, "/api/config/shifts/{id}");
+    private static readonly Uri DashboardConfigsEndpoint = new(ApiBaseUri, "/api/dashboard/configs");
+    private static readonly Uri DashboardConfigDeleteEndpoint = new(ApiBaseUri, "/api/dashboard/configs/{id}");
+    private static readonly Uri ProductionDiagnosticsEndpoint = new(ApiBaseUri, "/api/diagnostics/production");
+    private static readonly Uri SystemTimezoneEndpoint = new(ApiBaseUri, "/api/config/system/timezone");
+    private static readonly Uri SimulatorMachinesEndpoint = new(ApiBaseUri, "/api/simulator/machines");
+    private static readonly Uri SimulatorMachineEndpoint = new(ApiBaseUri, "/api/simulator/machines/{id}");
+    private static readonly Uri SimulatorPublishEndpoint = new(ApiBaseUri, "/api/simulator/machines/{id}/publish");
+    private static readonly Uri SimulatorStartEndpoint = new(ApiBaseUri, "/api/simulator/machines/{id}/start");
+    private static readonly Uri SimulatorStopEndpoint = new(ApiBaseUri, "/api/simulator/machines/{id}/stop");
     private static readonly Uri TelegramStatusEndpoint = new(ApiBaseUri, "/api/notifications/telegram/status");
     private static readonly Uri TelegramConnectionsEndpoint = new(ApiBaseUri, "/api/notifications/telegram/connections");
     private static readonly Uri TelegramConnectionsCreateEndpoint = new(ApiBaseUri, "/api/notifications/telegram/connections");
@@ -463,7 +472,7 @@ public sealed class ConfigService
     {
         try
         {
-            var endpoint = new Uri(TagDeleteEndpoint, $"/{tagId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/tags/{tagId}");
             using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -973,7 +982,7 @@ public sealed class ConfigService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var endpoint = new Uri(TagsEndpoint, $"/{tagId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/tags/{tagId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
             {
                 Content = content
@@ -1118,7 +1127,7 @@ public sealed class ConfigService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var endpoint = new Uri(MachinesEndpoint, $"/{machineId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/machines/{machineId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
             {
                 Content = content
@@ -1151,7 +1160,7 @@ public sealed class ConfigService
     {
         try
         {
-            var endpoint = new Uri(MachinesEndpoint, $"/{machineId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/machines/{machineId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
 
             using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -1228,7 +1237,7 @@ public sealed class ConfigService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var endpoint = new Uri(MachineFoldersEndpoint, $"/{folderId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/machine-folders/{folderId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
             {
                 Content = content
@@ -1261,7 +1270,7 @@ public sealed class ConfigService
     {
         try
         {
-            var endpoint = new Uri(MachineFoldersEndpoint, $"/{folderId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/machine-folders/{folderId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
 
             using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -1316,6 +1325,359 @@ public sealed class ConfigService
         catch (JsonException ex)
         {
             return new ShiftsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> CreateShiftAsync(ShiftRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, ShiftsUpdateEndpoint)
+            {
+                Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Turno criado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> UpdateShiftAsync(string id, ShiftRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/shifts/{id}");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Turno atualizado com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteShiftAsync(string id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/shifts/{id}");
+            using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Turno excluído com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    // Dashboards
+    public async Task<DashboardConfigsResult> GetDashboardConfigsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(DashboardConfigsEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new DashboardConfigsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var configs = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseDashboardConfig).ToList()
+                : new List<DashboardConfig>();
+
+            return new DashboardConfigsResult { Configs = configs };
+        }
+        catch (OperationCanceledException)
+        {
+            return new DashboardConfigsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new DashboardConfigsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new DashboardConfigsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> SaveDashboardConfigAsync(DashboardConfigRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Put, DashboardConfigsEndpoint)
+            {
+                Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Dashboard salvo com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> DeleteDashboardConfigAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/dashboard/configs/{id}");
+            using var response = await _httpClient.DeleteAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Dashboard excluído com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    // Production Diagnostics
+    public async Task<DiagnosticResult> GetProductionDiagnosticsAsync(string? machineId, string from, string to, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var builder = new UriBuilder(ProductionDiagnosticsEndpoint);
+            var query = System.Web.HttpUtility.ParseQueryString(builder.Query);
+            if (!string.IsNullOrWhiteSpace(machineId))
+            {
+                query["machine_id"] = machineId;
+            }
+            query["from"] = from;
+            query["to"] = to;
+            builder.Query = query.ToString();
+
+            using var response = await _httpClient.GetAsync(builder.Uri, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new DiagnosticResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var snapshot = ParseDiagnosticSnapshot(document.RootElement);
+            return new DiagnosticResult { Snapshot = snapshot };
+        }
+        catch (OperationCanceledException)
+        {
+            return new DiagnosticResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new DiagnosticResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new DiagnosticResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<SystemTimezoneResult> GetSystemTimezoneAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(SystemTimezoneEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new SystemTimezoneResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            return new SystemTimezoneResult
+            {
+                TimeZoneId = ReadString(document.RootElement, "timeZoneId", "time_zone_id") ?? "America/Sao_Paulo",
+                Label = ReadString(document.RootElement, "label") ?? "Brasil - Brasília (GMT-3)"
+            };
+        }
+        catch (OperationCanceledException)
+        {
+            return new SystemTimezoneResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new SystemTimezoneResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new SystemTimezoneResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    // Simulator
+    public async Task<VirtualMachinesResult> GetVirtualMachinesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(SimulatorMachinesEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new VirtualMachinesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var machines = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseVirtualMachineSummary).ToList()
+                : new List<VirtualMachineSummary>();
+
+            return new VirtualMachinesResult { Machines = machines };
+        }
+        catch (OperationCanceledException)
+        {
+            return new VirtualMachinesResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new VirtualMachinesResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new VirtualMachinesResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> CreateVirtualMachineAsync(VirtualMachineRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, SimulatorMachinesEndpoint)
+            {
+                Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Máquina virtual criada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<VirtualConsoleResult> GetVirtualConsoleAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/simulator/machines/{id}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new VirtualConsoleResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var console = ParseVirtualConsole(document.RootElement);
+            return new VirtualConsoleResult { Console = console };
+        }
+        catch (OperationCanceledException)
+        {
+            return new VirtualConsoleResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new VirtualConsoleResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new VirtualConsoleResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }
+
+    public async Task<OperationResult> PublishVirtualMachineAsync(int id, VirtualMachinePublishRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/simulator/machines/{id}/publish");
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Valores publicados com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> StartVirtualMachineAsync(int id, VirtualMachineStartRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/simulator/machines/{id}/start");
+            var payload = JsonSerializer.Serialize(request, JsonOptions);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+            };
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Simulação iniciada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
+        }
+    }
+
+    public async Task<OperationResult> StopVirtualMachineAsync(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/simulator/machines/{id}/stop");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
+            }
+            return OperationResult.CreateSuccess("Simulação parada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            return OperationResult.CreateFailed($"Erro: {ex.Message}");
         }
     }
 
@@ -1674,7 +2036,7 @@ public sealed class ConfigService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var endpoint = new Uri(AlertRulesEndpoint, $"/{ruleId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/alert-rules/{ruleId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
             {
                 Content = content
@@ -1707,7 +2069,7 @@ public sealed class ConfigService
     {
         try
         {
-            var endpoint = new Uri(AlertRulesEndpoint, $"/{ruleId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/alert-rules/{ruleId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
 
             using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -1737,7 +2099,7 @@ public sealed class ConfigService
     {
         try
         {
-            var endpoint = new Uri(AlertsEndpoint, $"/{alertId}/acknowledge?acknowledged_by={acknowledgedBy}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/alerts/{alertId}/acknowledge?acknowledged_by={acknowledgedBy}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint);
 
             using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -2311,7 +2673,7 @@ public sealed class ConfigService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var endpoint = new Uri(UsersEndpoint, $"/{userId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/users/{userId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Put, endpoint)
             {
                 Content = content
@@ -2344,7 +2706,7 @@ public sealed class ConfigService
     {
         try
         {
-            var endpoint = new Uri(UsersEndpoint, $"/{userId}");
+            var endpoint = new Uri(ApiBaseUri, $"/api/users/{userId}");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, endpoint);
 
             using var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -2576,7 +2938,7 @@ public sealed class ConfigService
             var json = JsonSerializer.Serialize(payload, JsonOptions);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-            var endpoint = new Uri(DowntimesEndpoint, $"/{downtimeId}/classify");
+            var endpoint = new Uri(ApiBaseUri, $"/api/downtimes/{downtimeId}/classify");
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
             {
                 Content = content
@@ -2985,7 +3347,259 @@ public sealed class ConfigService
             Id = ReadString(element, "id") ?? string.Empty,
             Name = ReadString(element, "name") ?? string.Empty,
             StartTime = ReadString(element, "startTime") ?? string.Empty,
-            EndTime = ReadString(element, "endTime") ?? string.Empty
+            EndTime = ReadString(element, "endTime") ?? string.Empty,
+            DaysOfWeek = ReadString(element, "daysOfWeek"),
+            Description = ReadString(element, "description"),
+            IsActive = ReadBoolDefaultTrue(element, "isActive")
+        };
+    }
+
+    private static DashboardConfig ParseDashboardConfig(JsonElement element)
+    {
+        var rawWidgets = element.TryGetProperty("widgets", out var widgetsProp) ? widgetsProp : default;
+        var widgets = rawWidgets.ValueKind == JsonValueKind.Array
+            ? rawWidgets.EnumerateArray().Select(ParseDashboardWidget).ToList()
+            : new List<DashboardWidget>();
+
+        return new DashboardConfig
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : null,
+            Name = ReadString(element, "name") ?? string.Empty,
+            MachineId = ReadString(element, "machineId", "machine_id") ?? string.Empty,
+            PeriodPreset = ReadString(element, "periodPreset", "period_preset") ?? "today",
+            RefreshInterval = ReadString(element, "refreshInterval", "refresh_interval") ?? "10",
+            IsDefault = ReadBool(element, "isDefault", "is_default"),
+            Widgets = widgets
+        };
+    }
+
+    private static DashboardWidget ParseDashboardWidget(JsonElement element)
+    {
+        return new DashboardWidget
+        {
+            Id = ReadString(element, "id") ?? string.Empty,
+            Type = ReadString(element, "type") ?? string.Empty,
+            Metric = ReadString(element, "metric") ?? string.Empty,
+            Title = ReadString(element, "title") ?? string.Empty,
+            Color = ReadString(element, "color"),
+            X = TryGetProperty(element, "x", out var xProp) && xProp.ValueKind == JsonValueKind.Number ? xProp.GetInt32() : null,
+            Y = TryGetProperty(element, "y", out var yProp) && yProp.ValueKind == JsonValueKind.Number ? yProp.GetInt32() : null,
+            W = TryGetProperty(element, "w", out var wProp) && wProp.ValueKind == JsonValueKind.Number ? wProp.GetInt32() : null,
+            H = TryGetProperty(element, "h", out var hProp) && hProp.ValueKind == JsonValueKind.Number ? hProp.GetInt32() : null
+        };
+    }
+
+    private static DiagnosticSnapshot ParseDiagnosticSnapshot(JsonElement element)
+    {
+        var machines = TryGetProperty(element, "machines", out var machinesProp) && machinesProp.ValueKind == JsonValueKind.Array
+            ? machinesProp.EnumerateArray().Select(ParseMachineSimple).ToList()
+            : new List<Machine>();
+
+        var pipeline = TryGetProperty(element, "pipeline", out var pipelineProp) && pipelineProp.ValueKind == JsonValueKind.Array
+            ? pipelineProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        var queues = TryGetProperty(element, "queues", out var queuesProp) && queuesProp.ValueKind == JsonValueKind.Object
+            ? queuesProp.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.TryGetInt32(out var val) ? val : 0)
+            : new Dictionary<string, int>();
+
+        return new DiagnosticSnapshot
+        {
+            GeneratedAt = ReadString(element, "generated_at") ?? string.Empty,
+            MachineId = ReadString(element, "machine_id"),
+            Machines = machines,
+            Pipeline = pipeline,
+            Queues = queues,
+            Sqlite = ParseDiagnosticSqlite(element),
+            Mysql = ParseDiagnosticMysql(element)
+        };
+    }
+
+    private static Machine ParseMachineSimple(JsonElement element)
+    {
+        return new Machine
+        {
+            Id = ReadString(element, "id") ?? string.Empty,
+            Name = ReadString(element, "name") ?? string.Empty,
+            Code = ReadString(element, "code") ?? string.Empty,
+            CostCenter = ReadString(element, "costCenter", "cost_center") ?? string.Empty,
+            Location = ReadString(element, "location") ?? string.Empty
+        };
+    }
+
+    private static object? GetJsonValueStatic(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.TryGetInt64(out var l) ? l : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            _ => element.ToString()
+        };
+    }
+
+    private static DiagnosticSqlite ParseDiagnosticSqlite(JsonElement element)
+    {
+        var sqliteProp = TryGetProperty(element, "sqlite", out var prop) ? prop : default;
+        var tags = TryGetProperty(sqliteProp, "tags", out var tagsProp) && tagsProp.ValueKind == JsonValueKind.Array
+            ? tagsProp.EnumerateArray().Select(ParseDiagnosticTag).ToList()
+            : new List<DiagnosticTag>();
+
+        var pendingEnvelopes = TryGetProperty(sqliteProp, "pending_envelopes", out var envelopesProp) && envelopesProp.ValueKind == JsonValueKind.Array
+            ? envelopesProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        return new DiagnosticSqlite
+        {
+            Tags = tags,
+            PendingEnvelopes = pendingEnvelopes,
+            PendingCount = TryGetProperty(sqliteProp, "pending_count", out var pendingProp) && pendingProp.ValueKind == JsonValueKind.Number ? pendingProp.GetInt32() : 0,
+            ProcessedCount = TryGetProperty(sqliteProp, "processed_count", out var processedProp) && processedProp.ValueKind == JsonValueKind.Number ? processedProp.GetInt32() : 0,
+            FailedCount = TryGetProperty(sqliteProp, "failed_count", out var failedProp) && failedProp.ValueKind == JsonValueKind.Number ? failedProp.GetInt32() : 0
+        };
+    }
+
+    private static DiagnosticMysql ParseDiagnosticMysql(JsonElement element)
+    {
+        var mysqlProp = TryGetProperty(element, "mysql", out var prop) ? prop : default;
+        var totals = TryGetProperty(mysqlProp, "totals", out var totalsProp) ? ParseDiagnosticTotals(totalsProp) : null;
+
+        var productionEvents = TryGetProperty(mysqlProp, "production_events", out var prodProp) && prodProp.ValueKind == JsonValueKind.Array
+            ? prodProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        var lossEvents = TryGetProperty(mysqlProp, "loss_events", out var lossProp) && lossProp.ValueKind == JsonValueKind.Array
+            ? lossProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        var statusEvents = TryGetProperty(mysqlProp, "status_events", out var statusProp) && statusProp.ValueKind == JsonValueKind.Array
+            ? statusProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        var downtimeEvents = TryGetProperty(mysqlProp, "downtime_events", out var downtimeProp) && downtimeProp.ValueKind == JsonValueKind.Array
+            ? downtimeProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        var hourlySummary = TryGetProperty(mysqlProp, "hourly_summary", out var hourlyProp) && hourlyProp.ValueKind == JsonValueKind.Array
+            ? hourlyProp.EnumerateArray().Select(item => item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValueStatic(p.Value) ?? string.Empty)).ToList()
+            : new List<Dictionary<string, object>>();
+
+        return new DiagnosticMysql
+        {
+            Available = TryGetProperty(mysqlProp, "available", out var availProp) && availProp.ValueKind == JsonValueKind.True ? true : false,
+            Message = ReadString(mysqlProp, "message"),
+            Totals = totals,
+            ProductionEvents = productionEvents,
+            LossEvents = lossEvents,
+            StatusEvents = statusEvents,
+            DowntimeEvents = downtimeEvents,
+            HourlySummary = hourlySummary
+        };
+    }
+
+    private static DiagnosticTotals ParseDiagnosticTotals(JsonElement element)
+    {
+        return new DiagnosticTotals
+        {
+            Produced = TryGetProperty(element, "produced", out var prodProp) && prodProp.ValueKind == JsonValueKind.Number ? prodProp.GetDouble() : 0,
+            Losses = TryGetProperty(element, "losses", out var lossProp) && lossProp.ValueKind == JsonValueKind.Number ? lossProp.GetDouble() : 0,
+            Good = TryGetProperty(element, "good", out var goodProp) && goodProp.ValueKind == JsonValueKind.Number ? goodProp.GetDouble() : 0,
+            QualityPercent = TryGetProperty(element, "quality_percent", out var qualProp) && qualProp.ValueKind == JsonValueKind.Number ? qualProp.GetDouble() : 0,
+            StatusEvents = TryGetProperty(element, "status_events", out var statusProp) && statusProp.ValueKind == JsonValueKind.Number ? statusProp.GetInt32() : 0,
+            DowntimeEvents = TryGetProperty(element, "downtime_events", out var downtimeProp) && downtimeProp.ValueKind == JsonValueKind.Number ? downtimeProp.GetInt32() : 0
+        };
+    }
+
+    private static DiagnosticTag ParseDiagnosticTag(JsonElement element)
+    {
+        return new DiagnosticTag
+        {
+            Alias = ReadString(element, "alias") ?? string.Empty,
+            TagId = TryGetProperty(element, "tag_id", out var tagIdProp) && tagIdProp.ValueKind == JsonValueKind.Number ? tagIdProp.GetInt32() : 0,
+            Name = ReadString(element, "name"),
+            Address = ReadString(element, "address"),
+            Driver = ReadString(element, "driver"),
+            PersistenceMode = ReadString(element, "persistence_mode"),
+            Value = ReadString(element, "value"),
+            Quality = ReadString(element, "quality"),
+            SourceTimestamp = ReadString(element, "source_timestamp"),
+            LastPersistedAt = ReadString(element, "last_persisted_at")
+        };
+    }
+
+    private static VirtualMachineSummary ParseVirtualMachineSummary(JsonElement element)
+    {
+        return new VirtualMachineSummary
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Name = ReadString(element, "name") ?? string.Empty,
+            Code = ReadString(element, "code") ?? string.Empty,
+            CostCenter = ReadString(element, "costCenter", "cost_center") ?? string.Empty,
+            Location = ReadString(element, "location") ?? string.Empty,
+            IsActive = ReadBool(element, "isActive", "is_active")
+        };
+    }
+
+    private static VirtualConsole ParseVirtualConsole(JsonElement element)
+    {
+        var machineProp = TryGetProperty(element, "machine", out var mProp) ? mProp : default;
+        var machine = ParseMachineSimple(machineProp);
+
+        var tagsProp = TryGetProperty(element, "tags", out var tProp) ? tProp : default;
+        var tags = tagsProp.ValueKind == JsonValueKind.Object
+            ? tagsProp.EnumerateObject().ToDictionary(p => p.Name, p => ParseVirtualTag(p.Value))
+            : new Dictionary<string, VirtualTag>();
+
+        var reasonsProp = TryGetProperty(element, "reasons", out var rProp) ? rProp : default;
+        var reasons = reasonsProp.ValueKind == JsonValueKind.Array
+            ? reasonsProp.EnumerateArray().Select(ParseVirtualReason).ToList()
+            : new List<VirtualReason>();
+
+        var simulatorProp = TryGetProperty(element, "simulator", out var sProp) ? sProp : default;
+        var simulator = ParseVirtualMachineRuntime(simulatorProp);
+
+        return new VirtualConsole
+        {
+            Machine = machine,
+            Tags = tags,
+            Reasons = reasons,
+            Simulator = simulator
+        };
+    }
+
+    private static VirtualTag ParseVirtualTag(JsonElement element)
+    {
+        return new VirtualTag
+        {
+            Id = TryGetProperty(element, "id", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Name = ReadString(element, "name") ?? string.Empty,
+            Address = ReadString(element, "address") ?? string.Empty
+        };
+    }
+
+    private static VirtualReason ParseVirtualReason(JsonElement element)
+    {
+        return new VirtualReason
+        {
+            Code = TryGetProperty(element, "code", out var codeProp) && codeProp.ValueKind == JsonValueKind.Number ? codeProp.GetInt32() : 0,
+            Description = ReadString(element, "description") ?? string.Empty,
+            Category = ReadString(element, "category")
+        };
+    }
+
+    private static VirtualMachineRuntime ParseVirtualMachineRuntime(JsonElement element)
+    {
+        return new VirtualMachineRuntime
+        {
+            MachineId = TryGetProperty(element, "machineId", out var idProp) && idProp.ValueKind == JsonValueKind.Number ? idProp.GetInt32() : 0,
+            Status = TryGetProperty(element, "status", out var statusProp) && statusProp.ValueKind == JsonValueKind.Number ? statusProp.GetInt32() : 0,
+            DowntimeReasonCode = TryGetProperty(element, "downtimeReasonCode", out var reasonProp) && reasonProp.ValueKind == JsonValueKind.Number ? reasonProp.GetInt32() : 0,
+            ProductionCounter = TryGetProperty(element, "productionCounter", out var prodProp) && prodProp.ValueKind == JsonValueKind.Number ? prodProp.GetInt32() : 0,
+            LossCounter = TryGetProperty(element, "lossCounter", out var lossProp) && lossProp.ValueKind == JsonValueKind.Number ? lossProp.GetInt32() : 0,
+            PiecesPerMinute = TryGetProperty(element, "piecesPerMinute", out var ppmProp) && ppmProp.ValueKind == JsonValueKind.Number ? ppmProp.GetInt32() : 0,
+            Running = ReadBool(element, "running")
         };
     }
 
@@ -3248,7 +3862,7 @@ public sealed class ConfigService
 
             var rows = ReadArray(document.RootElement, "rows")
                 .Select(item => item.ValueKind == JsonValueKind.Object
-                    ? item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValue(p.Value))
+                    ? item.EnumerateObject().ToDictionary(p => p.Name, p => GetJsonValue(p.Value) ?? string.Empty)
                     : new Dictionary<string, object>())
                 .ToList();
 

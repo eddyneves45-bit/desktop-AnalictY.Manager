@@ -93,7 +93,7 @@
                     <!-- Form -->
                     <Border Grid.Column="0" Style="{StaticResource WhiteCard}" Margin="0,0,12,0">
                         <StackPanel>
-                            <TextBlock Text="{Binding IsEditing, Converter={StaticResource BoolToYesNo}, StringFormat='{}{0} TAG'}" 
+                            <TextBlock Text="{Binding FormTitle}" 
                                        Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
                             
                             <TextBlock Text="Nome" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>

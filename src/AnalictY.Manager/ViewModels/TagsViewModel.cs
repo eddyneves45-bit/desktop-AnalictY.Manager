@@ -133,6 +133,7 @@ public sealed class TagsViewModel : ObservableObject
     }
 
     public bool IsEditing => SelectedTag != null;
+    public string FormTitle => IsEditing ? "Editar TAG" : "Nova TAG";
 
     public async Task LoadAsync()
     {
@@ -198,6 +199,7 @@ public sealed class TagsViewModel : ObservableObject
         IsActive = true;
 
         OnPropertyChanged(nameof(IsEditing));
+        OnPropertyChanged(nameof(FormTitle));
         return Task.CompletedTask;
     }
 
@@ -214,6 +216,7 @@ public sealed class TagsViewModel : ObservableObject
         IsActive = true;
 
         OnPropertyChanged(nameof(IsEditing));
+        OnPropertyChanged(nameof(FormTitle));
         return Task.CompletedTask;
     }
 
