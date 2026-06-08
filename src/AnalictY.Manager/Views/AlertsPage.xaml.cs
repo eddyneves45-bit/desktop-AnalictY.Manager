@@ -40,10 +40,4 @@ public partial class AlertsPage : UserControl
             configPage.ReturnToCards();
         }
     }
-
-    private void ShowError(string message)
-    {
-        ErrorText.Text = message;
-        ErrorBorder.Visibility = Visibility.Visible;
-    }
 }

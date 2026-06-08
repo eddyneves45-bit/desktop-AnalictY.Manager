@@ -4,6 +4,7 @@ using System.Windows.Media;
 using AnalictY.Manager.Infrastructure;
 using AnalictY.Manager.Services;
 using AnalictY.Manager.ViewModels;
+using AnalictY.Manager.Models;
 
 namespace AnalictY.Manager.Views;
 
@@ -41,9 +42,14 @@ public partial class MachinesPage : UserControl
         }
     }
 
-    private void ShowError(string message)
+    private void OnFolderSelected(object sender, RoutedEventArgs e)
     {
-        ErrorText.Text = message;
-        ErrorBorder.Visibility = Visibility.Visible;
+        if (_viewModel != null && sender is TreeViewItem tvi && tvi.DataContext is MachineFolder folder)
+        {
+            if (_viewModel.SelectFolderCommand.CanExecute(folder))
+            {
+                _viewModel.SelectFolderCommand.Execute(folder);
+            }
+        }
     }
 }

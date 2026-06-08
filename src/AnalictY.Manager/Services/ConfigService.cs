@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using AnalictY.Manager.Models;
@@ -112,7 +112,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new OpcUaConnectionsResult { Error = "Servidor não disponível" };
+            return new OpcUaConnectionsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -145,7 +145,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new OpcUaBrowseResult { Error = "Servidor não disponível" };
+            return new OpcUaBrowseResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -169,7 +169,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão OPC UA estabelecida com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o OPC UA estabelecida com sucesso");
         }
         catch (Exception ex)
         {
@@ -193,7 +193,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão OPC UA criada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o OPC UA criada com sucesso");
         }
         catch (Exception ex)
         {
@@ -217,7 +217,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão OPC UA atualizada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o OPC UA atualizada com sucesso");
         }
         catch (Exception ex)
         {
@@ -236,7 +236,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão OPC UA excluída com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o OPC UA excluÃ­da com sucesso");
         }
         catch (Exception ex)
         {
@@ -255,7 +255,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Teste de conexão OPC UA realizado com sucesso");
+            return OperationResult.CreateSuccess("Teste de conexÃ£o OPC UA realizado com sucesso");
         }
         catch (Exception ex)
         {
@@ -311,7 +311,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new MqttConnectionsResult { Error = "Servidor não disponível" };
+            return new MqttConnectionsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -344,7 +344,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new MqttTopicsResult { Error = "Servidor não disponível" };
+            return new MqttTopicsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -377,7 +377,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new MqttClientsResult { Error = "Servidor não disponível" };
+            return new MqttClientsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -385,7 +385,72 @@ public sealed class ConfigService
         }
     }
 
-    public async Task<OperationResult> PublishMqttAsync(int connectionId, string topic, string payload, int qos, bool retain, CancellationToken cancellationToken = default)
+
+    public async Task<MqttDiagnosticsResult> GetMqttDiagnosticsAsync(int connectionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endpoint = new Uri(ApiBaseUri, $"/api/config/mqtt/diagnostics?connection_id={connectionId}");
+            using var response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new MqttDiagnosticsResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            
+            var result = new MqttDiagnosticsResult
+            {
+                Status = ReadString(document.RootElement, "status"),
+                Broker = ReadString(document.RootElement, "broker"),
+                Port = ReadNullableInt(document.RootElement, "port"),
+                ClientId = ReadString(document.RootElement, "client_id", "clientId"),
+                Uptime = ReadNullableInt(document.RootElement, "uptime"),
+                MessageCount = ReadNullableInt(document.RootElement, "message_count", "messageCount"),
+                MessagesPerSecond = ReadNullableDouble(document.RootElement, "messages_per_second", "messagesPerSecond"),
+                RetryCount = ReadNullableInt(document.RootElement, "retry_count", "retryCount")
+            };
+
+            if (TryGetProperty(document.RootElement, "subscribed_topics", out var topicsProp) && topicsProp.ValueKind == JsonValueKind.Array)
+            {
+                result.SubscribedTopics = topicsProp.EnumerateArray().Select(e => e.GetString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+            }
+
+            if (TryGetProperty(document.RootElement, "values_cache", out var cacheProp) && cacheProp.ValueKind == JsonValueKind.Object)
+            {
+                result.ValuesCache = new Dictionary<string, object>();
+                foreach (var prop in cacheProp.EnumerateObject())
+                {
+                    result.ValuesCache[prop.Name] = ParseJsonValue(prop.Value);
+                }
+            }
+
+            if (TryGetProperty(document.RootElement, "connection_log", out var logProp) && logProp.ValueKind == JsonValueKind.Array)
+            {
+                result.ConnectionLog = logProp.EnumerateArray().Select(e => new MqttConnectionLogEntry
+                {
+                    Timestamp = ReadString(e, "timestamp") ?? "",
+                    Event = ReadString(e, "event") ?? "",
+                    Message = ReadString(e, "message") ?? "",
+                    Success = ReadBool(e, "success")
+                }).ToList();
+            }
+
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            return new MqttDiagnosticsResult { Error = "Tempo esgotado" };
+        }
+        catch (HttpRequestException)
+        {
+            return new MqttDiagnosticsResult { Error = "Servidor não disponível" };
+        }
+        catch (JsonException ex)
+        {
+            return new MqttDiagnosticsResult { Error = $"Erro ao processar resposta: {ex.Message}" };
+        }
+    }    public async Task<OperationResult> PublishMqttAsync(int connectionId, string topic, string payload, int qos, bool retain, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -434,7 +499,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Tópico inscrito com sucesso");
+            return OperationResult.CreateSuccess("TÃ³pico inscrito com sucesso");
         }
         catch (Exception ex)
         {
@@ -461,7 +526,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Tópico removido com sucesso");
+            return OperationResult.CreateSuccess("TÃ³pico removido com sucesso");
         }
         catch (Exception ex)
         {
@@ -480,7 +545,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("TAG excluída com sucesso");
+            return OperationResult.CreateSuccess("TAG excluÃ­da com sucesso");
         }
         catch (Exception ex)
         {
@@ -504,7 +569,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão MQTT criada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o MQTT criada com sucesso");
         }
         catch (Exception ex)
         {
@@ -528,7 +593,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão MQTT atualizada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o MQTT atualizada com sucesso");
         }
         catch (Exception ex)
         {
@@ -547,7 +612,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão MQTT excluída com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o MQTT excluÃ­da com sucesso");
         }
         catch (Exception ex)
         {
@@ -566,7 +631,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Teste de conexão MQTT realizado com sucesso");
+            return OperationResult.CreateSuccess("Teste de conexÃ£o MQTT realizado com sucesso");
         }
         catch (Exception ex)
         {
@@ -598,7 +663,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new MysqlConnectionsResult { Error = "Servidor não disponível" };
+            return new MysqlConnectionsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -616,7 +681,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Teste de conexão MySQL realizado com sucesso");
+            return OperationResult.CreateSuccess("Teste de conexÃ£o MySQL realizado com sucesso");
         }
         catch (Exception ex)
         {
@@ -660,7 +725,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("MySQL definido como primário com sucesso");
+            return OperationResult.CreateSuccess("MySQL definido como primÃ¡rio com sucesso");
         }
         catch (Exception ex)
         {
@@ -699,7 +764,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão MySQL criada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o MySQL criada com sucesso");
         }
         catch (Exception ex)
         {
@@ -723,7 +788,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão MySQL atualizada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o MySQL atualizada com sucesso");
         }
         catch (Exception ex)
         {
@@ -742,7 +807,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Conexão MySQL excluída com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o MySQL excluÃ­da com sucesso");
         }
         catch (Exception ex)
         {
@@ -761,7 +826,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Teste de conexão MySQL realizado com sucesso");
+            return OperationResult.CreateSuccess("Teste de conexÃ£o MySQL realizado com sucesso");
         }
         catch (Exception ex)
         {
@@ -805,7 +870,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new FtpExportResult { Error = "Servidor não disponível" };
+            return new FtpExportResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -829,7 +894,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Configuração FTP/SFTP salva com sucesso");
+            return OperationResult.CreateSuccess("ConfiguraÃ§Ã£o FTP/SFTP salva com sucesso");
         }
         catch (Exception ex)
         {
@@ -853,7 +918,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
 
-            return OperationResult.CreateSuccess("Teste de conexão FTP/SFTP realizado com sucesso");
+            return OperationResult.CreateSuccess("Teste de conexÃ£o FTP/SFTP realizado com sucesso");
         }
         catch (Exception ex)
         {
@@ -941,7 +1006,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new TagsResult { Error = "Servidor não disponível" };
+            return new TagsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -985,7 +1050,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1035,7 +1100,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1087,7 +1152,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new MachineFoldersResult { Error = "Servidor não disponível" };
+            return new MachineFoldersResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1121,6 +1186,44 @@ public sealed class ConfigService
     }
 
     // Machines
+    public async Task<MachinesResult> GetMachinesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var response = await _httpClient.GetAsync(MachinesEndpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new MachinesResult { Error = $"Erro HTTP {(int)response.StatusCode}" };
+            }
+
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
+            var machines = document.RootElement.ValueKind == JsonValueKind.Array
+                ? document.RootElement.EnumerateArray().Select(ParseMachine).ToList()
+                : new List<Machine>();
+
+            return new MachinesResult { Machines = machines };
+        }
+        catch (Exception ex)
+        {
+            return new MachinesResult { Error = ex.Message };
+        }
+    }
+
+    private Machine ParseMachine(JsonElement element)
+    {
+        return new Machine
+        {
+            Id = ReadString(element, "id") ?? string.Empty,
+            Name = ReadString(element, "name") ?? string.Empty,
+            Code = ReadString(element, "code") ?? string.Empty,
+            CostCenter = ReadString(element, "cost_center", "costCenter") ?? string.Empty,
+            Location = ReadString(element, "location") ?? string.Empty,
+            FolderId = ReadString(element, "folder_id", "folderId") ?? string.Empty,
+            IsActive = ReadBoolDefaultTrue(element, "is_active", "isActive")
+        };
+    }
+
+    // Machines API Actions
     public async Task<OperationResult> CreateMachineAsync(MachineRequest request, CancellationToken cancellationToken = default)
     {
         try
@@ -1145,7 +1248,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Máquina criada com sucesso");
+            return OperationResult.CreateSuccess("MÃ¡quina criada com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -1153,7 +1256,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1191,7 +1294,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Máquina atualizada com sucesso");
+            return OperationResult.CreateSuccess("MÃ¡quina atualizada com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -1199,7 +1302,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1221,7 +1324,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Máquina excluída com sucesso");
+            return OperationResult.CreateSuccess("MÃ¡quina excluÃ­da com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -1229,7 +1332,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1266,7 +1369,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1309,7 +1412,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1331,7 +1434,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Pasta excluída com sucesso");
+            return OperationResult.CreateSuccess("Pasta excluÃ­da com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -1339,7 +1442,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1371,7 +1474,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new ShiftsResult { Error = "Servidor não disponível" };
+            return new ShiftsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1434,7 +1537,7 @@ public sealed class ConfigService
             {
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
-            return OperationResult.CreateSuccess("Turno excluído com sucesso");
+            return OperationResult.CreateSuccess("Turno excluÃ­do com sucesso");
         }
         catch (Exception ex)
         {
@@ -1466,7 +1569,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new DashboardConfigsResult { Error = "Servidor não disponível" };
+            return new DashboardConfigsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1506,7 +1609,7 @@ public sealed class ConfigService
             {
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
-            return OperationResult.CreateSuccess("Dashboard excluído com sucesso");
+            return OperationResult.CreateSuccess("Dashboard excluÃ­do com sucesso");
         }
         catch (Exception ex)
         {
@@ -1545,7 +1648,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new DiagnosticResult { Error = "Servidor não disponível" };
+            return new DiagnosticResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1567,7 +1670,7 @@ public sealed class ConfigService
             return new SystemTimezoneResult
             {
                 TimeZoneId = ReadString(document.RootElement, "timeZoneId", "time_zone_id") ?? "America/Sao_Paulo",
-                Label = ReadString(document.RootElement, "label") ?? "Brasil - Brasília (GMT-3)"
+                Label = ReadString(document.RootElement, "label") ?? "Brasil - BrasÃ­lia (GMT-3)"
             };
         }
         catch (OperationCanceledException)
@@ -1576,7 +1679,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new SystemTimezoneResult { Error = "Servidor não disponível" };
+            return new SystemTimezoneResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1608,7 +1711,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new VirtualMachinesResult { Error = "Servidor não disponível" };
+            return new VirtualMachinesResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1630,7 +1733,7 @@ public sealed class ConfigService
             {
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
-            return OperationResult.CreateSuccess("Máquina virtual criada com sucesso");
+            return OperationResult.CreateSuccess("MÃ¡quina virtual criada com sucesso");
         }
         catch (Exception ex)
         {
@@ -1659,7 +1762,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new VirtualConsoleResult { Error = "Servidor não disponível" };
+            return new VirtualConsoleResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1705,7 +1808,7 @@ public sealed class ConfigService
             {
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
-            return OperationResult.CreateSuccess("Simulação iniciada com sucesso");
+            return OperationResult.CreateSuccess("SimulaÃ§Ã£o iniciada com sucesso");
         }
         catch (Exception ex)
         {
@@ -1724,7 +1827,7 @@ public sealed class ConfigService
             {
                 return OperationResult.CreateFailed(await ReadErrorMessageAsync(response, cancellationToken));
             }
-            return OperationResult.CreateSuccess("Simulação parada com sucesso");
+            return OperationResult.CreateSuccess("SimulaÃ§Ã£o parada com sucesso");
         }
         catch (Exception ex)
         {
@@ -1777,7 +1880,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Configuração Weintek salva com sucesso");
+            return OperationResult.CreateSuccess("ConfiguraÃ§Ã£o Weintek salva com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -1785,7 +1888,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1816,7 +1919,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new WeintekBrowserResult { Error = "Servidor não disponível" };
+            return new WeintekBrowserResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -1843,7 +1946,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1871,7 +1974,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1915,7 +2018,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -1985,7 +2088,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new AlertsResult { Error = "Servidor não disponível" };
+            return new AlertsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2016,7 +2119,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new AlertRulesResult { Error = "Servidor não disponível" };
+            return new AlertRulesResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2059,7 +2162,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2108,7 +2211,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2130,7 +2233,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Regra de alerta excluída com sucesso");
+            return OperationResult.CreateSuccess("Regra de alerta excluÃ­da com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2138,7 +2241,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2168,7 +2271,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2191,7 +2294,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Retenção de alertas atualizada com sucesso");
+            return OperationResult.CreateSuccess("RetenÃ§Ã£o de alertas atualizada com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2199,7 +2302,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2270,7 +2373,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new TelegramStatusResult { Error = "Servidor não disponível" };
+            return new TelegramStatusResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2301,7 +2404,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new TelegramConnectionsResult { Error = "Servidor não disponível" };
+            return new TelegramConnectionsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2332,7 +2435,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new TelegramRecipientsResult { Error = "Servidor não disponível" };
+            return new TelegramRecipientsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2363,7 +2466,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Conexão Telegram criada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o Telegram criada com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2371,7 +2474,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2408,7 +2511,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Conexão Telegram atualizada com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o Telegram atualizada com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2416,7 +2519,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2438,7 +2541,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Conexão Telegram excluída com sucesso");
+            return OperationResult.CreateSuccess("ConexÃ£o Telegram excluÃ­da com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2446,7 +2549,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2477,7 +2580,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Destinatário Telegram criado com sucesso");
+            return OperationResult.CreateSuccess("DestinatÃ¡rio Telegram criado com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2485,7 +2588,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2522,7 +2625,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Destinatário Telegram atualizado com sucesso");
+            return OperationResult.CreateSuccess("DestinatÃ¡rio Telegram atualizado com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2530,7 +2633,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2552,7 +2655,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Destinatário Telegram excluído com sucesso");
+            return OperationResult.CreateSuccess("DestinatÃ¡rio Telegram excluÃ­do com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2560,7 +2663,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2576,7 +2679,7 @@ public sealed class ConfigService
             {
                 connection_id = connectionId,
                 recipient_id = recipientId,
-                message = "Teste de notificação iioT AnalictY"
+                message = "Teste de notificaÃ§Ã£o iioT AnalictY"
             };
 
             var json = JsonSerializer.Serialize(payload, JsonOptions);
@@ -2597,7 +2700,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2658,7 +2761,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new UsersResult { Error = "Servidor não disponível" };
+            return new UsersResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2691,7 +2794,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Usuário criado com sucesso");
+            return OperationResult.CreateSuccess("UsuÃ¡rio criado com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2699,7 +2802,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2737,7 +2840,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Usuário atualizado com sucesso");
+            return OperationResult.CreateSuccess("UsuÃ¡rio atualizado com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2745,7 +2848,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2767,7 +2870,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Usuário excluído com sucesso");
+            return OperationResult.CreateSuccess("UsuÃ¡rio excluÃ­do com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -2775,7 +2878,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -2825,7 +2928,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new AuditLogsResult { Error = "Servidor não disponível" };
+            return new AuditLogsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2885,7 +2988,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new RecentLogsResult { Error = "Servidor não disponível" };
+            return new RecentLogsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2935,7 +3038,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new DowntimesResult { Error = "Servidor não disponível" };
+            return new DowntimesResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -2966,7 +3069,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new DowntimeReasonsResult { Error = "Servidor não disponível" };
+            return new DowntimeReasonsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -3010,7 +3113,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -3033,7 +3136,7 @@ public sealed class ConfigService
                 return OperationResult.CreateFailed($"Erro HTTP {(int)response.StatusCode}: {errorText}");
             }
 
-            return OperationResult.CreateSuccess("Retenção de paradas atualizada com sucesso");
+            return OperationResult.CreateSuccess("RetenÃ§Ã£o de paradas atualizada com sucesso");
         }
         catch (OperationCanceledException)
         {
@@ -3041,7 +3144,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return OperationResult.CreateFailed("Servidor não disponível");
+            return OperationResult.CreateFailed("Servidor nÃ£o disponÃ­vel");
         }
         catch (JsonException ex)
         {
@@ -3243,7 +3346,42 @@ public sealed class ConfigService
         };
     }
 
-    private static int? ParseNullableInt(string value)
+
+
+    private static double? ReadNullableDouble(JsonElement element, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            if (TryGetProperty(element, name, out var property))
+            {
+                if (property.ValueKind == JsonValueKind.Number && property.TryGetDouble(out var parsed))
+                {
+                    return parsed;
+                }
+
+                if (property.ValueKind == JsonValueKind.String && double.TryParse(property.GetString(), out parsed))
+                {
+                    return parsed;
+                }
+            }
+        }
+
+        return null;
+    }
+    private static object ParseJsonValue(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString() ?? "",
+            JsonValueKind.Number => element.TryGetInt64(out var l) ? l : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            JsonValueKind.Object => element.ToString(),
+            JsonValueKind.Array => element.ToString(),
+            _ => element.ToString()
+        };
+    }    private static int? ParseNullableInt(string value)
     {
         return int.TryParse(value, out var parsed) ? parsed : null;
     }
@@ -3353,7 +3491,7 @@ public sealed class ConfigService
         {
             ClientId = ReadString(element, "clientId", "client_id") ?? string.Empty,
             Ip = ReadString(element, "ip", "host", "address") ?? string.Empty,
-            Connected = ReadBool(element, "connected") ? "Sim" : "Não",
+            Connected = ReadBool(element, "connected") ? "Sim" : "NÃ£o",
             Topics = ReadString(element, "topics", "topic_count") ?? "0"
         };
     }
@@ -3812,7 +3950,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new DatabaseConnectionsResult { Error = "Servidor não disponível" };
+            return new DatabaseConnectionsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -3848,7 +3986,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new DatabasesResult { Error = "Servidor não disponível" };
+            return new DatabasesResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -3880,7 +4018,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new TablesResult { Error = "Servidor não disponível" };
+            return new TablesResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -3912,7 +4050,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new ColumnsResult { Error = "Servidor não disponível" };
+            return new ColumnsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -3972,7 +4110,7 @@ public sealed class ConfigService
         }
         catch (HttpRequestException)
         {
-            return new RowsResult { Error = "Servidor não disponível" };
+            return new RowsResult { Error = "Servidor nÃ£o disponÃ­vel" };
         }
         catch (JsonException ex)
         {
@@ -4054,3 +4192,5 @@ public sealed class ConfigService
         return false;
     }
 }
+
+

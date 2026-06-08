@@ -26,6 +26,12 @@ public sealed class AlertsViewModel : ObservableObject
     private string _message = string.Empty;
     private int? _telegramConnectionId;
     private bool _isActive = true;
+    private bool _showModal = false;
+    private int _pendingCount;
+    private int _activeRulesCount;
+    private int _totalNotificationsCount;
+    private string _telegramTestMessage = string.Empty;
+    private bool _isTestingTelegram;
 
     public AlertsViewModel(ConfigService configService)
     {
@@ -36,6 +42,8 @@ public sealed class AlertsViewModel : ObservableObject
         DeleteRuleCommand = new RelayCommand(DeleteRule);
         SaveRuleCommand = new RelayCommand(SaveRule);
         AcknowledgeAlertCommand = new RelayCommand(AcknowledgeAlert);
+        TestTelegramCommand = new RelayCommand(TestTelegram);
+        CloseModalCommand = new RelayCommand(() => ShowModal = false);
 
         Alerts = new ObservableCollection<AlertItem>();
         FilteredAlerts = new ObservableCollection<AlertItem>();
@@ -52,6 +60,44 @@ public sealed class AlertsViewModel : ObservableObject
     public ICommand DeleteRuleCommand { get; }
     public ICommand SaveRuleCommand { get; }
     public ICommand AcknowledgeAlertCommand { get; }
+    public ICommand TestTelegramCommand { get; }
+    public ICommand CloseModalCommand { get; }
+
+    public bool ShowModal
+    {
+        get => _showModal;
+        set => SetProperty(ref _showModal, value);
+    }
+
+    public int PendingCount
+    {
+        get => _pendingCount;
+        set => SetProperty(ref _pendingCount, value);
+    }
+
+    public int ActiveRulesCount
+    {
+        get => _activeRulesCount;
+        set => SetProperty(ref _activeRulesCount, value);
+    }
+
+    public int TotalNotificationsCount
+    {
+        get => _totalNotificationsCount;
+        set => SetProperty(ref _totalNotificationsCount, value);
+    }
+
+    public string TelegramTestMessage
+    {
+        get => _telegramTestMessage;
+        set => SetProperty(ref _telegramTestMessage, value);
+    }
+
+    public bool IsTestingTelegram
+    {
+        get => _isTestingTelegram;
+        set => SetProperty(ref _isTestingTelegram, value);
+    }
 
     public bool IsLoading
     {
@@ -193,6 +239,10 @@ public sealed class AlertsViewModel : ObservableObject
                 Rules.Add(rule);
             }
 
+            PendingCount = Alerts.Count(a => !a.IsAcknowledged);
+            ActiveRulesCount = Rules.Count(r => r.IsActive);
+            TotalNotificationsCount = Alerts.Count;
+
             FilterAlerts();
             StatusMessage = $"{Alerts.Count} alerta(s), {Rules.Count} regra(s) carregada(s).";
         }
@@ -203,6 +253,25 @@ public sealed class AlertsViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task TestTelegram()
+    {
+        IsTestingTelegram = true;
+        TelegramTestMessage = string.Empty;
+        try
+        {
+            var result = await _configService.TestTelegramAsync();
+            TelegramTestMessage = result.Success ? "Mensagem enviada pelo Telegram." : (result.Message ?? "Falha ao testar Telegram.");
+        }
+        catch (Exception ex)
+        {
+            TelegramTestMessage = ex.Message;
+        }
+        finally
+        {
+            IsTestingTelegram = false;
         }
     }
 
@@ -234,6 +303,7 @@ public sealed class AlertsViewModel : ObservableObject
         Message = string.Empty;
         TelegramConnectionId = null;
         IsActive = true;
+        ShowModal = true;
 
         OnPropertyChanged(nameof(IsEditingRule));
         return Task.CompletedTask;
@@ -251,6 +321,7 @@ public sealed class AlertsViewModel : ObservableObject
         Message = SelectedRule.Message;
         TelegramConnectionId = SelectedRule.TelegramConnectionId;
         IsActive = SelectedRule.IsActive;
+        ShowModal = true;
 
         OnPropertyChanged(nameof(IsEditingRule));
         return Task.CompletedTask;
@@ -295,7 +366,7 @@ public sealed class AlertsViewModel : ObservableObject
             if (result.Success)
             {
                 StatusMessage = IsEditingRule ? "Regra atualizada com sucesso." : "Regra criada com sucesso.";
-                await OpenCreateRuleModal();
+                ShowModal = false;
                 await LoadAsync();
             }
             else

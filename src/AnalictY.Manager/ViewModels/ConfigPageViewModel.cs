@@ -112,7 +112,7 @@ namespace AnalictY.Manager.ViewModels
                     HoverColorHex = "#E0F2FE",
                     IconColorHex = "#0284C7",
                     IsButton = true,
-                    NavigationTarget = "mysql-console"
+                    NavigationTarget = "database-browser"
                 },
                 new ConfigCard 
                 { 

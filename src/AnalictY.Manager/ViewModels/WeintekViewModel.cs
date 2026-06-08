@@ -36,10 +36,14 @@ public sealed class WeintekViewModel : ObservableObject
 
         Tags = new ObservableCollection<DiscoveredTag>();
         FilteredTags = new ObservableCollection<DiscoveredTag>();
+        RecentPayloads = new ObservableCollection<WeintekPayload>();
+        Audits = new ObservableCollection<GatewayAudit>();
     }
 
     public ObservableCollection<DiscoveredTag> Tags { get; }
     public ObservableCollection<DiscoveredTag> FilteredTags { get; }
+    public ObservableCollection<WeintekPayload> RecentPayloads { get; }
+    public ObservableCollection<GatewayAudit> Audits { get; }
 
     public ICommand RefreshCommand { get; }
     public ICommand SaveConfigCommand { get; }
@@ -132,6 +136,66 @@ public sealed class WeintekViewModel : ObservableObject
         set => SetProperty(ref _generatedToken, value);
     }
 
+    public string EndpointUrl
+    {
+        get
+        {
+            var path = string.IsNullOrWhiteSpace(EndpointPath) ? "/api/weintek/ingest" : EndpointPath;
+            return $"http://127.0.0.1:5000{path}";
+        }
+    }
+
+    public string PingUrl
+    {
+        get
+        {
+            var path = EndpointUrl.Replace("/api/weintek/ingest", "/api/weintek/ping");
+            return path;
+        }
+    }
+
+    public string TokenStatus
+    {
+        get
+        {
+            if (Config == null) return "Não configurado";
+            if (!Config.TokenConfigured) return "Não configurado";
+            return $"Configurado ({Config.TokenPrefix}...)";
+        }
+    }
+
+    public string LastAccessAt
+    {
+        get
+        {
+            if (Config == null || string.IsNullOrWhiteSpace(Config.LastAccessAt)) return "-";
+            try
+            {
+                return DateTime.Parse(Config.LastAccessAt).ToString("dd/MM/yyyy HH:mm:ss");
+            }
+            catch
+            {
+                return Config.LastAccessAt;
+            }
+        }
+    }
+
+    public string LastSourceIp
+    {
+        get => Config?.LastSourceIp ?? "-";
+    }
+
+    public string TagsSummary
+    {
+        get
+        {
+            var visible = FilteredTags.Count;
+            var created = Tags.Count(t => t.Created);
+            var pending = Math.Max(Tags.Count - created, 0);
+            return $"{visible} visíveis · {created} criadas · {pending} pendentes";
+        }
+    }
+
     public WeintekConfig Config { get; private set; } = new();
 
     private async Task OnRefreshAsync()
@@ -189,7 +253,23 @@ public sealed class WeintekViewModel : ObservableObject
                 Tags.Add(tag);
             }
 
+            RecentPayloads.Clear();
+            foreach (var payload in result.Payloads)
+            {
+                RecentPayloads.Add(payload);
+            }
+
+            Audits.Clear();
+            foreach (var audit in result.Audits)
+            {
+                Audits.Add(audit);
+            }
+
             FilterTags();
+            OnPropertyChanged(nameof(TagsSummary));
+            OnPropertyChanged(nameof(TokenStatus));
+            OnPropertyChanged(nameof(LastAccessAt));
+            OnPropertyChanged(nameof(LastSourceIp));
         }
         catch (Exception ex)
         {
@@ -310,11 +390,11 @@ public sealed class WeintekViewModel : ObservableObject
         }
     }
 
-    public async Task CreateTag()
+    public async Task CreateTag(object? parameter)
     {
-        if (SelectedTag == null)
+        if (parameter is not DiscoveredTag tag)
         {
-            ErrorMessage = "Selecione uma TAG para criar.";
+            ErrorMessage = "TAG inválida.";
             return;
         }
 
@@ -323,8 +403,8 @@ public sealed class WeintekViewModel : ObservableObject
 
         try
         {
-            var tagName = SelectedTag.Tag.Replace(" ", "_");
-            var result = await _configService.CreateWeintekTagAsync(tagName, SelectedTag.Address, SelectedTag.DataType);
+            var tagName = tag.Tag.Replace(" ", "_");
+            var result = await _configService.CreateWeintekTagAsync(tagName, tag.Address, tag.DataType);
             if (result.Success)
             {
                 StatusMessage = "TAG criada com sucesso.";

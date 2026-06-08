@@ -12,33 +12,74 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E5E7EB"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
         </Style>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Background" Value="#DC2626"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="18,10"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="SecondaryButton" TargetType="Button">
-            <Setter Property="Background" Value="#E5E7EB"/>
+            <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#111827"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#EF4444"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#DC2626"/>
+            <Setter Property="BorderBrush" Value="#FECACA"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="ReadableTextBox" TargetType="TextBox">
@@ -48,108 +89,175 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24">
-                <Grid Margin="0,0,0,18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Button Width="40" Height="40" Margin="0,0,16,0" Background="Transparent" BorderThickness="0" Click="NavigateBackButton_Click">
-                        <Path Data="M6 6L18 18M18 6L6 18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
-                    </Button>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="Usuários e Políticas" Foreground="#111827" FontSize="28" FontWeight="Bold"/>
-                        <TextBlock Text="Admin tem acesso total. Usuário visualiza. Personalizado recebe permissões marcadas." Foreground="#64748B" FontSize="14" Margin="0,4,0,0"/>
-                    </StackPanel>
-                    <Button Grid.Column="2" Content="Atualizar" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}"/>
-                </Grid>
+                <!-- Header -->
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Width="40" Height="40" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" Click="NavigateBackButton_Click">
+                            <Path Data="M10 19l-7-7m0 0l7-7m-7 7h18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
+                        </Button>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Usuários e Políticas" Foreground="#111827" FontSize="24" FontWeight="Bold"/>
+                            <TextBlock Text="Admin tem acesso total. Usuário visualiza. Personalizado recebe permissões marcadas." Foreground="#6B7280" FontSize="14" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
                 <Border x:Name="ErrorBorder" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8"
                         Padding="14" Margin="0,0,0,14" Visibility="Collapsed">
                     <TextBlock x:Name="ErrorText" Foreground="#DC2626" FontWeight="SemiBold" TextWrapping="Wrap"/>
                 </Border>
 
-                <Border Style="{StaticResource WhiteCard}">
+                <!-- Form -->
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,18">
                     <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                            <TextBlock Text="Formulário de Usuário" Foreground="#111827" FontSize="18" FontWeight="SemiBold"/>
-                            <Button Content="Novo Usuário" Style="{StaticResource PrimaryButton}" Command="{Binding CreateUserCommand}" Margin="8,0,0,0"/>
-                        </StackPanel>
-                        
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             
-                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                                <TextBlock Text="Usuário" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ReadableTextBox}" Text="{Binding Username, Mode=TwoWay}" IsEnabled="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Margin="0,0,0,14"/>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="1" Margin="0,0,8,0">
-                                <TextBlock Text="Email" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ReadableTextBox}" Text="{Binding Email, Mode=TwoWay}" IsEnabled="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Margin="0,0,0,14"/>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="2" Margin="0,0,8,0">
-                                <TextBlock Text="Senha" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                                <TextBox Style="{StaticResource ReadableTextBox}" Text="{Binding Password, Mode=TwoWay}" Margin="0,0,0,14"/>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="3" Margin="0,0,8,0">
-                                <TextBlock Text="Perfil" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                                <ComboBox SelectedValuePath="Content" SelectedValue="{Binding Role, Mode=TwoWay}" IsEnabled="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Margin="0,0,0,14">
-                                    <ComboBoxItem Content="user"/>
-                                    <ComboBoxItem Content="custom"/>
-                                    <ComboBoxItem Content="admin"/>
-                                </ComboBox>
-                            </StackPanel>
-                            
-                            <StackPanel Grid.Column="4">
-                                <Button Content="Salvar" Style="{StaticResource PrimaryButton}" Command="{Binding SaveUserCommand}" Margin="0,0,0,14"/>
-                            </StackPanel>
+                            <TextBox Grid.Column="0" Style="{StaticResource ReadableTextBox}" Text="{Binding Username, Mode=TwoWay}" IsEnabled="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Height="36" Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="1" Style="{StaticResource ReadableTextBox}" Text="{Binding Email, Mode=TwoWay}" IsEnabled="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Height="36" Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="2" Style="{StaticResource ReadableTextBox}" Text="{Binding Password, Mode=TwoWay}" Height="36" Margin="0,0,8,0"/>
+                            <ComboBox Grid.Column="3" SelectedValuePath="Content" SelectedValue="{Binding Role, Mode=TwoWay}" IsEnabled="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Height="36" Margin="0,0,8,0" Style="{StaticResource ReadableTextBox}">
+                                <ComboBoxItem Content="user"/>
+                                <ComboBoxItem Content="custom"/>
+                                <ComboBoxItem Content="admin"/>
+                            </ComboBox>
+                            <Button Grid.Column="4" Content="{Binding SaveButtonText}" Style="{StaticResource PrimaryButton}"/>
                         </Grid>
-                        
-                        <Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,14" Visibility="{Binding ShowPermissions, Converter={StaticResource BoolToVisibilityConverter}}">
-                            <StackPanel>
-                                <TextBlock Text="Permissões Personalizadas" Foreground="#111827" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                                <CheckBox Content="Mudar metas" IsChecked="{Binding PermGoalsManage, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                <CheckBox Content="Baixar relatórios" IsChecked="{Binding PermReportsDownload, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                <CheckBox Content="Criar alertas" IsChecked="{Binding PermAlertRulesManage, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                <CheckBox Content="Criar usuários" IsChecked="{Binding PermUsersManage, Mode=TwoWay}" Margin="0,0,0,4"/>
-                                <CheckBox Content="Acessar auditoria" IsChecked="{Binding PermAuditView, Mode=TwoWay}"/>
-                            </StackPanel>
+
+                        <!-- Permissões -->
+                        <Border Background="#F8FAFC" CornerRadius="6" Padding="12" Margin="0,12,0,0" Visibility="{Binding ShowPermissions, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <Border Grid.Column="0" Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,8,0">
+                                    <CheckBox Content="Mudar metas" IsChecked="{Binding PermGoalsManage, Mode=TwoWay}" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
+                                </Border>
+                                
+                                <Border Grid.Column="1" Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,8,0">
+                                    <CheckBox Content="Baixar relatórios" IsChecked="{Binding PermReportsDownload, Mode=TwoWay}" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
+                                </Border>
+                                
+                                <Border Grid.Column="2" Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,8,0">
+                                    <CheckBox Content="Criar alertas" IsChecked="{Binding PermAlertRulesManage, Mode=TwoWay}" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
+                                </Border>
+                                
+                                <Border Grid.Column="3" Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,8,0">
+                                    <CheckBox Content="Criar usuários" IsChecked="{Binding PermUsersManage, Mode=TwoWay}" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
+                                </Border>
+                                
+                                <Border Grid.Column="4" Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                    <CheckBox Content="Acessar auditoria" IsChecked="{Binding PermAuditView, Mode=TwoWay}" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
+                                </Border>
+                            </Grid>
                         </Border>
-                        
-                        <Separator Margin="0,14,0,14"/>
-                        
-                        <DataGrid ItemsSource="{Binding Users}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True"
-                                  SelectedItem="{Binding SelectedUser}" Height="300">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="*"/>
-                                <DataGridTextColumn Header="Usuário" Binding="{Binding Username}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*"/>
-                                <DataGridTextColumn Header="Perfil" Binding="{Binding Role}" Width="*"/>
-                                <DataGridTextColumn Header="Ativo" Binding="{Binding IsActive, Converter={StaticResource BoolToYesNo}}" Width="*"/>
-                                <DataGridTextColumn Header="MFA" Binding="{Binding MfaEnabled, Converter={StaticResource BoolToYesNo}}" Width="*"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
-                            <Button Content="Editar" Style="{StaticResource SecondaryButton}" Command="{Binding EditUserCommand}" Margin="0,0,8,0"/>
-                            <Button Content="Excluir" Style="{StaticResource DangerButton}" Command="{Binding DeleteUserCommand}"/>
+
+                        <!-- Checkboxes adicionais -->
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <CheckBox Content="Usuário ativo" IsChecked="{Binding IsActive, Mode=TwoWay}" Visibility="{Binding IsEditingUser, Converter={StaticResource InverseBoolConverter}}" Margin="0,0,16,0" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
+                            <CheckBox Content="Exigir MFA" IsChecked="{Binding MfaRequired, Mode=TwoWay}" Margin="0,0,16,0" FontWeight="SemiBold" FontSize="13" Foreground="#374151"/>
                         </StackPanel>
+
+                        <Button Content="Cancelar edição" Style="{StaticResource SecondaryButton}" Command="{Binding CreateUserCommand}" Margin="0,12,0,0" Visibility="{Binding IsEditingUser, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#6B7280" FontSize="13" Margin="0,12,0,0" Visibility="{Binding HasStatusMessage, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     </StackPanel>
+                </Border>
+
+                <!-- Lista de usuários -->
+                <Border Style="{StaticResource WhiteCard}">
+                    <ItemsControl ItemsSource="{Binding Users}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Padding="16" Margin="0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="130"/>
+                                            <ColumnDefinition Width="1*"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="180"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Username}" FontSize="14" FontWeight="SemiBold" Foreground="#111827"/>
+                                            <TextBlock Text="{Binding Email}" FontSize="12" Foreground="#6B7280"/>
+                                        </StackPanel>
+                                        
+                                        <TextBlock Grid.Column="1" Text="{Binding Role}" FontSize="12" FontWeight="SemiBold" Foreground="#374151" VerticalAlignment="Center"/>
+                                        
+                                        <TextBlock Grid.Column="2" Text="{Binding PermissionsText}" FontSize="12" Foreground="#6B7280" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                        
+                                        <TextBlock Grid.Column="3" Text="{Binding IsActive, Converter={StaticResource BoolToYesNo}}" FontSize="12" VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#059669"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="Foreground" Value="#6B7280"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        
+                                        <TextBlock Grid.Column="4" Text="{Binding MfaStatusText}" FontSize="12" VerticalAlignment="Center">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Foreground" Value="#059669"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding MfaEnabled}" Value="False">
+                                                            <Setter Property="Foreground" Value="#6B7280"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        
+                                        <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Content="{Binding EditButtonText}" Style="{StaticResource SecondaryButton}" Command="{Binding DataContext.EditUserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="0,0,8,0"/>
+                                            <Button Content="Excluir" Style="{StaticResource DangerButton}" Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Visibility="{Binding CanDelete, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </Border>
             </StackPanel>
         </ScrollViewer>

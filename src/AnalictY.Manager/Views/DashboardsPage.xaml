@@ -12,7 +12,7 @@
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E5E7EB"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="Padding" Value="20"/>
         </Style>
         <Style x:Key="PrimaryButton" TargetType="Button">
@@ -22,20 +22,55 @@
             <Setter Property="Padding" Value="18,10"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="SecondaryButton" TargetType="Button">
             <Setter Property="Background" Value="#E5E7EB"/>
             <Setter Property="Foreground" Value="#111827"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#EF4444"/>
+            <Setter Property="Background" Value="#DC2626"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="ReadableTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
@@ -44,6 +79,19 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="ReadableCombo" TargetType="ComboBox">
             <Setter Property="Background" Value="White"/>
@@ -53,26 +101,35 @@
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="FontSize" Value="14"/>
         </Style>
+        <Style x:Key="LabelText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24">
-                <Grid Margin="0,0,0,18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Button Width="40" Height="40" Margin="0,0,16,0" Background="Transparent" BorderThickness="0" Click="NavigateBackButton_Click">
-                        <Path Data="M6 6L18 18M18 6L6 18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
-                    </Button>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="Dashboards" Foreground="#111827" FontSize="28" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" FontSize="14" Margin="0,4,0,0"/>
-                    </StackPanel>
-                    <Button Grid.Column="2" Content="Atualizar" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}"/>
-                </Grid>
+                <!-- Header -->
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Width="40" Height="40" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" Click="NavigateBackButton_Click">
+                            <Path Data="M10 19l-7-7m0 0l7-7m-7 7h18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
+                        </Button>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Dashboards" Foreground="#111827" FontSize="24" FontWeight="Bold"/>
+                            <TextBlock Text="Configure e gerencie os dashboards operacionais" Foreground="#6B7280" FontSize="14" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="Atualizar" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}" Margin="12,0,0,0"/>
+                    </Grid>
+                </Border>
 
                 <Border x:Name="ErrorBorder" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8"
                         Padding="14" Margin="0,0,0,14" Visibility="Collapsed">
@@ -87,54 +144,87 @@
 
                     <Border Grid.Column="0" Style="{StaticResource WhiteCard}" Margin="0,0,12,0">
                         <StackPanel>
-                            <TextBlock Text="{Binding FormTitle}" Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
-                            <TextBlock Text="Nome" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <TextBox Style="{StaticResource ReadableTextBox}" Text="{Binding DashboardName, Mode=TwoWay}" Margin="0,0,0,14"/>
+                            <TextBlock Text="{Binding FormTitle}" Foreground="#111827" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
+                            
+                            <Border Background="#F8FAFC" CornerRadius="8" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="Nome *" Style="{StaticResource LabelText}"/>
+                                    <TextBox Style="{StaticResource ReadableTextBox}" Text="{Binding DashboardName, Mode=TwoWay}" Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Máquina" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <ComboBox Style="{StaticResource ReadableCombo}" ItemsSource="{Binding Machines}" DisplayMemberPath="Name"
-                                      SelectedItem="{Binding SelectedMachine, Mode=TwoWay}" Margin="0,0,0,14"/>
+                                    <TextBlock Text="Máquina *" Style="{StaticResource LabelText}"/>
+                                    <ComboBox Style="{StaticResource ReadableCombo}" ItemsSource="{Binding Machines}" DisplayMemberPath="Name"
+                                              SelectedItem="{Binding SelectedMachine, Mode=TwoWay}" Margin="0,0,0,12"/>
 
-                            <TextBlock Text="Período" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <ComboBox Style="{StaticResource ReadableCombo}" SelectedValue="{Binding PeriodPreset, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,14">
-                                <ComboBoxItem Content="Hoje" Tag="today"/>
-                                <ComboBoxItem Content="Turno atual" Tag="shift"/>
-                                <ComboBoxItem Content="Últimas 8h" Tag="last_8h"/>
-                            </ComboBox>
+                                    <TextBlock Text="Período *" Style="{StaticResource LabelText}"/>
+                                    <ComboBox Style="{StaticResource ReadableCombo}" SelectedValue="{Binding PeriodPreset, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,12">
+                                        <ComboBoxItem Content="Hoje" Tag="today"/>
+                                        <ComboBoxItem Content="Turno atual" Tag="shift"/>
+                                        <ComboBoxItem Content="Últimas 8h" Tag="last_8h"/>
+                                    </ComboBox>
 
-                            <TextBlock Text="Atualização (segundos)" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <ComboBox Style="{StaticResource ReadableCombo}" SelectedValue="{Binding RefreshInterval, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,14">
-                                <ComboBoxItem Content="5 segundos" Tag="5"/>
-                                <ComboBoxItem Content="10 segundos" Tag="10"/>
-                                <ComboBoxItem Content="30 segundos" Tag="30"/>
-                                <ComboBoxItem Content="60 segundos" Tag="60"/>
-                            </ComboBox>
+                                    <TextBlock Text="Atualização (segundos) *" Style="{StaticResource LabelText}"/>
+                                    <ComboBox Style="{StaticResource ReadableCombo}" SelectedValue="{Binding RefreshInterval, Mode=TwoWay}" SelectedValuePath="Tag" Margin="0,0,0,12">
+                                        <ComboBoxItem Content="5 segundos" Tag="5"/>
+                                        <ComboBoxItem Content="10 segundos" Tag="10"/>
+                                        <ComboBoxItem Content="30 segundos" Tag="30"/>
+                                        <ComboBoxItem Content="60 segundos" Tag="60"/>
+                                    </ComboBox>
 
-                            <CheckBox Content="Dashboard padrão" IsChecked="{Binding IsDefault, Mode=TwoWay}" Margin="0,0,0,14"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Button Content="Salvar" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
-                                <Button Content="Limpar" Style="{StaticResource SecondaryButton}" Command="{Binding CreateCommand}"/>
-                            </StackPanel>
+                                    <CheckBox Content="Dashboard padrão" IsChecked="{Binding IsDefault, Mode=TwoWay}" Margin="0,0,0,12" FontWeight="SemiBold"/>
+                                    
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Salvar" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
+                                        <Button Content="Limpar" Style="{StaticResource SecondaryButton}" Command="{Binding CreateCommand}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Border>
 
                     <Border Grid.Column="1" Style="{StaticResource WhiteCard}">
                         <StackPanel>
-                            <TextBlock Text="Dashboards" Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
+                            <TextBlock Text="Dashboards Configurados" Foreground="#111827" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
+                            
                             <DataGrid ItemsSource="{Binding Dashboards}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True"
-                                      SelectedItem="{Binding SelectedDashboard}" Height="400">
+                                      SelectedItem="{Binding SelectedDashboard}" MinHeight="400" HeadersVisibility="Column" GridLinesVisibility="Horizontal" RowHeaderWidth="0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="1.5*"/>
-                                    <DataGridTextColumn Header="Máquina" Binding="{Binding MachineId}" Width="*"/>
-                                    <DataGridTextColumn Header="Período" Binding="{Binding PeriodPreset}" Width="*"/>
-                                    <DataGridTextColumn Header="Atualização" Binding="{Binding RefreshInterval}" Width="*"/>
-                                    <DataGridTextColumn Header="Padrão" Binding="{Binding IsDefault, Converter={StaticResource BoolToYesNo}}" Width="*"/>
+                                    <DataGridTextColumn Header="Máquina" Binding="{Binding MachineId}" Width="1*"/>
+                                    <DataGridTextColumn Header="Período" Binding="{Binding PeriodPreset}" Width="0.8*"/>
+                                    <DataGridTextColumn Header="Atualização" Binding="{Binding RefreshInterval}" Width="0.8*"/>
+                                    <DataGridTemplateColumn Header="Padrão" Width="0.8*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding IsDefault, Converter={StaticResource BoolToBackground}}" CornerRadius="4" Padding="6,3">
+                                                    <TextBlock Text="{Binding IsDefault, Converter={StaticResource BoolToYesNo}}" 
+                                                               Foreground="{Binding IsDefault, Converter={StaticResource BoolToForeground}}" 
+                                                               FontSize="12" FontWeight="SemiBold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="Ações" Width="80">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Width="24" Height="24" Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,4,0"
+                                                            Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}">
+                                                        <Path Data="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                                              Stroke="#2563EB" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform"/>
+                                                    </Button>
+                                                    <Button Width="24" Height="24" Background="Transparent" BorderThickness="0" Padding="0"
+                                                            Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}">
+                                                        <Path Data="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                                              Stroke="#DC2626" StrokeThickness="2" Fill="Transparent" Width="14" Height="14" Stretch="Uniform"/>
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
-                                <Button Content="Editar" Style="{StaticResource SecondaryButton}" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
-                                <Button Content="Excluir" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}"/>
-                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </Grid>

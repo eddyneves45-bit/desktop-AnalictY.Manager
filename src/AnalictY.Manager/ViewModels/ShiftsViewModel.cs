@@ -15,12 +15,14 @@ public sealed class ShiftsViewModel : ObservableObject
     private Shift? _selectedShift;
 
     // Form fields
+    private string _shiftCode = string.Empty;
     private string _shiftName = string.Empty;
     private string _startTime = string.Empty;
     private string _endTime = string.Empty;
     private string _daysOfWeek = "0,1,2,3,4";
     private string _description = string.Empty;
     private bool _isActive = true;
+    private bool _countProduction = true;
 
     public ShiftsViewModel(ConfigService configService)
     {
@@ -74,6 +76,12 @@ public sealed class ShiftsViewModel : ObservableObject
     }
 
     // Form fields
+    public string ShiftCode
+    {
+        get => _shiftCode;
+        set => SetProperty(ref _shiftCode, value);
+    }
+
     public string ShiftName
     {
         get => _shiftName;
@@ -108,6 +116,12 @@ public sealed class ShiftsViewModel : ObservableObject
     {
         get => _isActive;
         set => SetProperty(ref _isActive, value);
+    }
+
+    public bool CountProduction
+    {
+        get => _countProduction;
+        set => SetProperty(ref _countProduction, value);
     }
 
     public bool IsEditing => SelectedShift != null;
@@ -150,12 +164,14 @@ public sealed class ShiftsViewModel : ObservableObject
     public Task OpenCreateModal()
     {
         SelectedShift = null;
+        ShiftCode = string.Empty;
         ShiftName = string.Empty;
         StartTime = string.Empty;
         EndTime = string.Empty;
         DaysOfWeek = "0,1,2,3,4";
         Description = string.Empty;
         IsActive = true;
+        CountProduction = true;
 
         OnPropertyChanged(nameof(IsEditing));
         OnPropertyChanged(nameof(FormTitle));
@@ -166,12 +182,14 @@ public sealed class ShiftsViewModel : ObservableObject
     {
         if (SelectedShift == null) return Task.CompletedTask;
 
+        ShiftCode = SelectedShift.Code ?? string.Empty;
         ShiftName = SelectedShift.Name ?? string.Empty;
         StartTime = SelectedShift.StartTime ?? string.Empty;
         EndTime = SelectedShift.EndTime ?? string.Empty;
         DaysOfWeek = SelectedShift.DaysOfWeek ?? "0,1,2,3,4";
         Description = SelectedShift.Description ?? string.Empty;
         IsActive = SelectedShift.IsActive;
+        CountProduction = SelectedShift.CountProduction;
 
         OnPropertyChanged(nameof(IsEditing));
         OnPropertyChanged(nameof(FormTitle));
@@ -182,7 +200,7 @@ public sealed class ShiftsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(ShiftName) || string.IsNullOrWhiteSpace(StartTime) || string.IsNullOrWhiteSpace(EndTime))
         {
-            ErrorMessage = "Preencha nome, início e fim.";
+            ErrorMessage = "Preencha código, nome, início e fim.";
             return;
         }
 
@@ -193,12 +211,14 @@ public sealed class ShiftsViewModel : ObservableObject
         {
             var request = new ShiftRequest
             {
+                Code = ShiftCode,
                 Name = ShiftName,
                 StartTime = StartTime,
                 EndTime = EndTime,
                 DaysOfWeek = DaysOfWeek,
                 Description = Description,
-                IsActive = IsActive
+                IsActive = IsActive,
+                CountProduction = CountProduction
             };
 
             OperationResult result;

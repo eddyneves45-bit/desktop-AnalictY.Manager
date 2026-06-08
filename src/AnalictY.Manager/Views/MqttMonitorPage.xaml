@@ -4,49 +4,88 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="760" d:DesignWidth="1280"
-             Background="#F3F5F7"
+             d:DesignHeight="1200" d:DesignWidth="1400"
+             Background="#F3F4F6"
              FontFamily="Segoe UI">
     <UserControl.Resources>
         <Style x:Key="WhiteCard" TargetType="Border">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E5E7EB"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="8"/>
-            <Setter Property="Padding" Value="20"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#000000" Opacity="0.05" BlurRadius="10" ShadowDepth="0"/>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Background" Value="#EF4444"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="Padding" Value="16,10"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="GreenButton" TargetType="Button">
+            <Setter Property="Background" Value="#22C55E"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="BlueButton" TargetType="Button">
+            <Setter Property="Background" Value="#3B82F6"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
 
         <Style x:Key="SecondaryButton" TargetType="Button">
             <Setter Property="Background" Value="#E5E7EB"/>
             <Setter Property="Foreground" Value="#111827"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
 
-        <Style x:Key="BlueButton" TargetType="Button">
-            <Setter Property="Background" Value="#1D4ED8"/>
+        <Style x:Key="SmallButton" TargetType="Button">
+            <Setter Property="Background" Value="#22C55E"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,8"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+
+        <Style x:Key="DeleteButton" TargetType="Button">
+            <Setter Property="Background" Value="#FEF2F2"/>
+            <Setter Property="Foreground" Value="#DC2626"/>
+            <Setter Property="BorderBrush" Value="#FCA5A5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
         </Style>
 
         <Style x:Key="ReadableCombo" TargetType="ComboBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#111827"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="FontSize" Value="14"/>
@@ -55,152 +94,552 @@
         <Style x:Key="ReadableTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Foreground" Value="#111827"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#111827"/>
+        </Style>
+
+        <Style x:Key="LabelText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#6B7280"/>
+        </Style>
+
+        <Style x:Key="ValueText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#111827"/>
+        </Style>
+
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#111827"/>
         </Style>
     </UserControl.Resources>
 
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24">
-                <Grid Margin="0,0,0,18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Button Width="40" Height="40" Margin="0,0,16,0" Background="Transparent" BorderThickness="0" Click="NavigateBackButton_Click">
-                        <Path Data="M6 6L18 18M18 6L6 18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
-                    </Button>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="MQTT Monitor" Foreground="#111827" FontSize="28" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding StatusMessage}" Foreground="#64748B" FontSize="14" Margin="0,4,0,0"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                        <ComboBox x:Name="ConnectionComboBox" ItemsSource="{Binding Connections}" DisplayMemberPath="DisplayName" 
-                                  SelectedValuePath="Id" SelectedValue="{Binding SelectedConnectionId}" 
-                                  Style="{StaticResource ReadableCombo}" Width="300" Margin="0,0,12,0" SelectionChanged="ConnectionComboBox_SelectionChanged"/>
-                        <Button Content="Atualizar" Style="{StaticResource BlueButton}" Command="{Binding RefreshCommand}"/>
-                    </StackPanel>
-                </Grid>
-
-                <Border x:Name="ErrorBorder" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8"
-                        Padding="14" Margin="0,0,0,14" Visibility="Collapsed">
-                    <TextBlock x:Name="ErrorText" Foreground="#DC2626" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <!-- Header -->
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Width="40" Height="40" Margin="0,0,16,0" Background="Transparent" BorderThickness="0" Click="NavigateBackButton_Click">
+                            <Path Data="M10 19L5 14L10 9" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
+                        </Button>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="MONITOR MQTT" Style="{StaticResource LabelText}" FontSize="11"/>
+                            <TextBlock Text="Diagnóstico MQTT" FontSize="24" FontWeight="Bold" Foreground="#111827" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Ellipse Width="12" Height="12" Fill="{Binding StatusColor}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="14" FontWeight="SemiBold" Foreground="#374151" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Publish Section -->
-                    <Border Grid.Column="0" Style="{StaticResource WhiteCard}" Margin="0,0,12,0">
-                        <StackPanel>
-                            <TextBlock Text="Publicar Mensagem" Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
-                            
-                            <TextBlock Text="Tópico" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <TextBox x:Name="PublishTopicTextBox" Style="{StaticResource ReadableTextBox}" Text="{Binding PublishTopic, Mode=TwoWay}" Margin="0,0,0,14"/>
-
-                            <TextBlock Text="Payload" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <TextBox x:Name="PublishPayloadTextBox" Style="{StaticResource ReadableTextBox}" Text="{Binding PublishPayload, Mode=TwoWay}" Height="80" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,14"/>
-
-                            <TextBlock Text="QoS" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <ComboBox SelectedIndex="{Binding PublishQos, Mode=TwoWay}" Style="{StaticResource ReadableCombo}" Margin="0,0,0,14">
-                                <ComboBoxItem Content="0 - At most once"/>
-                                <ComboBoxItem Content="1 - At least once"/>
-                                <ComboBoxItem Content="2 - Exactly once"/>
-                            </ComboBox>
-
-                            <CheckBox Content="Retain" IsChecked="{Binding PublishRetain, Mode=TwoWay}" Margin="0,0,0,14"/>
-
-                            <Button Content="Publicar" Style="{StaticResource PrimaryButton}" Command="{Binding PublishCommand}"/>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Subscribe/Unsubscribe Section -->
-                    <Border Grid.Column="1" Style="{StaticResource WhiteCard}" Margin="0,0,12,0">
-                        <StackPanel>
-                            <TextBlock Text="Gerenciar Tópicos" Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
-                            
-                            <TextBlock Text="Tópico" Foreground="#1F2937" FontSize="13" Margin="0,0,0,6"/>
-                            <TextBox x:Name="SubscribeTopicTextBox" Style="{StaticResource ReadableTextBox}" Text="{Binding SubscribeTopic, Mode=TwoWay}" Margin="0,0,0,14"/>
-
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Inscrever" Style="{StaticResource BlueButton}" Command="{Binding SubscribeCommand}"/>
-                                <Button Content="Remover" Style="{StaticResource SecondaryButton}" Command="{Binding UnsubscribeCommand}"/>
+                <!-- Connection Selector -->
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                    <Border BorderBrush="#6B7280" BorderThickness="4,0,0,0" Padding="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="CONEXÃO MQTT" Style="{StaticResource LabelText}" Margin="0,0,0,8"/>
+                                <ComboBox ItemsSource="{Binding Connections}" DisplayMemberPath="DisplayName" 
+                                          SelectedValuePath="Id" SelectedValue="{Binding SelectedConnectionId}" 
+                                          Style="{StaticResource ReadableCombo}" Width="300"/>
                             </StackPanel>
-
-                            <TextBlock Text="Tópicos Descobertos" Foreground="#111827" FontSize="16" FontWeight="SemiBold" Margin="0,24,0,12"/>
-                            <ItemsControl ItemsSource="{Binding DiscoveredTopics}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,0,0,8">
-                                            <TextBlock Text="{Binding}" Foreground="#111827" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" FontSize="14" Foreground="#6B7280" 
+                                       VerticalAlignment="Center" Margin="24,0,0,0"/>
+                        </Grid>
                     </Border>
+                </Border>
 
-                    <!-- Clients Section -->
-                    <Border Grid.Column="2" Style="{StaticResource WhiteCard}">
-                        <StackPanel>
-                            <TextBlock Text="Clientes Conectados" Foreground="#111827" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16"/>
-                            <ItemsControl ItemsSource="{Binding Clients}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,0,0,8">
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding ClientId}" Foreground="#111827" FontSize="13" FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding LastSeen}" Foreground="#64748B" FontSize="12" Margin="0,2,0,0"/>
-                                                <TextBlock Text="{Binding Connected, Converter={StaticResource BoolToYesNo}}" Foreground="#64748B" FontSize="12" Margin="0,2,0,0"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
-                </Grid>
+                <!-- Error Message -->
+                <Border x:Name="ErrorBorder" Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="16"
+                        Padding="16" Margin="0,0,0,16" Visibility="Collapsed">
+                    <TextBlock x:Name="ErrorText" Foreground="#DC2626" FontWeight="SemiBold" TextWrapping="Wrap" FontSize="14"/>
+                </Border>
 
-                <!-- Tags Section -->
-                <Border Style="{StaticResource WhiteCard}" Margin="0,18,0,0">
+                <!-- Loading State -->
+                <Border x:Name="LoadingBorder" Style="{StaticResource WhiteCard}" Margin="0,0,0,16" Visibility="Collapsed">
+                    <TextBlock Text="Carregando diagnóstico MQTT..." FontSize="14" Foreground="#6B7280" HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Content Grid -->
+                <Grid x:Name="ContentGrid">
                     <StackPanel>
+                        <!-- Connection Status -->
+                        <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                            <Border BorderBrush="#6B7280" BorderThickness="4,0,0,0" Padding="0">
+                                <StackPanel>
+                                    <TextBlock Text="Status da Conexão" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Status" Style="{StaticResource LabelText}"/>
+                                            <TextBlock Text="{Binding StatusText}" Style="{StaticResource ValueText}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Broker" Style="{StaticResource LabelText}"/>
+                                            <TextBlock Text="{Binding Broker}" FontFamily="Consolas" Style="{StaticResource ValueText}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Client ID" Style="{StaticResource LabelText}"/>
+                                            <TextBlock Text="{Binding ClientId}" FontFamily="Consolas" Style="{StaticResource ValueText}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3">
+                                            <TextBlock Text="Monitor ativo" Style="{StaticResource LabelText}"/>
+                                            <TextBlock Text="{Binding FormattedUptime}" FontFamily="Consolas" Style="{StaticResource ValueText}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+
+                        <!-- Statistics Cards -->
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="TAGs MQTT" Foreground="#111827" FontSize="18" FontWeight="SemiBold"/>
-                            <TextBox Grid.Column="1" Width="200" Style="{StaticResource ReadableTextBox}" Text="{Binding TagFilter, Mode=TwoWay}" Margin="0,0,12,0"/>
+                            
+                            <!-- Messages Received -->
+                            <Border Grid.Column="0" Style="{StaticResource WhiteCard}" Margin="0,0,8,0">
+                                <Border BorderBrush="#22C55E" BorderThickness="4,0,0,0" Padding="0">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <Path Data="M2 12L5 9L12 16L19 9L22 12" Stroke="#22C55E" StrokeThickness="2" Fill="Transparent" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Left"/>
+                                            <TextBlock Text="MENSAGENS RECEBIDAS" Style="{StaticResource LabelText}" Margin="24,0,0,0"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding MessageCount}" Style="{StaticResource StatValue}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Border>
+
+                            <!-- Messages Per Second -->
+                            <Border Grid.Column="1" Style="{StaticResource WhiteCard}" Margin="8,0">
+                                <Border BorderBrush="#3B82F6" BorderThickness="4,0,0,0" Padding="0">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <Path Data="M1 1L23 1M1 12L23 12M1 23L23 23" Stroke="#3B82F6" StrokeThickness="2" Fill="Transparent" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Left"/>
+                                            <TextBlock Text="MSGS/SEGUNDO (60s)" Style="{StaticResource LabelText}" Margin="24,0,0,0"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding MessagesPerSecond}" Style="{StaticResource StatValue}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Border>
+
+                            <!-- Connection Failures -->
+                            <Border Grid.Column="2" Style="{StaticResource WhiteCard}" Margin="8,0">
+                                <Border BorderBrush="#F59E0B" BorderThickness="4,0,0,0" Padding="0">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <Path Data="M12 8L12 12M12 16L12 16M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z" Stroke="#F59E0B" StrokeThickness="2" Fill="Transparent" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Left"/>
+                                            <TextBlock Text="FALHAS DE CONEXÃO" Style="{StaticResource LabelText}" Margin="24,0,0,0"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding RetryCount}" Style="{StaticResource StatValue}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Border>
+
+                            <!-- Subscribed Topics -->
+                            <Border Grid.Column="3" Style="{StaticResource WhiteCard}" Margin="8,0,0,0">
+                                <Border BorderBrush="#EF4444" BorderThickness="4,0,0,0" Padding="0">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <Path Data="M5 5L5 19L19 19L19 5L5 5ZM5 9L19 9M5 13L19 13M9 5L9 19" Stroke="#EF4444" StrokeThickness="2" Fill="Transparent" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Left"/>
+                                            <TextBlock Text="TÓPICOS INSCRITOS" Style="{StaticResource LabelText}" Margin="24,0,0,0"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding SubscribedTopics.Count}" Style="{StaticResource StatValue}"/>
+                                    </StackPanel>
+                                </Border>
+                            </Border>
                         </Grid>
-                        
-                        <DataGrid ItemsSource="{Binding Tags}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="True">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="1.5*"/>
-                                <DataGridTextColumn Header="Endereço" Binding="{Binding Address}" Width="2*"/>
-                                <DataGridTextColumn Header="Tipo" Binding="{Binding DataType}" Width="*"/>
-                                <DataGridTextColumn Header="Scan Rate" Binding="{Binding ScanRate}" Width="*"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
+
+                        <!-- Publish Message -->
+                        <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                            <Border BorderBrush="#6B7280" BorderThickness="4,0,0,0" Padding="0">
+                                <StackPanel>
+                                    <TextBlock Text="Publicar Mensagem MQTT" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                            <TextBlock Text="Tópico" Style="{StaticResource LabelText}" Margin="0,0,0,6"/>
+                                            <TextBox Text="{Binding PublishTopic, Mode=TwoWay}" Style="{StaticResource ReadableTextBox}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="8,0">
+                                            <TextBlock Text="Payload" Style="{StaticResource LabelText}" Margin="0,0,0,6"/>
+                                            <TextBox Text="{Binding PublishPayload, Mode=TwoWay}" Style="{StaticResource ReadableTextBox}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="8,0">
+                                            <TextBlock Text="QoS" Style="{StaticResource LabelText}" Margin="0,0,0,6"/>
+                                            <ComboBox SelectedIndex="{Binding PublishQos, Mode=TwoWay}" Style="{StaticResource ReadableCombo}">
+                                                <ComboBoxItem Content="0 - At most once"/>
+                                                <ComboBoxItem Content="1 - At least once"/>
+                                                <ComboBoxItem Content="2 - Exactly once"/>
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Margin="8,0,0,0">
+                                            <TextBlock Text="Retain" Style="{StaticResource LabelText}" Margin="0,0,0,6"/>
+                                            <CheckBox Content="Sim" IsChecked="{Binding PublishRetain, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Button Content="Publicar" Style="{StaticResource PrimaryButton}" Command="{Binding PublishCommand}" Margin="0,16,0,0" HorizontalAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+
+                        <!-- Subscribe/Unsubscribe -->
+                        <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                            <Border BorderBrush="#6B7280" BorderThickness="4,0,0,0" Padding="0">
+                                <StackPanel>
+                                    <TextBlock Text="Inscrever em Tópico MQTT" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="2*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                            <TextBlock Text="Tópico (suporta wildcards: +, #)" Style="{StaticResource LabelText}" Margin="0,0,0,6"/>
+                                            <TextBox Text="{Binding SubscribeTopic, Mode=TwoWay}" Style="{StaticResource ReadableTextBox}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                                            <Button Content="Inscrever" Style="{StaticResource GreenButton}" Command="{Binding SubscribeCommand}" Margin="0,0,4,0"/>
+                                            <Button Content="Desinscrever" Style="{StaticResource PrimaryButton}" Command="{Binding UnsubscribeCommand}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+
+                        <!-- Subscribed Topics and Values Cache -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Subscribed Topics -->
+                            <Border Grid.Column="0" Style="{StaticResource WhiteCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="Tópicos Inscritos" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    <ItemsControl ItemsSource="{Binding SubscribedTopics}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#DBEAFE" CornerRadius="16" Padding="12,6" Margin="0,0,8,8">
+                                                    <TextBlock Text="{Binding}" FontSize="12" FontFamily="Consolas" Foreground="#1E40AF"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="Nenhum tópico inscrito" FontSize="14" Foreground="#6B7280"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Values Cache -->
+                            <Border Grid.Column="1" Style="{StaticResource WhiteCard}" Margin="8,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Cache de Valores" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    <ScrollViewer MaxHeight="150" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel>
+                                            <ItemsControl ItemsSource="{Binding CacheFields}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,0,0,8">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding Topic}" FontSize="11" FontFamily="Consolas" Foreground="#374151"/>
+                                                            <TextBlock Grid.Column="1" Text="{Binding FormattedValue}" FontSize="11" FontFamily="Consolas" Foreground="#111827" TextAlignment="Right"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Text="Nenhum valor em cache" FontSize="14" Foreground="#6B7280"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- MQTT Parser and Tags -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.4*"/>
+                                <ColumnDefinition Width="0.6*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- MQTT Parser -->
+                            <Border Grid.Column="0" Style="{StaticResource WhiteCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="Parser MQTT por tópico" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    
+                                    <TextBox Text="{Binding TagFilter, Mode=TwoWay}" Style="{StaticResource ReadableTextBox}" Margin="0,0,0,12"/>
+                                    <TextBox Text="{Binding TagName, Mode=TwoWay}" Style="{StaticResource ReadableTextBox}" Margin="0,0,0,12"/>
+                                    
+                                    <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel>
+                                            <ItemsControl ItemsSource="{Binding CacheFields}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0">
+                                                                    <TextBlock Text="{Binding Topic}" FontSize="11" FontFamily="Consolas" Foreground="#374151" TextWrapping="Wrap"/>
+                                                                    <TextBlock Text="{Binding Field}" FontSize="14" FontWeight="SemiBold" Foreground="#111827" Margin="0,4,0,0"/>
+                                                                    <TextBlock FontSize="11" Foreground="#6B7280" Margin="0,2,0,0"><Run Text="{Binding DataType}"/><Run Text=" - "/><Run Text="{Binding Address}"/></TextBlock>
+                                                                    <TextBox Text="{Binding TagName, Mode=TwoWay}" Style="{StaticResource ReadableTextBox}" FontSize="11" FontFamily="Consolas" 
+                                                                             IsEnabled="{Binding Exists, Converter={StaticResource InverseBoolConverter}}" Margin="0,4,0,0" Padding="8,4"/>
+                                                                    <TextBlock Text="{Binding FormattedValue, StringFormat='Valor: {0}'}" FontSize="12" Foreground="#374151" Margin="0,4,0,0"/>
+                                                                </StackPanel>
+                                                                <Button Grid.Column="1" Content="+ TAG" Style="{StaticResource SmallButton}" Command="{Binding DataContext.CreateTagCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" 
+                                                                        Visibility="{Binding Exists, Converter={StaticResource BoolToCollapsedConverter}}" Margin="8,0,0,0"/>
+                                                                <Border Grid.Column="1" Background="#ECFDF5" BorderBrush="#10B981" BorderThickness="1" CornerRadius="6" Padding="12,6" 
+                                                                        Visibility="{Binding Exists, Converter={StaticResource BoolToVisibleConverter}}" Margin="8,0,0,0">
+                                                                    <TextBlock Text="Já existe" FontSize="11" FontWeight="SemiBold" Foreground="#047857"/>
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Text="Nenhum tópico descoberto no cache." FontSize="14" Foreground="#6B7280"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                    
+                                    <Button Content="Criar todas as TAGs parseadas" Style="{StaticResource GreenButton}" Command="{Binding CreateAllTagsCommand}" 
+                                            Margin="0,12,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- MQTT Tags -->
+                            <Border Grid.Column="1" Style="{StaticResource WhiteCard}" Margin="8,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="TAGs MQTT cadastradas" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                    <ScrollViewer MaxHeight="500" VerticalScrollBarVisibility="Auto">
+                                        <StackPanel>
+                                            <ItemsControl ItemsSource="{Binding Tags}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0">
+                                                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="#111827"/>
+                                                                    <TextBlock Text="{Binding Address}" FontSize="11" FontFamily="Consolas" Foreground="#6B7280" Margin="0,2,0,0"/>
+                                                                </StackPanel>
+                                                                <Button Grid.Column="1" Content="Excluir" Style="{StaticResource DeleteButton}" Command="{Binding DataContext.DeleteTagCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="8,0,0,0"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Text="Nenhuma TAG MQTT cadastrada." FontSize="14" Foreground="#6B7280"/>
+                                        </StackPanel>
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Discovered Topics -->
+                        <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Tópicos descobertos" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <ItemsControl ItemsSource="{Binding DiscoveredTopics}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding}" FontSize="11" FontFamily="Consolas" Foreground="#374151" TextWrapping="Wrap"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Text="Nenhum tópico descoberto ainda." FontSize="14" Foreground="#6B7280"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Connected Clients -->
+                        <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="Clientes conectados" Style="{StaticResource SectionTitle}" Margin="0,0,0,16"/>
+                                <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <ItemsControl ItemsSource="{Binding Clients}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*"/>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0" Text="{Binding ClientId}" FontSize="11" FontFamily="Consolas" Foreground="#374151" TextWrapping="Wrap" Margin="0,0,12,0"/>
+                                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                                <Border Background="{Binding Connected, Converter={StaticResource ConnectedToBackgroundConverter}}" CornerRadius="4" Padding="8,4" Margin="0,0,8,0">
+                                                                    <TextBlock Text="{Binding Connected, Converter={StaticResource ConnectedToTextConverter}}" FontSize="11" FontWeight="SemiBold" Foreground="{Binding Connected, Converter={StaticResource ConnectedToForegroundConverter}}"/>
+                                                                </Border>
+                                                                <TextBlock Text="{Binding LastSeen}" FontSize="11" Foreground="#6B7280" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Text="Nenhum cliente conectado." FontSize="14" Foreground="#6B7280"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Message Log -->
+                        <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Log de mensagens em tempo real" Style="{StaticResource SectionTitle}"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <Button Content="Limpar" Style="{StaticResource SecondaryButton}" Command="{Binding ClearMessageLogCommand}" Margin="0,0,8,0"/>
+                                    </StackPanel>
+                                </Grid>
+                                <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <ItemsControl ItemsSource="{Binding MessageLog}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                                        <StackPanel>
+                                                            <Grid Margin="0,0,0,8">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding Topic}" FontSize="11" FontFamily="Consolas" FontWeight="SemiBold" Foreground="#374151"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Timestamp}" FontSize="11" Foreground="#6B7280"/>
+                                                            </Grid>
+                                                            <Grid Margin="0,0,0,8">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0"><Run Text="Machine: "/><Run Text="{Binding Machine}" FontWeight="SemiBold" Foreground="#111827"/></TextBlock>
+                                                                <TextBlock Grid.Column="1"><Run Text="Group: "/><Run Text="{Binding Group}" FontWeight="SemiBold" Foreground="#111827"/></TextBlock>
+                                                                <TextBlock Grid.Column="2"><Run Text="Tag: "/><Run Text="{Binding Tag}" FontWeight="SemiBold" Foreground="#111827"/></TextBlock>
+                                                                <TextBlock Grid.Column="3"><Run Text="Value: "/><Run Text="{Binding Value}" FontWeight="SemiBold" Foreground="#111827"/></TextBlock>
+                                                            </Grid>
+                                                            <TextBlock Text="{Binding Payload}" FontSize="11" Foreground="#4B5563" TextWrapping="Wrap" FontFamily="Consolas"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Text="Aguardando mensagens..." FontSize="14" Foreground="#6B7280"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Connection Log -->
+                        <Border Style="{StaticResource WhiteCard}">
+                            <StackPanel>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Log de Conexões" Style="{StaticResource SectionTitle}"/>
+                                    <Button Grid.Column="1" Content="Limpar" Style="{StaticResource SecondaryButton}" Command="{Binding ClearConnectionLogCommand}"/>
+                                </Grid>
+                                <ScrollViewer MaxHeight="150" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <ItemsControl ItemsSource="{Binding ConnectionLog}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Grid.Column="0" Text="{Binding Timestamp}" FontSize="11" FontFamily="Consolas" Foreground="#6B7280" Margin="0,0,16,0"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Event}" FontSize="11" Foreground="#374151" Margin="0,0,16,0"/>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Message}" FontSize="11" Foreground="#111827"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Text="Nenhum evento de conexão" FontSize="14" Foreground="#6B7280"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
+                </Grid>
             </StackPanel>
         </ScrollViewer>
 
         <!-- Notification Modal -->
         <Grid x:Name="NotificationOverlay" Background="#66000000" Visibility="Collapsed">
-            <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="10" Padding="26"
-                    Width="420" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="16" Padding="32"
+                    Width="450" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel>
-                    <TextBlock x:Name="NotificationTitle" Text="Aviso" Foreground="#111827" FontSize="22" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <TextBlock x:Name="NotificationMessage" Foreground="#475569" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,22"/>
+                    <TextBlock x:Name="NotificationTitle" Text="Aviso" Foreground="#111827" FontSize="22" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock x:Name="NotificationMessage" Foreground="#475569" FontSize="14" TextWrapping="Wrap" Margin="0,0,0,24"/>
                     <Button Content="OK" Width="100" HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}" Click="CloseNotification_Click"/>
                 </StackPanel>
             </Border>

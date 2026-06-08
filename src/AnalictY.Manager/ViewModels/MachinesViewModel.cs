@@ -23,6 +23,10 @@ public sealed class MachinesViewModel : ObservableObject
     private string _location = string.Empty;
     private int? _folderId;
     private bool _isActive = true;
+    private bool _showMachineModal;
+    private bool _showFolderModal;
+    private bool _isEditingFolder;
+    private ObservableCollection<MachineFolder> _breadcrumbs = new();
 
     // Folder form fields
     private string _folderName = string.Empty;
@@ -37,17 +41,26 @@ public sealed class MachinesViewModel : ObservableObject
         EditMachineCommand = new RelayCommand(OpenEditMachineModal);
         DeleteMachineCommand = new RelayCommand(DeleteMachine);
         SaveMachineCommand = new RelayCommand(SaveMachine);
+        
         CreateFolderCommand = new RelayCommand(OpenCreateFolderModal);
+        EditFolderCommand = new RelayCommand(OpenEditFolderModal);
+        DeleteFolderCommand = new RelayCommand(DeleteFolder);
         SaveFolderCommand = new RelayCommand(SaveFolder);
+        
+        CloseModalsCommand = new RelayCommand(() => { ShowMachineModal = false; ShowFolderModal = false; });
+        SelectFolderCommand = new RelayCommand<MachineFolder?>(SelectFolder);
 
         Machines = new ObservableCollection<Machine>();
         Folders = new ObservableCollection<MachineFolder>();
         FilteredMachines = new ObservableCollection<Machine>();
+        RootFolders = new ObservableCollection<MachineFolder>();
     }
 
     public ObservableCollection<Machine> Machines { get; }
     public ObservableCollection<MachineFolder> Folders { get; }
+    public ObservableCollection<MachineFolder> RootFolders { get; }
     public ObservableCollection<Machine> FilteredMachines { get; }
+    public ObservableCollection<MachineFolder> Breadcrumbs => _breadcrumbs;
 
     public ICommand RefreshCommand { get; }
     public ICommand CreateMachineCommand { get; }
@@ -55,7 +68,29 @@ public sealed class MachinesViewModel : ObservableObject
     public ICommand DeleteMachineCommand { get; }
     public ICommand SaveMachineCommand { get; }
     public ICommand CreateFolderCommand { get; }
+    public ICommand EditFolderCommand { get; }
+    public ICommand DeleteFolderCommand { get; }
     public ICommand SaveFolderCommand { get; }
+    public ICommand CloseModalsCommand { get; }
+    public ICommand SelectFolderCommand { get; }
+
+    public bool ShowMachineModal
+    {
+        get => _showMachineModal;
+        set => SetProperty(ref _showMachineModal, value);
+    }
+
+    public bool ShowFolderModal
+    {
+        get => _showFolderModal;
+        set => SetProperty(ref _showFolderModal, value);
+    }
+
+    public bool IsEditingFolder
+    {
+        get => _isEditingFolder;
+        set => SetProperty(ref _isEditingFolder, value);
+    }
 
     public bool IsLoading
     {
@@ -186,13 +221,29 @@ public sealed class MachinesViewModel : ObservableObject
                 return;
             }
 
+            var machinesResult = await _configService.GetMachinesAsync();
+            if (!string.IsNullOrWhiteSpace(machinesResult.Error))
+            {
+                ErrorMessage = machinesResult.Error;
+                StatusMessage = "Erro ao carregar máquinas.";
+                return;
+            }
+
             Folders.Clear();
             foreach (var folder in foldersResult.Folders)
             {
                 Folders.Add(folder);
             }
 
-            StatusMessage = $"{Folders.Count} pasta(s) carregada(s).";
+            Machines.Clear();
+            foreach (var machine in machinesResult.Machines)
+            {
+                Machines.Add(machine);
+            }
+
+            BuildFolderTree();
+            FilterMachines();
+            StatusMessage = $"{Machines.Count} máquina(s), {Folders.Count} pasta(s) carregada(s).";
         }
         catch (Exception ex)
         {
@@ -202,6 +253,54 @@ public sealed class MachinesViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    private void BuildFolderTree()
+    {
+        RootFolders.Clear();
+        var folderMap = Folders.ToDictionary(f => f.Id);
+        
+        foreach (var folder in Folders)
+        {
+            folder.SubFolders.Clear();
+        }
+
+        foreach (var folder in Folders)
+        {
+            if (folder.ParentFolderId.HasValue && folderMap.TryGetValue(folder.ParentFolderId.Value, out var parent))
+            {
+                parent.SubFolders.Add(folder);
+            }
+            else
+            {
+                RootFolders.Add(folder);
+            }
+        }
+    }
+
+    private void SelectFolder(MachineFolder? folder)
+    {
+        foreach (var f in Folders) f.IsSelected = false;
+        if (folder != null) folder.IsSelected = true;
+        
+        SelectedFolder = folder;
+        UpdateBreadcrumbs();
+    }
+
+    private void UpdateBreadcrumbs()
+    {
+        _breadcrumbs.Clear();
+        if (SelectedFolder == null) return;
+
+        var path = new List<MachineFolder>();
+        var cursor = SelectedFolder;
+        while (cursor != null)
+        {
+            path.Insert(0, cursor);
+            cursor = Folders.FirstOrDefault(f => f.Id == cursor.ParentFolderId);
+        }
+
+        foreach (var folder in path) _breadcrumbs.Add(folder);
     }
 
     private void FilterMachines()
@@ -238,6 +337,7 @@ public sealed class MachinesViewModel : ObservableObject
         Location = string.Empty;
         FolderId = SelectedFolder?.Id;
         IsActive = true;
+        ShowMachineModal = true;
 
         OnPropertyChanged(nameof(IsEditingMachine));
         return Task.CompletedTask;
@@ -249,10 +349,11 @@ public sealed class MachinesViewModel : ObservableObject
 
         MachineName = SelectedMachine.Name ?? string.Empty;
         MachineCode = SelectedMachine.Code ?? string.Empty;
-        CostCenter = string.Empty;
+        CostCenter = SelectedMachine.CostCenter ?? string.Empty;
         Location = SelectedMachine.Location ?? string.Empty;
         FolderId = int.TryParse(SelectedMachine.FolderId, out var fid) ? fid : null;
-        IsActive = true;
+        IsActive = SelectedMachine.IsActive;
+        ShowMachineModal = true;
 
         OnPropertyChanged(nameof(IsEditingMachine));
         return Task.CompletedTask;
@@ -294,7 +395,8 @@ public sealed class MachinesViewModel : ObservableObject
             if (result.Success)
             {
                 StatusMessage = IsEditingMachine ? "Máquina atualizada com sucesso." : "Máquina criada com sucesso.";
-                await OpenCreateMachineModal();
+                ShowMachineModal = false;
+                await LoadAsync();
             }
             else
             {
@@ -329,6 +431,7 @@ public sealed class MachinesViewModel : ObservableObject
             {
                 StatusMessage = "Máquina excluída com sucesso.";
                 SelectedMachine = null;
+                await LoadAsync();
             }
             else
             {
@@ -347,10 +450,55 @@ public sealed class MachinesViewModel : ObservableObject
 
     public Task OpenCreateFolderModal()
     {
+        IsEditingFolder = false;
         FolderName = string.Empty;
         ParentFolderId = SelectedFolder?.Id;
         IsSector = false;
+        ShowFolderModal = true;
         return Task.CompletedTask;
+    }
+
+    public Task OpenEditFolderModal()
+    {
+        if (SelectedFolder == null) return Task.CompletedTask;
+        
+        IsEditingFolder = true;
+        FolderName = SelectedFolder.Name;
+        ParentFolderId = SelectedFolder.ParentFolderId;
+        IsSector = SelectedFolder.IsSector;
+        ShowFolderModal = true;
+        return Task.CompletedTask;
+    }
+
+    public async Task DeleteFolder()
+    {
+        if (SelectedFolder == null) return;
+
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var result = await _configService.DeleteMachineFolderAsync(SelectedFolder.Id);
+            if (result.Success)
+            {
+                StatusMessage = "Pasta excluída com sucesso.";
+                SelectedFolder = null;
+                await LoadAsync();
+            }
+            else
+            {
+                ErrorMessage = result.Message ?? "Erro ao excluir pasta.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     public async Task SaveFolder()
@@ -373,12 +521,21 @@ public sealed class MachinesViewModel : ObservableObject
                 IsSector = IsSector
             };
 
-            var result = await _configService.CreateMachineFolderAsync(request);
+            OperationResult result;
+            if (IsEditingFolder && SelectedFolder != null)
+            {
+                result = await _configService.UpdateMachineFolderAsync(SelectedFolder.Id, request);
+            }
+            else
+            {
+                result = await _configService.CreateMachineFolderAsync(request);
+            }
+
             if (result.Success)
             {
-                StatusMessage = "Pasta criada com sucesso.";
+                StatusMessage = IsEditingFolder ? "Pasta atualizada com sucesso." : "Pasta criada com sucesso.";
+                ShowFolderModal = false;
                 await LoadAsync();
-                await OpenCreateFolderModal();
             }
             else
             {

@@ -8,73 +8,214 @@
       Background="#F3F5F7"
       FontFamily="Segoe UI">
     
+    <Page.Resources>
+        <Style x:Key="WhiteCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E5E7EB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E5E7EB"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CyanButton" TargetType="Button">
+            <Setter Property="Background" Value="#0891B2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ReadableTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ReadableCombo" TargetType="ComboBox">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Name="ToggleButton" 
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        Foreground="{TemplateBinding Foreground}"
+                                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                        ClickMode="Press">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="6"
+                                                Padding="{TemplateBinding Padding}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                                <Path Grid.Column="1" Data="M0 0 L4 4 L8 0" Fill="#6B7280" Width="10" Height="6" Stretch="Uniform" Margin="8,0,0,0"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                                <ContentPresenter/>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}" Margin="{TemplateBinding Padding}"/>
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                <Grid Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="200">
+                                    <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="6" Margin="0,4,0,0">
+                                        <ScrollViewer Margin="4" SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="LabelText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+    </Page.Resources>
+
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="24">
-                <Grid Margin="0,0,0,24">
-                    <StackPanel Orientation="Horizontal">
-                        <Button Width="40" Height="40" Margin="0,0,16,0"
-                                Background="Transparent" BorderThickness="0"
-                                Cursor="Hand" Click="BackButton_Click">
-                            <Path Data="M6 6L18 18M18 6L6 18" 
-                                  Stroke="#6B7280" StrokeThickness="2" 
-                                  Fill="Transparent" 
-                                  Width="20" Height="20" Stretch="Uniform"/>
+                <!-- Header -->
+                <Border Style="{StaticResource WhiteCard}" Margin="0,0,0,18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Width="40" Height="40" Margin="0,0,12,0" Background="Transparent" BorderThickness="0" Click="BackButton_Click">
+                            <Path Data="M10 19l-7-7m0 0l7-7m-7 7h18" Stroke="#6B7280" StrokeThickness="2" Fill="Transparent" Width="20" Height="20" Stretch="Uniform"/>
                         </Button>
-                        <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="Servidor local" FontSize="28" FontWeight="Bold" Foreground="#111827"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Servidor local" Foreground="#111827" FontSize="24" FontWeight="Bold"/>
+                            <TextBlock Text="Configure o servidor local de acesso" Foreground="#6B7280" FontSize="14" Margin="0,4,0,0"/>
                         </StackPanel>
-                    </StackPanel>
-                </Grid>
+                    </Grid>
+                </Border>
 
-                <Border Background="White" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="12" Padding="24" Margin="0,0,0,24">
+                <Border Style="{StaticResource WhiteCard}">
                     <StackPanel>
-                        <TextBlock Text="Configuração de Servidor Local" FontSize="18" FontWeight="SemiBold" Foreground="#111827" Margin="0,0,0,16"/>
-                        <TextBlock Text="Acesso por localhost ou IP fixo" FontSize="14" Foreground="#6B7280" Margin="0,0,0,16"/>
+                        <TextBlock Text="Configuração de Servidor Local" Foreground="#111827" FontSize="18" FontWeight="Bold" Margin="0,0,0,16"/>
                         
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                        <Border Background="#F8FAFC" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Modo de Rede:" Foreground="#374151" Margin="0,0,0,8"/>
-                            <ComboBox Grid.Row="0" Grid.Column="1" Height="36" Margin="0,0,0,16"
-                                      BorderBrush="#D1D5DB" BorderThickness="1" Padding="8">
-                                <ComboBoxItem Content="Localhost (padrão)"/>
-                                <ComboBoxItem Content="IP Fixo"/>
-                            </ComboBox>
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Modo de Rede" Style="{StaticResource LabelText}"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" Height="36" Margin="0,0,0,12" Style="{StaticResource ReadableCombo}">
+                                        <ComboBoxItem Content="Localhost (padrão)"/>
+                                        <ComboBoxItem Content="IP Fixo"/>
+                                    </ComboBox>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="IP Fixo:" Foreground="#374151" Margin="0,0,0,8"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Height="36" Margin="0,0,0,16"
-                                     BorderBrush="#D1D5DB" BorderThickness="1" Padding="8"
-                                     Text="192.168.55.147"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="IP Fixo" Style="{StaticResource LabelText}"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" Height="36" Margin="0,0,0,12" Style="{StaticResource ReadableTextBox}" Text="192.168.55.147"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Porta Backend:" Foreground="#374151" Margin="0,0,0,8"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Height="36" Margin="0,0,0,16"
-                                     BorderBrush="#D1D5DB" BorderThickness="1" Padding="8"
-                                     Text="5000" IsReadOnly="True"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Porta Backend" Style="{StaticResource LabelText}"/>
+                                    <TextBox Grid.Row="2" Grid.Column="1" Height="36" Margin="0,0,0,12" Style="{StaticResource ReadableTextBox}" Text="5000" IsReadOnly="True"/>
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Porta Frontend:" Foreground="#374151" Margin="0,0,0,8"/>
-                            <TextBox Grid.Row="3" Grid.Column="1" Height="36" Margin="0,0,0,16"
-                                     BorderBrush="#D1D5DB" BorderThickness="1" Padding="8"
-                                     Text="3000" IsReadOnly="True"/>
-                        </Grid>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Porta Frontend" Style="{StaticResource LabelText}"/>
+                                    <TextBox Grid.Row="3" Grid.Column="1" Height="36" Margin="0,0,0,12" Style="{StaticResource ReadableTextBox}" Text="3000" IsReadOnly="True"/>
+                                </Grid>
 
-                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
-                            <Button Content="Salvar Configuração" 
-                                    Background="#0891B2" Foreground="White"
-                                    BorderThickness="0" Padding="16,8"
-                                    Cursor="Hand"/>
-                        </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="12,0,0,0">
+                                    <Button Content="Salvar Configuração" Style="{StaticResource CyanButton}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
 
-                        <Border Background="#F0F9FF" CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                        <Border Background="#F0F9FF" CornerRadius="8" Padding="16" Margin="0,12,0,0">
                             <TextBlock Text="URL de Acesso: http://localhost:3000/config" Foreground="#0369A1" FontSize="14" FontWeight="SemiBold"/>
                         </Border>
                     </StackPanel>

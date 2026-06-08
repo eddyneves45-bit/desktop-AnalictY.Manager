@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace AnalictY.Manager.Models;
 
 // OPC UA
@@ -203,6 +205,12 @@ public sealed class MachineFoldersResult
     public string? Error { get; set; }
 }
 
+public sealed class MachinesResult
+{
+    public List<Machine> Machines { get; set; } = new();
+    public string? Error { get; set; }
+}
+
 // Shifts
 public sealed class ShiftsResult
 {
@@ -212,23 +220,45 @@ public sealed class ShiftsResult
 
 public sealed class Shift
 {
+    private string _startTime = string.Empty;
+    private string _endTime = string.Empty;
+
     public string Id { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public string StartTime { get; set; } = string.Empty;
-    public string EndTime { get; set; } = string.Empty;
+    
+    public string StartTime 
+    { 
+        get => _startTime; 
+        set => _startTime = value?.Length > 5 ? value.Substring(0, 5) : (value ?? string.Empty); 
+    }
+
+    public string EndTime 
+    { 
+        get => _endTime; 
+        set => _endTime = value?.Length > 5 ? value.Substring(0, 5) : (value ?? string.Empty); 
+    }
+
     public string? DaysOfWeek { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; }
+    public bool CountProduction { get; set; } = true;
+
+    public string TimeRange => $"{StartTime} - {EndTime}";
+    public string CrossesMidnightText => string.Compare(EndTime, StartTime) <= 0 ? "Atravessa meia-noite" : "Mesmo dia";
+    public string CountProductionText => CountProduction ? "Conta" : "Não conta";
 }
 
 public sealed class ShiftRequest
 {
+    public string Code { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string StartTime { get; set; } = string.Empty;
     public string EndTime { get; set; } = string.Empty;
     public string? DaysOfWeek { get; set; }
     public string? Description { get; set; }
     public bool IsActive { get; set; }
+    public bool CountProduction { get; set; } = true;
 }
 
 // Telegram
@@ -378,6 +408,10 @@ public sealed class Machine
     public string Location { get; set; } = string.Empty;
     public string FolderId { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
+
+    public string StatusText => IsActive ? "Ativo" : "Inativo";
+    public string StatusColor => IsActive ? "#059669" : "#6B7280";
+    public string StatusBackground => IsActive ? "#DCFCE7" : "#F3F4F6";
 }
 
 // Machine Folder
@@ -387,6 +421,11 @@ public sealed class MachineFolder
     public string Name { get; set; } = string.Empty;
     public int? ParentFolderId { get; set; }
     public bool IsSector { get; set; } = false;
+
+    // UI properties
+    public bool IsSelected { get; set; }
+    public bool IsExpanded { get; set; } = true;
+    public ObservableCollection<MachineFolder> SubFolders { get; set; } = new();
 }
 
 // Machine Request
@@ -445,6 +484,8 @@ public sealed class DiscoveredTag
 public sealed class WeintekBrowserResult
 {
     public List<DiscoveredTag> Tags { get; set; } = new();
+    public List<WeintekPayload> Payloads { get; set; } = new();
+    public List<GatewayAudit> Audits { get; set; } = new();
     public string? Error { get; set; }
 }
 
@@ -462,6 +503,16 @@ public sealed class AlertItem
     public string? AcknowledgedBy { get; set; }
     public string? AcknowledgedAt { get; set; }
     public string CreatedAt { get; set; } = string.Empty;
+
+    public string SeverityColor => Severity switch
+    {
+        "critical" or "high" => "#DC2626",
+        "medium" => "#F97316",
+        _ => "#2563EB"
+    };
+
+    public string StatusText => IsAcknowledged ? "Reconhecido" : "Pendente";
+    public string StatusColor => IsAcknowledged ? "#059669" : "#DC2626";
 }
 
 // Alert Rule
@@ -478,6 +529,10 @@ public sealed class AlertRule
     public int? TelegramConnectionId { get; set; }
     public List<int> TelegramRecipientIds { get; set; } = new();
     public bool IsActive { get; set; } = true;
+
+    public string ConditionText => $"{TagName ?? TagConfigId.ToString()} {Operator} {LimitValue}";
+    public string ActiveText => IsActive ? "Ativa" : "Inativa";
+    public string ActiveColor => IsActive ? "#059669" : "#6B7280";
 }
 
 // Alert Rule Request
@@ -578,6 +633,40 @@ public sealed class User
     public bool IsActive { get; set; }
     public bool MfaRequired { get; set; }
     public bool MfaEnabled { get; set; }
+
+    private static readonly Dictionary<string, string> PermissionLabels = new()
+    {
+        { "goals.manage", "Mudar metas" },
+        { "reports.download", "Baixar relatórios" },
+        { "alert-rules.manage", "Criar alertas" },
+        { "users.manage", "Criar usuários" },
+        { "audit.view", "Acessar auditoria" }
+    };
+
+    public string PermissionsText
+    {
+        get
+        {
+            if (Role == "admin") return "Tudo liberado";
+            if (Role == "user") return "Somente visualização";
+            if (Permissions == null || Permissions.Count == 0) return "Sem permissões";
+            return string.Join(", ", Permissions.Select(p => PermissionLabels.TryGetValue(p, out var label) ? label : p));
+        }
+    }
+
+    public string MfaStatusText
+    {
+        get
+        {
+            if (MfaEnabled) return "MFA ativo";
+            if (MfaRequired) return "MFA pendente";
+            return "MFA opcional";
+        }
+    }
+
+    public bool CanDelete => Role != "admin";
+
+    public string EditButtonText => Role == "admin" ? "Editar admin" : "Editar";
 }
 
 // User Request
@@ -873,4 +962,40 @@ public sealed class VirtualConsoleResult
 {
     public VirtualConsole? Console { get; set; }
     public string? Error { get; set; }
+}
+
+// Weintek Payload
+public sealed class WeintekPayload
+{
+    public string Gateway { get; set; } = string.Empty;
+    public string CostCenter { get; set; } = string.Empty;
+    public string Machine { get; set; } = string.Empty;
+    public string ReceivedAt { get; set; } = string.Empty;
+    public string SourceIp { get; set; } = string.Empty;
+    public Dictionary<string, object> Tags { get; set; } = new();
+
+    public string Summary
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(CostCenter))
+                return $"{CostCenter} / {Machine}";
+            return Machine;
+        }
+    }
+
+    public string PayloadJson => System.Text.Json.JsonSerializer.Serialize(Tags, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+}
+
+// Gateway Audit
+public sealed class GatewayAudit
+{
+    public string Gateway { get; set; } = string.Empty;
+    public string EventType { get; set; } = string.Empty;
+    public string SourceIp { get; set; } = string.Empty;
+    public int StatusCode { get; set; }
+    public string Reason { get; set; } = string.Empty;
+    public string CreatedAt { get; set; } = string.Empty;
+
+    public string EventSummary => $"{EventType} / {StatusCode}";
 }

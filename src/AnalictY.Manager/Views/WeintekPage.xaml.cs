@@ -41,9 +41,15 @@ public partial class WeintekPage : UserControl
         }
     }
 
-    private void ShowError(string message)
+    private void CloseModal_Click(object sender, RoutedEventArgs e)
     {
-        ErrorText.Text = message;
-        ErrorBorder.Visibility = Visibility.Visible;
+        ModalOverlay.Visibility = Visibility.Collapsed;
+    }
+
+    public void ShowModal(string title, string message)
+    {
+        ModalTitle.Text = title;
+        ModalMessage.Text = message;
+        ModalOverlay.Visibility = Visibility.Visible;
     }
 }

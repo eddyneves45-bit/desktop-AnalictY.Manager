@@ -143,6 +143,8 @@ public sealed class UsersViewModel : ObservableObject
 
     public bool IsEditingUser => SelectedUser != null;
     public bool ShowPermissions => Role == "custom";
+    public string SaveButtonText => IsEditingUser && SelectedUser?.Role == "admin" ? "Atualizar admin" : IsEditingUser ? "Atualizar" : "Criar";
+    public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage) && StatusMessage != "Carregando usuários...";
 
     private async Task OnRefreshAsync()
     {
